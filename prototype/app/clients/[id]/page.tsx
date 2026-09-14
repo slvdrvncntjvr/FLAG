@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BadgeCheck, FileText, MessageSquareReply } from "lucide-react";
-import { getClient, reportsFor, TAG_STYLE, POS_TAGS, RISK_TAGS, share } from "@/lib/data";
+import { CLIENTS, getClient, reportsFor, TAG_STYLE, POS_TAGS, RISK_TAGS, share } from "@/lib/data";
+
+export function generateStaticParams() {
+  return CLIENTS.map((c) => ({ id: c.id }));
+}
 import { Reveal } from "@/components/reveal";
 import { SignalBar } from "@/components/client-card";
 import { cn } from "@/lib/utils";
