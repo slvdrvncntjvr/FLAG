@@ -19,7 +19,7 @@ reconciled: 2026-09-14
 
 ## 1. Architecture
 
-Target design for a web application with three user paths: verified freelancers submit reports with proof, moderators review before publishing, and readers plus named clients view aggregates and replies. No code exists yet, so this section describes intent; it must stay Draft until the owner locks it and the code matches. Deployment target and hosting are TBD(owner) per LOG Q4.
+Target design for a web application with three user paths: verified freelancers log engagements with outcome and proof, moderators review before publishing, and readers plus named clients view ratio-first aggregates and replies. No code exists yet, so this section describes intent; it must stay Draft until the owner locks it and the code matches. Deployment target and hosting are TBD(owner) per LOG Q4.
 
 ```
 [ Browser: freelancer ] --> [ Web app ] --> [ API ] --> [ Database ]
@@ -33,11 +33,11 @@ Target design for a web application with three user paths: verified freelancers 
 | Component | Responsibility | Serves | Location |
 |-----------|---------------|--------|----------|
 | Identity and verification | Verify freelancer accounts; gate the report form; mark submissions | PRD-F1 | planned: web app plus API, exact paths TBD(owner) |
-| Report service | Enforce fixed fields and fixed tag set; validate required fields | PRD-F2 | planned: API reports module, exact paths TBD(owner) |
+| Engagement service | Enforce fixed fields, outcome, and fixed tag set; validate required fields and positive-tag rule | PRD-F2 | planned: API engagements module, exact paths TBD(owner) |
 | Proof store | Accept screenshot, invoice, or agreement uploads; link proof to report | PRD-F3 | planned: file store plus API attachments, exact paths TBD(owner) |
 | Moderation | Queue submissions; record approve or reject with reason; publish outcome | PRD-F4 | planned: moderator view plus API review actions, exact paths TBD(owner) |
 | Reply | Let the named client post a timestamped reply that cannot edit the report | PRD-F5 | planned: reply path plus API, exact paths TBD(owner) |
-| Aggregation | Compute per-client report count and per-tag frequency views | PRD-F6 | planned: client pages plus API rollups, exact paths TBD(owner) |
+| Aggregation | Compute per-client engagements logged, positive versus flagged share, and tag distribution; never a score or rank | PRD-F6 | planned: client pages plus API rollups, exact paths TBD(owner) |
 
 ## 3. Data model
 
@@ -48,7 +48,7 @@ Source of truth: TBD(owner) - no schema file exists yet; entities below are the 
 | Freelancer | id, display name, verification status | Has one VerificationCase; files many Reports | Only verified status may file |
 | VerificationCase | id, freelancer ref, method, outcome, decided-by, decided-at | Belongs to Freelancer | Method set TBD(owner) per LOG Q1 |
 | ClientProfile | id, canonical key, display name, aliases | Has many Reports and Replies | Identity key TBD(owner) per LOG Q2 |
-| Report | id, freelancer ref, client ref, engagement period, tags, facts, status | Belongs to Freelancer and ClientProfile; has Proofs and one ModerationCase | Tags from fixed set only |
+| Engagement | id, freelancer ref, client ref, engagement period, outcome, tags, facts, status | Belongs to Freelancer and ClientProfile; has Proofs and one ModerationCase | Outcome in Positive, Mixed, Flagged; tags from fixed set with positive-tag rule |
 | Proof | id, report ref, file ref, kind (screenshot, invoice, agreement) | Belongs to Report | Retention policy TBD(owner) per LOG Q5 |
 | ModerationCase | id, report ref, outcome, reason, decided-by, decided-at | Belongs to Report | Target turnaround 48 hours |
 | Reply | id, report ref, body, posted-at | Belongs to Report and ClientProfile | Cannot mutate the report |
@@ -69,7 +69,7 @@ Target contract; routes below are intent, not running code.
 | GET | /api/moderation/queue | Moderator role | PRD-F4 | Lists pending cases oldest first |
 | POST | /api/moderation/cases/id/decision | Moderator role | PRD-F4 | Approve publishes; reject records reason |
 | POST | /api/reports/id/replies | Scoped client token, TBD(owner) | PRD-F5 | Reply is timestamped and immutable |
-| GET | /api/clients/key | TBD(owner) read policy | PRD-F6 | Returns report count plus per-tag frequency |
+| GET | /api/clients/key | TBD(owner) read policy | PRD-F6 | Returns engagements logged plus outcome share and tag distribution; no score or rank field |
 
 ## 5. Cross-cutting concerns
 
@@ -80,7 +80,7 @@ Target contract; routes below are intent, not running code.
 | Validation | Server-side enforcement of fixed fields, fixed tag set, and mandatory proof; client-side checks mirror but never replace | PRD-F2, PRD-F3 |
 | Error handling | Field-level validation errors on submit; not-found on unknown client keys; forbidden on unverified writes; exact format TBD(owner) with stack choice | PRD-F1, PRD-F2, PRD-F3 |
 | Secrets | No keys or tokens in docs or code; secrets live in TBD(owner) secret store; env files stay gitignored | All IDs |
-| Rate limiting | Throttle report creation, proof upload, and reply posting per account and per network; exact limits TBD(owner) | PRD-F1, PRD-F3, PRD-F5 |
+| Rate limiting | Throttle entry creation, proof upload, and reply posting per account, per client, and per network to block praise-stuffing and pile-ons; exact limits TBD(owner) | PRD-F1, PRD-F2, PRD-F3, PRD-F5 |
 
 Read exposure note: no unauthenticated write surface exists in this design. Whether aggregation reads are public or signed-in-only is TBD(owner); default to signed-in reads until the owner decides, since public client pages raise defamation and scraping risk.
 
@@ -90,9 +90,9 @@ Every Must-Have PRD-F# appears here.
 
 | PRD-F# | Designed | Components | RFC |
 |--------|----------|------------|-----|
-| PRD-F1 | yes | Identity and verification, Report service | N/A |
-| PRD-F2 | yes | Report service | N/A |
-| PRD-F3 | yes | Proof store, Report service | N/A |
+| PRD-F1 | yes | Identity and verification, Engagement service | N/A |
+| PRD-F2 | yes | Engagement service | N/A |
+| PRD-F3 | yes | Proof store, Engagement service | N/A |
 | PRD-F4 | yes | Moderation | N/A |
 | PRD-F5 | yes | Reply | N/A |
 | PRD-F6 | yes | Aggregation | N/A |
@@ -103,7 +103,9 @@ Every Must-Have PRD-F# appears here.
 |-----------|------------------|
 | Free-text-only reports | Cannot be aggregated into tag frequency; breaks the pattern-visibility goal |
 | Publishing without moderation | Raises false-report and defamation risk; contradicts the owner review requirement |
-| Standalone single-report call-out pages | Contradicts IDEA section 4; signal must be aggregate, not one accusation |
+| Standalone single-entry call-out pages | Contradicts IDEA section 4; signal must be aggregate ratio, not one entry |
+| Star scores and leaderboards | Turns neutral context into ranking and endorsement liability; distribution without rank preserves the awareness-only fence |
+| Positives without proof | Invites client-stuffed praise; same proof bar for every outcome keeps positives credible |
 | Legal or escalation module in v1 | Out of scope per IDEA section 4; awareness only |
 
 ## 8. Open questions

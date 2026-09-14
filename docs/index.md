@@ -58,11 +58,11 @@ Every Must-Have feature, from requirement through design to test.
 | PRD-F# | Feature | Priority | In SDD | In QAD | In RFC |
 |--------|---------|----------|--------|--------|--------|
 | PRD-F1 | Verified submission | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
-| PRD-F2 | Structured incident report | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
-| PRD-F3 | Mandatory proof upload | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
+| PRD-F2 | Structured engagement log (balanced outcomes) | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
+| PRD-F3 | Mandatory proof upload (every outcome) | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
 | PRD-F4 | Moderation queue | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
 | PRD-F5 | Right of reply | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
-| PRD-F6 | Aggregation view | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
+| PRD-F6 | Ratio-first aggregation (no score) | Must-Have | yes | N/A (tier 2; no QAD) | N/A |
 
 ---
 
@@ -88,6 +88,7 @@ Every Must-Have feature, from requirement through design to test.
 
 ## 6. Notes
 
-- Tier 2 bootstrap from owner idea dated 2026-09-14. Stack, deployment target, and verification method are TBD(owner) - see LOG open questions.
-- No code exists yet; SDD describes the target design and must stay Draft until the owner locks it.
+- Tier 2 bootstrap from owner idea dated 2026-09-14. Prototype stack pinned in BUILD from prototype/package.json; product datastore, file store, hosting, and verification method are TBD(owner) - see LOG open questions.
+- 2026-09-14 scope shift: incident-only log becomes balanced engagement log with positive, mixed, and flagged outcomes plus FLAG-M6 balance metric. IDs F1-F6 stable, descriptions updated.
+- Prototype in prototype/ is throwaway against Draft docs; SDD stays Draft until code matches a Locked design.
 - INVENTORY and GAP are retrofit-only artifacts and are not part of this suite.
