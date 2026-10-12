@@ -31,7 +31,7 @@ Built on SPINE 0.3.0
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 0.2 | Draft | 2026-10-12 | 2026-09-14 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 0.1 | Draft | 2026-10-12 | 2026-10-12 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 0.1 | Draft | 2026-10-12 | 2026-10-12 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 0.2 | Draft | 2026-10-12 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 0.3 | Draft | 2026-10-12 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 

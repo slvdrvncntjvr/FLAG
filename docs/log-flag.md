@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.2
+doc_version: 0.3
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,6 +19,14 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-12 | Transactional email via Brevo free tier (300/day, no custom domain); `sendMail` selects Brevo if `BREVO_API_KEY` set, else Resend, else dev-console no-op | All-free requirement with no domain yet; MailChannels' free Cloudflare path ended in 2024; fetch-based, no new dependency | BUILD, SDD |
+| 2026-10-12 | Deploy on Cloudflare Workers Free plan to `*.workers.dev` (`flag.factsfirst.workers.dev`); no custom domain or Workers Paid for now; resolves Q4 | Owner: all free. Bundle gzip ~1.76 MiB fits the 3 MiB free limit; verified by `wrangler deploy --dry-run` | BUILD, SDD, OPS, INDEX |
+| 2026-10-12 | Two environments: production (`flag`/`flag-db`, branch `main`) and preview (`flag-dev`/`flag-db-dev`, branch `dev`), separate D1 and per-env secrets | Owner wants separate production and preview links; separate DB keeps test data out of prod | BUILD, OPS |
+| 2026-10-12 | `main`→prod auto-deploys via Workers Builds; `dev`→preview deploys manually with `npm run deploy:dev` | Cloudflare bug workers-sdk #15682 breaks non-production branch builds (dead `WRANGLER_CI_MATCH_TAG`); manual preview until fixed | BUILD, OPS |
+| 2026-10-12 | Privacy notice and terms shipped as real copy (RA 10173 data-subject rights; contact `slvdrvncntjvr@gmail.com`); DRAFT banner removed; resolves Q15 | Owner: "just handle it"; app needed non-draft legal text to serve real users | PRD |
+| 2026-10-12 | Client IP for rate limits read from `cf-connecting-ip`, not the default `x-forwarded-for` | The default header can be spoofed by the client, letting anyone dodge the limits | SDD |
+| 2026-10-12 | Google sign-in and Turnstile stay disabled (no-op without keys); email-code sign-in is the sole auth method for launch | Keys/domain not available; email-code auth is complete and sufficient | SDD, BUILD |
+| 2026-10-12 | Harden email-code input: strip non-digits from the OTP and trim email before submit | Pasted/autofilled codes carried whitespace and failed the exact hash match intermittently | SDD |
 | 2026-10-12 | Test pool pinned as `@cloudflare/vitest-plugin` 1.3.6 instead of `@cloudflare/vitest-pool-workers` 0.23.0 | The old package is deprecated and renamed; 1.3.6 is the newest release past the 7-day wait | BUILD |
 | 2026-10-12 | `USER.role` is null until the user picks freelancer or client at onboarding; it can be picked once and never as moderator or admin | Email-code sign-in creates the account before a role is known; AB-12 forbids role from the request payload | SDD |
 | 2026-10-12 | Better Auth admin plugin not used; ban checked in a session hook, staff roles granted by a FLAG admin action | The plugin adds impersonation, which no PRD feature needs | SDD |
@@ -56,7 +64,6 @@ reconciled: 2026-09-14
 
 | ID | Raised | Question | Blocking | Status |
 |----|--------|----------|----------|--------|
-| Q15 | 2026-10-12 | Who writes the privacy notice and terms text? The app ships with clearly marked draft text until the team supplies it | PRD-F8 | Open |
 | Q14 | 2026-10-12 | Which developer owns which `web/src/features` module? | BUILD §4 | Open |
 | Q13 | 2026-10-12 | Where does PSA's PhilID signing key come from, what exact bytes are signed, and can ePhilID v3 be checked offline? | RFC 001 §4 | Open |
 | Q12 | 2026-10-12 | Which SMS provider sends phone codes, and who pays? | PRD-F1, SDD §5 | Open |
@@ -67,8 +74,8 @@ reconciled: 2026-09-14
 | Q1 | 2026-09-14 | How is freelancer verification performed and who reviews edge cases? | PRD-F1, SDD section 2 | Partly answered 2026-10-12; remainder is Q8 and Q13 |
 | Q2 | 2026-09-14 | How is client identity resolved and deduped without misattribution? | PRD-F6, SDD sections 3-4 | Resolved 2026-10-12 |
 | Q3 | 2026-09-14 | What proof standard publishes versus rejects a report, and who staffs moderation? | PRD-F3, PRD-F4 | Partly answered 2026-10-12; remainder is Q9 |
-| Q4 | 2026-09-14 | What is the deployment target, stack, and hosting budget? | SDD section 1, BUILD sections 2-3 | Partly answered 2026-10-12; open: Workers Paid ($5/month) or Free, and the domain |
-| Q5 | 2026-09-14 | What data-retention and takedown policy governs IDs, proofs, and replies? Who is the data protection contact? | SDD section 5, BUILD section 5 | Open |
+| Q4 | 2026-09-14 | What is the deployment target, stack, and hosting budget? | SDD section 1, BUILD sections 2-3 | Resolved 2026-10-12: Cloudflare Workers Free plan, `*.workers.dev`, no custom domain |
+| Q5 | 2026-09-14 | What data-retention and takedown policy governs IDs, proofs, and replies? Who is the data protection contact? | SDD section 5, BUILD section 5 | Partly answered 2026-10-12: contact is `slvdrvncntjvr@gmail.com`; retention/takedown policy still open |
 | Q6 | 2026-09-14 | Confirm frontmatter owner handle to replace TBD(owner) | All docs | Resolved 2026-10-12 |
 | Q7 | 2026-09-14 | What per-client and per-network rate limits block praise-stuffing and pile-ons without silencing real clusters? | PRD-F2, SDD section 5 | Open |
 
@@ -76,6 +83,8 @@ reconciled: 2026-09-14
 
 | ID | Resolved | Question | Answer |
 |----|----------|----------|--------|
+| Q15 | 2026-10-12 | Who writes the privacy/terms text | Real copy written and shipped (RA 10173 rights, contact `slvdrvncntjvr@gmail.com`); DRAFT banner removed. Final legal review by the team still advisable |
+| Q4 | 2026-10-12 | Deployment target, stack, budget | Cloudflare Workers Free plan on `*.workers.dev` (`flag.factsfirst.workers.dev`); no custom domain or paid plan |
 | Q6 | 2026-10-12 | Owner handle | `slvdrvncntjvr` |
 | Q2 | 2026-10-12 | Client identity and dedupe | Clients register their own account and profile through an engagement invite; there are no profiles created from reports, so there is nothing to dedupe or misattribute |
 
@@ -85,6 +94,7 @@ Approaches tried and abandoned.
 
 | Date | Approach | Why it failed |
 |------|----------|---------------|
+| 2026-10-12 | Auto-deploy preview on push to `dev` via Workers Builds non-production branch builds | Cloudflare bug workers-sdk #15682: branch builds get a `WRANGLER_CI_MATCH_TAG` that belongs to no Worker, so every preview deploy fails the name check. Preview deploys manually via `npm run deploy:dev` until fixed |
 | 2026-10-12 | Static export (`output: "export"`) to Cloudflare Workers static assets | Cannot run auth, uploads, or moderation; replaced by OpenNext on Workers |
 | 2026-10-12 | Sovrun-style motion (Lenis, scroll scaling, draggable cards) across the product | Heavy input latency on low-end Android and in the Messenger webview; reads as marketing, not as a record |
 
