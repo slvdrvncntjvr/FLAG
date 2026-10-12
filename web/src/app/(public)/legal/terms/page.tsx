@@ -1,18 +1,52 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
-import { POLICY_VERSIONS } from "@/lib/policies";
+import { CONTACT_EMAIL, POLICY_VERSIONS } from "@/lib/policies";
 
 export const metadata: Metadata = { title: "Terms" };
 
 export default function Terms() {
   return (
     <LegalPage title="Terms" version={POLICY_VERSIONS.terms}>
-      <p>FLAG is an awareness tool. It is not legal advice, does not resolve disputes, and does not collect payment.</p>
       <p>
-        Every log needs proof and is reviewed by a moderator before anyone else can read it. A false or misleading log
-        is removed and the account can be suspended.
+        By using FLAG you agree to these terms. FLAG is an awareness tool that keeps a moderated, proof-backed record of
+        how clients handle freelance work. It is not legal advice, it does not resolve disputes, and it does not collect
+        or hold payment.
       </p>
-      <p>A client can reply to a published log but cannot edit or delete it.</p>
+
+      <h2 className="font-serif text-lg">Accounts</h2>
+      <p>
+        You must give an email you control and keep your account secure. You choose once whether you are a freelancer or
+        a client; this cannot be changed later. Staff roles are assigned by FLAG, never chosen at sign-up.
+      </p>
+
+      <h2 className="font-serif text-lg">Filing a log</h2>
+      <p>
+        Every log must be truthful and supported by proof. A log without proof is not accepted. A log is reviewed by a
+        moderator and is not visible to anyone else until it is approved. A log that is false, misleading, or filed
+        without a genuine engagement is removed, and the account that filed it may be suspended.
+      </p>
+
+      <h2 className="font-serif text-lg">Clients and replies</h2>
+      <p>
+        A client named in a published log may post one reply. Published logs cannot be edited or deleted by the client,
+        and FLAG does not compute or display any score, rating, rank, or leaderboard.
+      </p>
+
+      <h2 className="font-serif text-lg">Acceptable use</h2>
+      <p>
+        Do not upload content you have no right to share, do not harass anyone, and do not try to defeat verification or
+        rate limits. We may suspend accounts that break these terms or that put others at legal or privacy risk.
+      </p>
+
+      <h2 className="font-serif text-lg">Liability and changes</h2>
+      <p>
+        FLAG is provided as is, without warranty, and we are not liable for how members use information on the service.
+        We may update these terms; when we do, we raise the version and ask you to accept again. Questions go to{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`} className="underline">
+          {CONTACT_EMAIL}
+        </a>
+        .
+      </p>
     </LegalPage>
   );
 }

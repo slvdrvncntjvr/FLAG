@@ -4,22 +4,50 @@
 	"name": "flag",
 	"compatibility_date": "2026-10-01",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"workers_dev": true,
+	"preview_urls": false,
 	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
+	"observability": { "enabled": true },
+
+	// ---- Production (default): deployed from `main` ----
+	// URL: https://flag.factsfirst.workers.dev
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "flag-db",
-			// Placeholder until the owner runs `wrangler d1 create flag-db` (OPS §1)
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_id": "e196d1b5-82e7-45bf-b1c5-725fa1faf184",
 			"migrations_dir": "drizzle"
 		}
 	],
 	"vars": {
-		"BETTER_AUTH_URL": "http://localhost:3000",
-		"MAIL_FROM": "FLAG <no-reply@localhost>"
+		"BETTER_AUTH_URL": "https://flag.factsfirst.workers.dev",
+		"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
 	},
-	"observability": { "enabled": true }
+
+	// ---- Preview environment: deployed from `dev` ----
+	// URL: https://flag-dev.factsfirst.workers.dev
+	// Secrets are per-environment: set with `wrangler secret put <NAME> --env dev`.
+	"env": {
+		"dev": {
+			"name": "flag-dev",
+			"workers_dev": true,
+			"preview_urls": false,
+			"observability": { "enabled": true },
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "flag-db-dev",
+					"database_id": "54aca5df-2ae7-4150-bd75-0f6365e5bfa3",
+					"migrations_dir": "drizzle"
+				}
+			],
+			"vars": {
+				"BETTER_AUTH_URL": "https://flag-dev.factsfirst.workers.dev",
+				"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
+			}
+		}
+	}
 }

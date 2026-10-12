@@ -12,6 +12,7 @@ export type AuthEnv = {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   MAIL_FROM: string;
+  BREVO_API_KEY?: string;
   RESEND_API_KEY?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;

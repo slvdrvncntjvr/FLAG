@@ -1,5 +1,9 @@
 import type { Policy, Role } from "@/server/db/schema";
 
+// The address a user writes to for privacy requests, reports, and support.
+// Replace with a dedicated mailbox or DPO address when one exists.
+export const CONTACT_EMAIL = "slvdrvncntjvr@gmail.com";
+
 // Bump a version to make every user accept that policy again (PRD-F8, QAD S-12).
 export const POLICY_VERSIONS = {
   privacy: "2026-10-12",
