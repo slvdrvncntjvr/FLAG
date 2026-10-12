@@ -13,9 +13,10 @@ export function SignInForm() {
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
+    if (pending) return;
     setPending(true);
     setError(null);
-    const { error } = await authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" });
+    const { error } = await authClient.emailOtp.sendVerificationOtp({ email: email.trim(), type: "sign-in" });
     setPending(false);
     if (error) return setError(error.status === 429 ? "Too many attempts. Wait a minute." : "Could not send the code.");
     setStep("code");
@@ -23,12 +24,19 @@ export function SignInForm() {
 
   async function verify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const otp = String(new FormData(e.currentTarget).get("otp") ?? "");
+    if (pending) return;
+    // Strip spaces and any non-digits: pasted/autofilled codes often carry whitespace,
+    // and the server compares the exact string, so "123456 " would fail.
+    const otp = String(new FormData(e.currentTarget).get("otp") ?? "").replace(/\D/g, "");
+    if (otp.length !== 6) return setError("Enter the 6-digit code.");
     setPending(true);
     setError(null);
-    const { error } = await authClient.signIn.emailOtp({ email, otp });
+    const { error } = await authClient.signIn.emailOtp({ email: email.trim(), otp });
     setPending(false);
-    if (error) return setError("Code is incorrect or expired.");
+    if (error)
+      return setError(
+        error.status === 429 ? "Too many attempts. Wait a minute." : "Code is incorrect or expired.",
+      );
     router.replace("/onboarding");
   }
 
@@ -51,8 +59,8 @@ export function SignInForm() {
         autoComplete="one-time-code" className={`${field} font-mono tracking-widest`} />
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
       <button type="submit" disabled={pending} className={button}>{pending ? "Checking" : "Sign in"}</button>
-      <button type="button" onClick={() => setStep("email")} className="mt-3 w-full py-2 text-sm underline">
-        Use a different email or send a new code
+      <button type="button" onClick={() => { setError(null); setStep("email"); }} className="mt-3 w-full py-2 text-sm underline">
+        Use a different email or send a new code (replaces the current one)
       </button>
     </form>
   );
