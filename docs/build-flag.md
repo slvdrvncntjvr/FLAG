@@ -46,7 +46,7 @@ Read in this order before writing code:
 
 ## 2. Pinned stack
 
-Planned pins for `web/package.json`. Versions read from the npm registry on 2026-10-12; they become manifest-verified when `web/` is scaffolded. Exact versions only, no ranges.
+Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges.
 
 | Layer | Technology | Version | Verified | Source |
 |-------|-----------|---------|----------|--------|
@@ -74,7 +74,7 @@ Planned pins for `web/package.json`. Versions read from the npm registry on 2026
 | Icons | lucide-react | 1.55.0 | 2026-10-12 | https://lucide.dev/ |
 | QR decode (browser) | jsqr | 1.4.0 | 2026-10-12 | https://www.npmjs.com/package/jsqr |
 | CBOR (ID check) | cbor-x | 1.6.6 | 2026-10-12 | https://www.npmjs.com/package/cbor-x |
-| Unit and integration tests | vitest, @cloudflare/vitest-pool-workers | 4.1.11, 0.23.0 | 2026-10-12 | https://developers.cloudflare.com/workers/testing/vitest-integration/ |
+| Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.11, 1.3.6 | 2026-10-12 | https://developers.cloudflare.com/workers/testing/vitest-integration/ |
 | End-to-end tests | @playwright/test | 1.64.0 | 2026-10-12 | https://playwright.dev/ |
 | Lint | eslint, eslint-config-next | 9.39.5, 16.3.8 | 2026-10-12 | https://nextjs.org/docs/app/api-reference/config/eslint |
 | Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/google | bundled by Next | 2026-10-12 | https://nextjs.org/docs/app/getting-started/fonts |
@@ -82,7 +82,7 @@ Planned pins for `web/package.json`. Versions read from the npm registry on 2026
 Version notes:
 - Next 16.4.0 is out, but OpenNext's support PR for it was still open on 2026-10-12. 16.3.8 is the lowest 16.x the adapter accepts and includes the image-optimizer SSRF fix.
 - better-auth below 1.7.7 has a critical magic-link account takeover (GHSA-965c-763c-88jm). Never downgrade.
-- vitest stays on 4.x because `@cloudflare/vitest-pool-workers` 0.23.0 requires vitest ^4.1.0.
+- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin` (package README, 2026-10-12). 1.3.6 (2026-10-02) is the newest release older than 7 days. Its peer range is vitest ^4.1.0.
 - TypeScript stays on 5.x and ESLint on 9.x until Next's tooling confirms the new majors.
 - Wait 7 days after a release before bumping a pin, unless the release fixes a security advisory.
 
@@ -106,7 +106,7 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 ## 3. Commands
 
-Planned script block for `web/package.json`. Run from `web/`. Confirm against the manifest once scaffolded.
+Script block in `web/package.json`, confirmed against the manifest on 2026-10-12. Run from `web/`. `e2e` is planned and lands with Playwright.
 
 | Task | Command |
 |------|---------|
@@ -118,10 +118,10 @@ Planned script block for `web/package.json`. Run from `web/`. Confirm against th
 | Test | `npm test` (`vitest run`) |
 | End-to-end | `npm run e2e` (`playwright test`) |
 | Lint | `npm run lint` (`eslint`) |
-| Typecheck | `npm run typecheck` (`tsc --noEmit`) |
+| Typecheck | `npm run typecheck` (`tsc --noEmit` for the app, then for `tests/`) |
 | Generate migration | `npm run db:generate` (`drizzle-kit generate`) |
 | Apply migrations locally | `npm run db:migrate:local` (`wrangler d1 migrations apply flag-db --local`) |
-| Apply migrations remote | `npm run db:migrate:remote -- --env preview` |
+| Apply migrations remote | `npm run db:migrate:remote -- --env preview` (`wrangler d1 migrations apply flag-db --remote`) |
 | Cloudflare binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv`) |
 | Docs validator | `python $SPINE_HOME/scripts/check.py docs/` (from repo root) |
 
@@ -140,7 +140,7 @@ Long-running commands (dev servers, watchers) must be run by the owner in their 
 | Naming | Files kebab-case; React components PascalCase; server actions verbNoun; DB tables snake_case singular |
 | Error handling | Server actions return `{ ok: true, data }` or `{ ok: false, fieldErrors?, message }` and never throw to the client. Route handlers return JSON `{ error: code }` with the status codes in SDD §5. Another party's data is 404, not 403 |
 | Data access | Pages and actions never call `db` directly; they call functions in `src/server/db/queries/*` that take the viewer as the first argument |
-| Test location | `web/tests/**/*.test.ts` (Vitest in the Workers pool, local D1), `web/e2e/**/*.spec.ts` (Playwright). Negative tests named `nt-<nn>-*.test.ts` to match QAD |
+| Test location | `web/tests/**/*.test.ts` (Vitest in the Workers pool, local D1; config `web/vitest.config.mts`), `web/e2e/**/*.spec.ts` (Playwright). Negative tests named `nt-<nn>-*.test.ts` to match QAD |
 
 ---
 

@@ -41,11 +41,11 @@ Cloudflare Worker  ---  OpenNext adapter  ---  Next.js 16 (web/)
 
 ## 2. Components
 
-Planned locations; nothing under `web/` exists yet. Each feature folder is owned by one developer (BUILD §4).
+Locations under `web/`. Built so far: Auth, Onboarding, Data access for the account tables, Mail. Each feature folder is owned by one developer (BUILD §4).
 
 | Component | Responsibility | Serves | Location |
 |-----------|---------------|--------|----------|
-| Auth | Sessions, sign-in methods, roles, phone OTP, the `requireViewer` guard | PRD-F7, PRD-F1 | `web/src/server/auth` |
+| Auth | Sessions, sign-in methods, roles, phone OTP, the `requireViewer` guard. Better Auth core plus the email-OTP plugin; the admin plugin is not used, so there is no impersonation | PRD-F7, PRD-F1 | `web/src/server/auth` |
 | Onboarding | Policy versions, acknowledgment screens, the acceptance gate | PRD-F8 | `web/src/features/onboarding` |
 | Verification | Phone step, portfolio links, ID check, verification case submission | PRD-F1 | `web/src/features/verification` |
 | Engagements | Create engagement, invite link, client sign-up and accept or decline, client profile | PRD-F9 | `web/src/features/engagements` |
@@ -58,7 +58,7 @@ Planned locations; nothing under `web/` exists yet. Each feature folder is owned
 
 ## 3. Data model
 
-**Schema file:** none yet (design-first)
+**Schema file:** `web/src/server/db/schema.ts` (USER, SESSION, ACCOUNT, AUTH_VERIFICATION, POLICY_ACCEPTANCE so far; the other entities are design-first)
 
 The ERD below is the schema contract (hard rule 16): code may only use the entities, fields, and relationships it defines. Types are D1/SQLite storage types as Drizzle will declare them: `text` (including ISO-8601 timestamps and enum values), `integer` (including booleans as 0/1 and money in centavos).
 
@@ -91,7 +91,7 @@ erDiagram
         text email UK
         integer email_verified
         text image "nullable"
-        text role "freelancer | client | moderator | admin"
+        text role "nullable until chosen at onboarding; freelancer | client | moderator | admin"
         integer banned
         text ban_reason "nullable"
         text phone_number UK "nullable, E.164"
@@ -118,6 +118,8 @@ erDiagram
         text refresh_token "nullable, secret"
         text id_token "nullable, secret"
         text access_token_expires_at "nullable"
+        text refresh_token_expires_at "nullable"
+        text password "nullable, always null; Better Auth core column, no password sign-in"
         text scope "nullable"
         text created_at
         text updated_at

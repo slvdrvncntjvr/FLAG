@@ -19,6 +19,11 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-12 | Test pool pinned as `@cloudflare/vitest-plugin` 1.3.6 instead of `@cloudflare/vitest-pool-workers` 0.23.0 | The old package is deprecated and renamed; 1.3.6 is the newest release past the 7-day wait | BUILD |
+| 2026-10-12 | `USER.role` is null until the user picks freelancer or client at onboarding; it can be picked once and never as moderator or admin | Email-code sign-in creates the account before a role is known; AB-12 forbids role from the request payload | SDD |
+| 2026-10-12 | Better Auth admin plugin not used; ban checked in a session hook, staff roles granted by a FLAG admin action | The plugin adds impersonation, which no PRD feature needs | SDD |
+| 2026-10-12 | Turnstile on sign-up deferred until site and secret keys exist | Keys are not issued yet; sign-in is rate limited by Better Auth in the meantime | SDD |
+| 2026-10-12 | Owner authorizes building PRD-F7 and PRD-F8 against Draft docs on `foverhaul`; docs checkpoint `spine-cp-2026-10-12-1` taken first | Owner: "proceed with the next steps"; Week 1-2 of the course schedule | LOG, BUILD |
 | 2026-10-12 | Retire `prototype/`; build a fresh app in `web/` on the `foverhaul` branch | Owner: fresh app, docs first. Static export cannot do auth, uploads, or moderation | BUILD, SDD, INDEX |
 | 2026-10-12 | Re-initialize SPINE at 0.3.0, tier 3; add QAD, OPS, and RFC 001 | Real launch with personal data and named businesses; owner re-ran init | INDEX, all |
 | 2026-10-12 | Eight invariants INV-1 to INV-8 | Owner selected all eight proposed must-never rules | IDEA, PRD, SDD, BUILD, QAD, INDEX |
@@ -51,6 +56,7 @@ reconciled: 2026-09-14
 
 | ID | Raised | Question | Blocking | Status |
 |----|--------|----------|----------|--------|
+| Q15 | 2026-10-12 | Who writes the privacy notice and terms text? The app ships with clearly marked draft text until the team supplies it | PRD-F8 | Open |
 | Q14 | 2026-10-12 | Which developer owns which `web/src/features` module? | BUILD §4 | Open |
 | Q13 | 2026-10-12 | Where does PSA's PhilID signing key come from, what exact bytes are signed, and can ePhilID v3 be checked offline? | RFC 001 §4 | Open |
 | Q12 | 2026-10-12 | Which SMS provider sends phone codes, and who pays? | PRD-F1, SDD §5 | Open |

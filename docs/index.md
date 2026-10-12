@@ -108,6 +108,7 @@ Change records against `Locked` documents. See engine §7.3.
 ## 6. Notes
 
 - 2026-10-12 overhaul on branch `foverhaul`: tier raised from 2 to 3; product reshaped around the engagement handshake, eight owner-confirmed invariants, and the course SMART goals in `group_context/`. Feature IDs PRD-F1 to PRD-F6 keep their meaning; PRD-F7 to PRD-F13 are new.
+- 2026-10-12: PRD-F7 and PRD-F8 built on `foverhaul` against Draft docs with owner authorization (LOG); 13 Vitest cases pass in the Workers pool. Verification status (PRD-F1) does not exist yet, so `requireVerifiedFreelancer()` refuses everyone.
 - `prototype/` is the retired static mock; it is not described by any doc and will be deleted once `web/` reaches parity.
 - `reconciled` dates on carried-over docs stay at 2026-09-14 until the owner confirms them; the agent does not advance them.
 - Build order mapped to the course weeks: Week 1-2 PRD-F7, PRD-F8; Week 3-4 PRD-F1, PRD-F9; Week 4-5 PRD-F2, PRD-F3; Week 5-6 PRD-F4, PRD-F5, PRD-F6, PRD-F10; Week 7-8 pilot.
