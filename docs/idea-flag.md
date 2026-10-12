@@ -1,13 +1,13 @@
 ---
 spine_type: IDEA
-spine_version: 0.2.0
+spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.1
+doc_version: 0.2
 status: Draft
-owner: TBD(owner)
+owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-10-12
 reconciled: 2026-09-14
 ---
 
@@ -17,57 +17,78 @@ reconciled: 2026-09-14
 
 ## 1. One-line summary
 
-FLAG is a community-kept engagement log where verified freelancers record structured, evidence-backed outcomes about clients, positive and negative, so others can see the full pattern before entering an engagement.
+FLAG is a moderated engagement log where verified Philippine freelancers record proof-backed outcomes of work with clients who are registered on the platform and accepted the engagement, so the next freelancer can see a client's full record before taking the job.
 
 ## 2. The problem
 
-Freelancers working through direct clients, social media, or local gigs - a large share of the Philippine freelance workforce - have no reliable shared record of client behavior. Good clients are invisible and bad patterns repeat: on-time payment and clear scope go unrecorded while late payment, non-payment, unresponsiveness, and scope creep hit each new freelancer blind. Existing marketplaces only allow ratings inside closed ecosystems, and complaint-only boards skew negative with no base rate. The cost is repeated unpaid work on one side and good clients who cannot prove they are good on the other.
+Freelancers who work through direct clients, social media, and local gigs - a large share of the Philippine freelance workforce - have no shared record of how a client behaves. Upwork and Freelancer.com ratings stay inside their own platforms. What exists instead is unmoderated "freedom wall" pages and public callout posts: disorganized, mostly negative, rarely backed by proof, and a legal risk for the freelancer who posts them. Good clients cannot show they pay on time, and bad patterns (late payment, non-payment, going silent, scope creep) hit each new freelancer without warning.
 
 ## 3. Who it is for
 
 | User | What they need | How they work around it today |
 |------|----------------|-------------------------------|
-| Freelancers in direct and off-platform work | To check the full pattern for a client, share of on-time and clean engagements versus late, unpaid, unresponsive, or creeping ones, before accepting work | Ask around in group chats and communities; rely on anecdotes with no structure or proof |
-| Freelancers who finished an engagement | To log what happened, good or bad, with proof, so the next person gets base rate plus incidents | Post screenshots or stories on social media; praise vanishes and complaints scatter with no aggregate |
-| Named clients and businesses open to reply | To see what is said about them and respond or clarify in one place | No shared venue; disputes play out across disconnected threads |
+| Freelancer checking a client | See how past engagements with this client went - share on time and clean versus late, unpaid, unresponsive, or creeping - before accepting work | Asking in group chats; scrolling freedom-wall pages with no structure or proof |
+| Freelancer finishing an engagement | Record what happened, good or bad, with proof, without exposing themselves to a libel complaint | Posting screenshots on Facebook; praise disappears and complaints scatter |
+| Client registered on FLAG | Accept engagements, see what is logged about them, reply in one place, and build a visible on-time record | No venue; disputes play out across disconnected threads |
+| Moderator (project team at pilot) | Check every log and every verification against its proof before anything is visible | Not applicable today |
 
 ## 4. Out of scope
 
 Explicit non-goals. Anything listed here must not appear in the PRD, the SDD, or the code without a change record.
 
-- Legal advice, dispute resolution, mediation, or enforcement of payment - FLAG is awareness only
-- Escalation workflows such as collections, takedowns, or blacklists that block a client from work
-- Single-report public call-outs - published signal is aggregated by client with outcome ratio and tag frequency, not one entry alone
-- Importing or mirroring ratings from closed marketplaces such as Upwork or Freelancer.com
-- Functioning as a hiring marketplace, endorsement wall, or background-check service - positive logs are pattern context, not recommendations
-- Star scores or ranked leaderboards - distribution is shown, clients are never ranked
+- Legal advice, dispute resolution, mediation, or payment enforcement. FLAG is an awareness tool only.
+- Escalation workflows: collections, takedown demands against clients, blacklists that block a client from working.
+- Logs about businesses or people who do not have a FLAG account and did not accept the engagement. There are no profiles created on someone's behalf.
+- Single-entry callout pages. A log is always shown inside its client's aggregate record.
+- Star scores, ratings, rankings, leaderboards, or endorsement badges, for clients or freelancers.
+- Hiring marketplace features: clients browsing, searching, or recruiting freelancers; job posts; proposals.
+- Payments, escrow, or invoicing through FLAG.
+- Importing or mirroring ratings from Upwork, Freelancer.com, or any other platform.
+- Background-check or credit-check positioning.
+- Native mobile apps and third-party platform integrations for v1.
+
+### 4.1 Invariants (must-never rules)
+
+Rules the product must never break, in any feature, at any time. Each one is traced to where it is enforced and to a negative test that tries to break it (`INDEX` §3.1). Confirmed by the owner on 2026-10-12.
+
+| ID | The product must never | Why | Status |
+|----|------------------------|-----|--------|
+| INV-1 | Publish an engagement log that a human moderator has not approved | Unreviewed claims about named businesses are the libel and false-report risk FLAG exists to avoid | Active |
+| INV-2 | Accept an engagement log that has no proof file, or that is attached to an engagement the client did not accept | Proof and client consent are the two facts that separate FLAG from a freedom wall | Active |
+| INV-3 | Store a raw government ID image or a full government ID number | ID images are high-risk personal data under the Data Privacy Act; a breach would be severe | Active |
+| INV-4 | Show a proof file to anyone other than moderators, the freelancer who filed it, and the named client | Proof files contain chats, amounts, and personal data of both parties | Active |
+| INV-5 | Compute or display a score, star rating, rank, or leaderboard for any client or freelancer | A score turns pattern context into a recommendation, with different liability, and invites gaming | Active |
+| INV-6 | Let a client edit or delete a published engagement log | The client's channel is the reply; changing the record would defeat it | Active |
+| INV-7 | Serve client records or engagement logs to signed-out visitors or search engines | Public, indexed pages raise defamation and scraping exposure | Active |
+| INV-8 | Let a freelancer file a log or corroborate before they are verified and have completed the onboarding acknowledgment | Every claim must trace to an accountable, informed person | Active |
+
+Status vocabulary: `Active`, `Retired`.
 
 ## 5. Success looks like
 
-Observable outcomes, not features.
-
-- A freelancer can check a client name and see engagements logged, share positive versus flagged, and which tags recur, before deciding to engage
-- Every published entry links to supporting proof and shows its moderation outcome, whether the outcome is positive or flagged
-- Moderation decisions complete within 48 hours per report
-- Every published report offers the named client a visible way to respond
-- Within the first month post-launch: 50 verified users and 20 submitted reports
+- A freelancer types a client's name and, within a few seconds on a mid-range Android phone, sees how many engagements were logged, how many were positive, mixed, or flagged, and which tags recur.
+- Every visible log has proof that a moderator reviewed, a review date, and a reply from the client if they gave one.
+- At least 90 percent of submissions get a moderator decision within 48 hours.
+- Every freelancer who files has been verified and has acknowledged the proof requirement and the awareness-only boundary.
+- The pilot runs with 20 to 30 participants (students, part-timers, non-professional freelancers) and reaches at least 80 percent satisfaction in the post-test survey.
 
 ## 6. Constraints
 
 | Kind | Constraint | Source |
 |------|-----------|--------|
-| Time | Verification live within 4 weeks; report plus proof within 6 weeks; moderation queue by week 8; reply by week 10 | owner SMART goals |
-| Platform | Hosting and stack TBD(owner) - no manifest exists yet | TBD(owner) |
-| Cost | Budget and moderation staffing TBD(owner) | TBD(owner) |
-| Trust and safety | Must handle defamation and false-report risk; review flow required before publishing; exact policy TBD(owner) | owner idea plus feasibility note |
-| Privacy | Handling of personal data and ID documents must follow a stated retention policy; policy TBD(owner) | feasibility note |
+| Time | Course schedule: onboarding and legal module Oct 12-31; verification and client registration Nov 1-14; report form and proof Nov 8-21; moderation and corroboration Nov 15-28; pilot and UAT Nov 29 - Dec 12; buffer to Dec 16; final documents Dec 17-23, 2026 | group_context tracker, GEN ROADMAP and WBS sheets |
+| People | Three developers, two QA, two documentation, one project manager; the team staffs moderation during the pilot | group_context Directory sheet; owner 2026-10-12 |
+| Platform | Cloudflare | owner 2026-10-12 |
+| Cost | Student budget; free tiers wherever possible. Exact ceiling `TBD(owner)` | owner |
+| Legal | Data Privacy Act of 2012 (RA 10173): privacy notice, consent, retention, and a named contact for data requests. Cyber libel exposure (RA 10175) for logs about named businesses | group docs Goal 1; feasibility notes |
+| Language | English only in the product | owner 2026-10-12 |
+| Copy | Product copy states facts plainly. No filler like "this is for..." or marketing phrasing | owner 2026-10-12 |
 
 ## 7. Open questions
 
-Questions blocking downstream docs. Mirrored into LOG.
+Questions blocking downstream docs. Mirrored into `LOG`.
 
-- TBD(owner) How is freelancer verification performed - which ID, portfolio, or account checks, and who reviews edge cases?
-- TBD(owner) How is a client identity resolved and deduped - by business name, page, email domain, or another key - without enabling misattribution?
-- TBD(owner) Who staffs moderation, and what proof standard publishes versus rejects a report?
-- TBD(owner) What is the deployment target and hosting budget for launch?
-- TBD(owner) What data-retention and takedown policy governs IDs, proofs, and replies?
+- `TBD(owner)` What does a freelancer without a PhilID or ePhilID use to verify, given INV-3? (LOG Q8)
+- `TBD(owner)` Who is the named data protection contact, and what retention period applies to proofs, logs, and replies? (LOG Q5)
+- `TBD(owner)` What per-account, per-client, and per-network limits stop praise-stuffing and pile-ons? (LOG Q7)
+- `TBD(owner)` What is the monthly hosting ceiling after the pilot? (LOG Q4)

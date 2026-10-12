@@ -1,13 +1,13 @@
 ---
 spine_type: LOG
-spine_version: 0.2.0
+spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.1
+doc_version: 0.2
 status: Draft
-owner: TBD(owner)
+owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-10-12
 reconciled: 2026-09-14
 ---
 
@@ -19,12 +19,28 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-12 | Retire `prototype/`; build a fresh app in `web/` on the `foverhaul` branch | Owner: fresh app, docs first. Static export cannot do auth, uploads, or moderation | BUILD, SDD, INDEX |
+| 2026-10-12 | Re-initialize SPINE at 0.3.0, tier 3; add QAD, OPS, and RFC 001 | Real launch with personal data and named businesses; owner re-ran init | INDEX, all |
+| 2026-10-12 | Eight invariants INV-1 to INV-8 | Owner selected all eight proposed must-never rules | IDEA, PRD, SDD, BUILD, QAD, INDEX |
+| 2026-10-12 | Owner handle `slvdrvncntjvr` in frontmatter | Owner answer; resolves Q6 | all |
+| 2026-10-12 | Client model: engagement handshake; clients must register and accept before a log is possible; no profiles created on someone's behalf | Owner wants being on the platform to be the premise for being logged; consent cuts libel and misattribution risk; resolves Q2 | IDEA, PRD, SDD |
+| 2026-10-12 | Balanced outcomes kept, plus corroboration limited to freelancers with their own accepted engagement with that client | Reconciles the repo pivot with the course Goal 4 upvote; the restriction blocks pile-ons | PRD, SDD |
+| 2026-10-12 | Clients do not browse or recruit freelancers | Owner: not a marketplace | IDEA, PRD |
+| 2026-10-12 | Client records visible to signed-in users only, never indexed | Owner choice; defamation and scraping exposure | IDEA, PRD, SDD |
+| 2026-10-12 | Verification: phone code, portfolio link, PhilID QR signature check storing only an HMAC of the PCN, then moderator approval | Course Goal 2 requires ID validation; owner wanted an alternative to storing IDs; resolves Q1 in part | PRD, SDD, RFC 001 |
+| 2026-10-12 | Proof files visible to moderators, the filer, and the named client only | Owner choice; Data Privacy Act exposure | IDEA, PRD, SDD |
+| 2026-10-12 | Moderation staffed by the project team during the pilot | Course docs: admin moderation by the team; resolves Q3 in part | IDEA, PRD |
+| 2026-10-12 | English only; plain, factual copy with no filler phrasing | Owner | IDEA, BUILD |
+| 2026-10-12 | Interface direction: civic record (public-record explorer, docket), replacing the Sovrun marketing style in the app | Owner chose "rethink the look" then "civic record"; research showed scroll-heavy motion hurts low-end Android | BUILD |
+| 2026-10-12 | Stack: Next 16.3.8 on OpenNext Cloudflare 1.20.10, D1 with Drizzle, R2, Better Auth 1.7.7, shadcn on Base UI | Owner chose Cloudflare; versions checked on npm 2026-10-12; OpenNext requires Next 16.3.8 or newer; Better Auth below 1.7.7 has a critical advisory; resolves Q4 in part | BUILD, SDD |
+| 2026-10-12 | Proofs stream through the Worker; no presigned URLs | Presigned PUT cannot enforce size; presigned GET links can be shared | SDD |
+| 2026-10-12 | Module ownership per developer under `web/src/features/<module>` | Owner choice; three developers working in parallel | BUILD |
 | 2026-09-14 | Bootstrap Tier 2 with slug flag | Owner requested tier 2; app has users, state, and a deploy target | INDEX, IDEA, BUILD, LOG, PRD, SDD |
 | 2026-09-14 | Scope pinned as awareness-only; no escalation, legal, or dispute module | Owner idea states FLAG is not a legal or dispute-resolution tool | IDEA, PRD |
 | 2026-09-14 | Six Must-Have features F1-F6 carried from owner core features | Owner listed verification, structured reports, proof, moderation, reply, aggregation | PRD, SDD, INDEX |
 | 2026-09-14 | Stack and commands left as TBD(owner) | No manifest exists in the repo; versions must be read, not guessed | BUILD |
 | 2026-09-14 | Throwaway prototype on dev against Draft docs (owner override) | Owner said proceed; Next.js 16 + Tailwind v4 + motion + lucide in prototype/, mock data only, docs stay Draft | LOG |
-| 2026-09-14 | Unslop pass: Ledger/Newspaper direction, docs terms out of UI | Removed PRD-F* from UI; serif headlines + mono meta + sans body; ledger rows replace pills/gradients; fixed scroll-behavior warning | LOG |
+| 2026-09-14 | Unslop pass: Ledger/Newspaper direction, docs terms out of UI | Removed feature IDs from UI; serif headlines + mono meta + sans body; ledger rows replace pills/gradients; fixed scroll-behavior warning | LOG |
 | 2026-09-14 | Scope shift to balanced engagement log with FLAG-M6 | Incident-only skewed base rate and read as wall of shame; balanced outcomes give context, keep same proof and review bar, show ratio never score; anti-gaming via per-client rate limits | IDEA, PRD, SDD, INDEX |
 | 2026-09-14 | Prototype v2: scroll-driven ledger plus balanced data | Scroll-shrinking serif hero, velocity-reactive strip, vertical-drives-horizontal client rail, ratio-first cards and timelines; data now 96 engagements with outcome split | LOG |
 | 2026-09-14 | Revamp to Sovrun language: Lenis, display scale, draggable, tabs, dark scale | Studied sovrun.org: Lenis smooth, specimen labels, huge display, draggable elem, tabs, dark scaling section, red/blue on off-white/black; rebuilt hero, rail, footer around balanced log | LOG |
@@ -35,19 +51,27 @@ reconciled: 2026-09-14
 
 | ID | Raised | Question | Blocking | Status |
 |----|--------|----------|----------|--------|
-| Q1 | 2026-09-14 | How is freelancer verification performed and who reviews edge cases? | PRD-F1, SDD section 2 | Open |
-| Q2 | 2026-09-14 | How is client identity resolved and deduped without misattribution? | PRD-F6, SDD sections 3-4 | Open |
-| Q3 | 2026-09-14 | What proof standard publishes versus rejects a report, and who staffs moderation? | PRD-F3, PRD-F4 | Open |
-| Q4 | 2026-09-14 | What is the deployment target, stack, and hosting budget? | SDD section 1, BUILD sections 2-3 | Open |
-| Q5 | 2026-09-14 | What data-retention and takedown policy governs IDs, proofs, and replies? | SDD section 5, BUILD section 5 | Open |
-| Q6 | 2026-09-14 | Confirm frontmatter owner handle to replace TBD(owner) | All docs | Open |
+| Q14 | 2026-10-12 | Which developer owns which `web/src/features` module? | BUILD §4 | Open |
+| Q13 | 2026-10-12 | Where does PSA's PhilID signing key come from, what exact bytes are signed, and can ePhilID v3 be checked offline? | RFC 001 §4 | Open |
+| Q12 | 2026-10-12 | Which SMS provider sends phone codes, and who pays? | PRD-F1, SDD §5 | Open |
+| Q11 | 2026-10-12 | What is the corroboration target for FLAG-M7? | PRD §5 | Open |
+| Q10 | 2026-10-12 | How long is the client's reply window around publication? | PRD-F5 | Open |
+| Q9 | 2026-10-12 | What proof standard approves versus rejects a log? | PRD-F4 | Open |
+| Q8 | 2026-10-12 | What does a freelancer without a PhilID or ePhilID use to verify, given INV-3? | PRD-F1, RFC 001 | Open |
+| Q1 | 2026-09-14 | How is freelancer verification performed and who reviews edge cases? | PRD-F1, SDD section 2 | Partly answered 2026-10-12; remainder is Q8 and Q13 |
+| Q2 | 2026-09-14 | How is client identity resolved and deduped without misattribution? | PRD-F6, SDD sections 3-4 | Resolved 2026-10-12 |
+| Q3 | 2026-09-14 | What proof standard publishes versus rejects a report, and who staffs moderation? | PRD-F3, PRD-F4 | Partly answered 2026-10-12; remainder is Q9 |
+| Q4 | 2026-09-14 | What is the deployment target, stack, and hosting budget? | SDD section 1, BUILD sections 2-3 | Partly answered 2026-10-12; open: Workers Paid ($5/month) or Free, and the domain |
+| Q5 | 2026-09-14 | What data-retention and takedown policy governs IDs, proofs, and replies? Who is the data protection contact? | SDD section 5, BUILD section 5 | Open |
+| Q6 | 2026-09-14 | Confirm frontmatter owner handle to replace TBD(owner) | All docs | Resolved 2026-10-12 |
 | Q7 | 2026-09-14 | What per-client and per-network rate limits block praise-stuffing and pile-ons without silencing real clusters? | PRD-F2, SDD section 5 | Open |
 
 ## 3. Resolved questions
 
 | ID | Resolved | Question | Answer |
 |----|----------|----------|--------|
-| - | | | |
+| Q6 | 2026-10-12 | Owner handle | `slvdrvncntjvr` |
+| Q2 | 2026-10-12 | Client identity and dedupe | Clients register their own account and profile through an engagement invite; there are no profiles created from reports, so there is nothing to dedupe or misattribute |
 
 ## 4. Dead ends
 
@@ -55,4 +79,11 @@ Approaches tried and abandoned.
 
 | Date | Approach | Why it failed |
 |------|----------|---------------|
-| - | | |
+| 2026-10-12 | Static export (`output: "export"`) to Cloudflare Workers static assets | Cannot run auth, uploads, or moderation; replaced by OpenNext on Workers |
+| 2026-10-12 | Sovrun-style motion (Lenis, scroll scaling, draggable cards) across the product | Heavy input latency on low-end Android and in the Messenger webview; reads as marketing, not as a record |
+
+## 5. Recoveries
+
+| Date | Checkpoint | What went wrong | Resolution | Docs restored |
+|------|------------|-----------------|------------|---------------|
+| — | | | | |
