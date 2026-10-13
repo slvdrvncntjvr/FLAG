@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.2
+doc_version: 0.4
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-12
+updated: 2026-10-13
 reconciled: 2026-09-14
 ---
 
@@ -31,7 +31,9 @@ Read in this order before writing code:
 6. This guide
 7. `QAD` - before calling anything done
 
-**Only build against `Locked` docs.** All docs are `Draft` as of 2026-10-12. The owner may authorize building a specific feature against Draft; record that in `LOG`.
+**Only build against `Locked` docs.** All docs are `Draft` as of 2026-10-13. The owner may authorize building a specific feature against Draft; record that in `LOG`.
+
+Docs-only alignment changes no shipped legal pages: the live privacy/terms copy still reflects the prior scope (no rating, one public reply, permanent retention) and must be reconciled with the approved contract before launch of the new scope.
 
 ### To build X, read Y
 
@@ -46,7 +48,9 @@ Read in this order before writing code:
 
 ## 2. Pinned stack
 
-Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges.
+Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges. No versions bumped in this alignment (2026-10-13).
+
+QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pilot verification is manual live inspection, and no paid-SMS or QR-scan dependency is required for v1. They are not in `web/package.json` as installed deps. Brevo is preferred at runtime via fetch (no npm dep); `resend` stays as the fallback.
 
 | Layer | Technology | Version | Verified | Source |
 |-------|-----------|---------|----------|--------|
@@ -149,14 +153,14 @@ Long-running commands (dev servers, watchers) must be run by the owner in their 
 Repo-specific prohibitions. These are enforced like engine §8 Hard Rules.
 
 - Never commit secrets. Secrets live in Wrangler secrets per environment and in `web/.dev.vars` locally, which is gitignored. `group_context/` holds course files with member names; it stays out of git unless the team agrees otherwise.
-- **INV-1:** only `decideCase` sets a log or reply to `published`. Reader queries filter on `status = 'published'` unless the viewer is a party or a moderator.
-- **INV-2:** `submitLog` checks the engagement is `accepted` and at least one PROOF_FILE exists, inside the same `db.batch()`; the D1 trigger is the backstop.
-- **INV-3:** never add a column, R2 prefix, log line, or analytics event that can hold an ID image, PCN, or raw QR text. The ID check handler is excluded from request logging.
-- **INV-4:** proof bytes are served only by `/api/proofs/[id]` after the relationship check. No public bucket, no custom domain on the bucket, no presigned GET.
-- **INV-5:** no score, rating, rank, average, or "top" list anywhere in schema, API, or UI. Sorting clients by outcome share is also forbidden.
-- **INV-6:** no server action available to a client role writes ENGAGEMENT_LOG, LOG_TAG, or PROOF_FILE.
-- **INV-7:** every page outside `(public)` lives under the `(app)` or `(moderation)` route group, whose layouts require a session. Data access requires a viewer. noindex on everything but `/`.
-- **INV-8:** `createEngagement`, `submitLog`, and `corroborate` call `requireVerifiedFreelancer()` as their first statement.
+- **INV-1:** only `decideCase` sets a log to `published` (no public reply path exists; PRD-F5 Retired). Reader queries select the current revision of `status = 'published'` non-expired logs unless the viewer is the filer, the named client, or a moderator.
+- **INV-2:** `submitLog` checks the engagement is `accepted`, at least one attached PROOF_FILE exists, the anchor is valid, and the 15-calendar-day filing window holds, inside the same `db.batch()`; the D1 trigger is the backstop.
+- **INV-3:** pilot verification is manual live inspection only. Never add a column, R2 prefix, log line, or analytics event that can hold an ID image, a full ID number, a QR payload, a phone proof, or any required ID-derived value. No ID hash is declared or stored in v1; future QR-derived hashing requires the deferred RFC and an ERD update before implementation. No paid-SMS step exists for v1. The verification handler is excluded from request logging.
+- **INV-4:** proof bytes are served only by `/api/proofs/[id]` after the relationship check (moderator, filer, or named client; an admin only under a moderator permission or persona). No public bucket, no custom domain on the bucket, no presigned GET. `Cache-Control: private, no-store`; everyone else gets 404.
+- **INV-5:** the ONLY permitted rating signals are the approved integer 1-5 per-log rating and the read-time client average derived from it (1-2 Negative, 3 Mixed, 4-5 Positive; tags explain nuance and never override the derived outcome). No score, rank, leaderboard, endorsement or trust badge, or any other score anywhere in schema, API, or UI. Sorting clients by outcome share is also forbidden.
+- **INV-6:** no server action available to a client role writes ENGAGEMENT_LOG, LOG_REVISION, LOG_TAG, or PROOF_FILE. Decided revisions are frozen; changes land only through new moderated revisions via the private correction path (PRD-F13). No public-reply or corroboration write path exists (PRD-F5, PRD-F10 Retired).
+- **INV-7:** every page outside `(public)` lives under the `(app)` or `(moderation)` route group, whose layouts require a session. Data access requires a viewer. noindex on everything but `/` plus `robots.txt` disallow and `X-Robots-Tag: noindex, nofollow`.
+- **INV-8:** `createEngagement`, `saveLogDraft`, `submitLog`, and `submitFilerUpdate` call `requireVerifiedFreelancer()` as their first statement (verified status plus current policy acknowledgments). There is no `corroborate` path. No phone-OTP or QR-scan gate is required for v1.
 - Copy rules: product copy is plain English that states facts. No exclamation marks, no "Welcome to...", no "This is for...", no "seamless", "empower", "unlock", or emoji. Write what the screen does in the fewest words.
 - Never describe a client in product copy. The subject of a log sentence is the freelancer ("Reported by a verified freelancer").
 
@@ -171,6 +175,7 @@ Repo-specific prohibitions. These are enforced like engine §8 Hard Rules.
 - [ ] QAD cases for the feature ID pass, including every negative test for the invariants it touches
 - [ ] §7 UI checklist passes for any screen touched
 - [ ] Docs updated if behavior changed; `INDEX` row bumped
+- [ ] Legal copy reconciled before launch of new scope (live privacy/terms still promise the prior scope); docs-only alignment changes no shipped legal pages
 
 ---
 
@@ -186,14 +191,14 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 
 **Color tokens** (OKLCH, defined once in `web/src/app/globals.css` as shadcn theme variables)
 - `--paper`, `--ink`, `--rule`: neutral record surface and text.
-- `--outcome-positive` blue (Okabe-Ito #0072B2), `--outcome-mixed` neutral gray with a hatch pattern, `--outcome-flagged` vermillion (#D55E00). These are color-blind safe as a set.
-- Outcome is never shown by color alone: every outcome carries a glyph and a word (check, tilde, exclamation; "Positive", "Mixed", "Flagged").
+- `--outcome-positive` blue (Okabe-Ito #0072B2), `--outcome-mixed` neutral gray with a hatch pattern, `--outcome-negative` vermillion (#D55E00). These are color-blind safe as a set.
+- Outcome is never shown by color alone: every outcome carries a glyph and a word (check, tilde, exclamation; "Positive", "Mixed", "Negative").
 - Text contrast at least 4.5:1, bar segments at least 3:1 against `--paper`.
 - Radius 2 px or less. Rules (1 px borders) separate sections instead of cards and shadows.
 
 **Components**
 - shadcn on Base UI, added with the CLI, then restyled through tokens. Registries allowed: shadcn core and Dice UI (MIT). Anything else needs a review of its license and its `motion` major first.
-- FLAG components: `RecordBar` (stacked counts with labels), `OutcomeMark`, `TagCount`, `LogEntry`, `ProofChip`, `ReplyBlock`, `CaseRow`, `StatusStamp` (dated "Reviewed Mar 02").
+- FLAG components: `RecordBar` (stacked counts with labels), `OutcomeMark`, `TagCount`, `LogEntry` (rating, filer name, date, correction/update history), `ProofChip`, `AverageBlock` (average with distinct contributor count plus Limited-record label under five), `CaseRow`, `StatusStamp` (dated "Reviewed Mar 02"). No `ReplyBlock`, same-experience control, upvote, or corroboration count exists.
 
 **Motion**
 - Only for feedback: 150-200 ms transitions on state change, toasts, sheet open. No scroll-linked animation, smooth-scroll library, parallax, or draggable decoration in the app.
@@ -210,6 +215,6 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 - [ ] Works at 360 px wide with no horizontal scroll
 - [ ] Every control reachable and operable by keyboard; visible focus
 - [ ] Empty, loading, and error states exist and say what to do next
-- [ ] No score, rank, or ordering by outcome share
+- [ ] No unapproved score, rank, leaderboard, endorsement badge, or ordering by outcome share; only the approved 1-5 rating and client average appear
 - [ ] Copy follows §5 copy rules
 - [ ] Outcome never conveyed by color alone
