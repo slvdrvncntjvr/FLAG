@@ -3,8 +3,8 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.4
-status: Draft
+doc_version: 1.0
+status: Locked
 owner: slvdrvncntjvr
 created: 2026-10-12
 updated: 2026-10-13
@@ -191,10 +191,10 @@ Every Must-Have has at least one case in each class. PRD-F5 and PRD-F10 are Reti
 
 | Area | Why not tested | Risk accepted by |
 |------|---------------|------------------|
-| Liveness: the person presenting is the ID holder beyond the live inspection | A remote inspection can still be spoofed; the portfolio trail and moderator judgment are the mitigation | `TBD(owner)` |
-| Load beyond pilot scale | Pilot is 20-30 users | `TBD(owner)` |
-| iOS Safari below 16 | Not in the pilot device mix | `TBD(owner)` |
-| Malware inside PDFs | No scanner on the free stack; PDFs are opened only by moderators in the browser's PDF viewer | `TBD(owner)` |
+| Liveness: the person presenting is the ID holder beyond the live inspection | A remote inspection can still be spoofed; the portfolio trail and moderator judgment are the mitigation | slvdrvncntjvr (owner, 2026-10-13) |
+| Load beyond pilot scale | Pilot is 20-30 users | slvdrvncntjvr (owner, 2026-10-13) |
+| iOS Safari below 16 | Not in the pilot device mix | slvdrvncntjvr (owner, 2026-10-13) |
+| Malware inside PDFs | No scanner on the free stack; PDFs are opened only by moderators in the browser's PDF viewer | slvdrvncntjvr (owner, 2026-10-13) |
 
 ## 7. Release gate
 

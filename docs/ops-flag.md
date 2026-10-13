@@ -3,8 +3,8 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.4
-status: Draft
+doc_version: 1.0
+status: Locked
 owner: slvdrvncntjvr
 created: 2026-10-12
 updated: 2026-10-13
@@ -44,7 +44,7 @@ Scripts copied from `web/package.json` (run from `web/`). Migration order: previ
 | Smoke check | Sign in, open a client record, open the moderation queue | Manual, two minutes |
 | Binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv`) | After binding changes |
 
-**Rollback:** `npx wrangler rollback` returns the default production Worker to the previous version (`--env dev` for preview). D1 migrations are not rolled back; they are forward-only. Last verified: not yet (`TBD(owner)` before the pilot).
+**Rollback:** `npx wrangler rollback` returns the default production Worker to the previous version (`--env dev` for preview). D1 migrations are not rolled back; they are forward-only. Procedure approved by owner 2026-10-13; a rollback dry-run on the `dev`/preview Worker is scheduled as part of pre-pilot readiness and this note is stamped verified once that run passes.
 
 ## 3. Configuration and secrets
 
@@ -143,7 +143,7 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 **Likely cause:** an authorization bug or a leaked credential.
 **Diagnose:** AUDIT_EVENT for the affected rows; Worker logs for the routes involved (ids only); confirm the proof relationship check and the admin-under-moderator-permission rule.
 **Fix:** rotate affected secrets; patch and redeploy. Notify the data protection contact immediately. NPC Circular 16-03 sets a 72-hour notification window for the NPC and affected people. Reader-visible filer names on published logs are approved content, not a breach; contact and ID data must never be visible.
-**Escalate to:** data protection contact `TBD(owner)` (LOG Q5).
+**Escalate to:** data protection contact slvdrvncntjvr@gmail.com (owner; LOG Q5, confirmed 2026-10-13).
 
 ## 6. Backup and recovery
 

@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.10
+doc_version: 0.11
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -25,13 +25,13 @@ Built on SPINE 0.3.0
 
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
-| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 0.4 | Draft | 2026-10-13 | 2026-09-14 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 0.4 | Draft | 2026-10-13 | 2026-09-14 |
-| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 0.6 | Draft | 2026-10-13 | 2026-09-14 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 0.5 | Draft | 2026-10-13 | 2026-09-14 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 0.4 | Draft | 2026-10-13 | 2026-10-12 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 0.4 | Draft | 2026-10-13 | 2026-10-12 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.1 | Draft | 2026-10-13 | 2026-09-14 |
+| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
+| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-12 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-12 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.2 | Draft | 2026-10-13 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -41,6 +41,8 @@ Built on SPINE 0.3.0
 |--------|------|---------|--------|---------|
 | flag-rfc-001 | [rfc-flag-id-check.md](rfc-flag-id-check.md) | Government ID check without storing the ID (PRD-F1) | Draft | 2026-10-13 |
 
+RFC flag-rfc-001 stays `Draft` on purpose: it holds the deferred PhilID QR cryptographic-check design (LOG Q13), which is unproven and out of the v1 launch scope. The pilot verifies by manual live inspection, so the launch suite locks without it. Its two remaining open owner-markers are future spike work, not launch blockers.
+
 ---
 
 ## 2. Change Log
@@ -49,7 +51,7 @@ Change records against `Locked` documents. See engine §7.3.
 
 | CR ID | Date | Summary | Trigger doc | Docs touched | File |
 |-------|------|---------|-------------|--------------|------|
-| none | | No CRs; every doc is Draft | | | |
+| none | | No CRs yet. As of 2026-10-13 the launch suite (IDEA, BUILD, PRD, SDD, QAD, OPS) is `Locked` v1.0; any further change to these docs now requires a change record (engine §7.3). LOG and INDEX stay living; RFC flag-rfc-001 stays Draft/deferred | | | |
 
 ---
 

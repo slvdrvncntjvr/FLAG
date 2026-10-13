@@ -3,8 +3,8 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.4
-status: Draft
+doc_version: 1.0
+status: Locked
 owner: slvdrvncntjvr
 created: 2026-09-14
 updated: 2026-10-13
@@ -140,7 +140,7 @@ Long-running commands (dev servers, watchers) must be run by the owner in their 
 | Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with one review from another developer. `foverhaul` holds this rewrite until it merges to `dev` |
 | Commit format | Short imperative subject naming the feature ID when there is one: `PRD-F8 add policy acceptance gate` |
 | Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright. `prototype/` is retired and deleted once `web/` reaches parity |
-| Module ownership | One developer owns each `src/features/<module>` folder and reviews every change to it. Assignments `TBD(owner)` (LOG Q14) |
+| Module ownership | One developer owns each `src/features/<module>` folder and reviews every change to it. Assignments (owner 2026-10-13, LOG Q14): Dev A owns `verification`; Dev B owns `engagements` and `logs` (`src/features` log intake/proof); Dev C owns `moderation` and retention/maintenance. Shared `server/{auth,db,mail}` and `components` changes need the owning dev of the consuming module plus one reviewer |
 | Naming | Files kebab-case; React components PascalCase; server actions verbNoun; DB tables snake_case singular |
 | Error handling | Server actions return `{ ok: true, data }` or `{ ok: false, fieldErrors?, message }` and never throw to the client. Route handlers return JSON `{ error: code }` with the status codes in SDD §5. Another party's data is 404, not 403 |
 | Data access | Pages and actions never call `db` directly; they call functions in `src/server/db/queries/*` that take the viewer as the first argument |

@@ -3,8 +3,8 @@ spine_type: PRD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.6
-status: Draft
+doc_version: 1.0
+status: Locked
 owner: slvdrvncntjvr
 created: 2026-09-14
 updated: 2026-10-13
@@ -40,7 +40,7 @@ IDs PRD-F1 to PRD-F6 are carried from doc_version 0.1 with the same meaning exce
 | PRD-F1 | Freelancer verification | Must-Have | A freelancer becomes verified after manual live inspection of a supported government ID (PhilID/ePhilID, passport, or driver licence) plus portfolio links and moderator approval; the moderator views the live ID but never collects, uploads, records, or stores any raw ID image or full number and no ID proof is attached in the backend; the badge means identity checked, never a guarantee of trustworthiness; no paid SMS; automatic QR scan deferred until technically proven |
 | PRD-F2 | Structured engagement log | Must-Have | One log per accepted engagement: integer 1-5 rating plus fixed factual tags, covered work period (start/end dates stored on the revision, separate from the filing anchor), optional amount in centavos, written facts; outcome (Negative/Mixed/Positive) derived automatically from the rating; filing only inside the 15-calendar-day eligibility window with submission on time |
 | PRD-F3 | Mandatory proof upload | Must-Have | At least one proof file on every log, positive and negative alike, visible only to the parties and moderators; no log publishes without approved proof |
-| PRD-F4 | Moderation queue | Must-Have | Human review of every verification, log, and correction request before it takes effect, with claim, a required reason, and an audit trail; approve / ask-changes / reject with history |
+| PRD-F4 | Moderation queue | Must-Have | Human review of every verification, log, and correction request before it takes effect, with claim, a required reason, and an audit trail; approve / ask-changes / reject with history. Approved proof standard (LOG Q9, owner 2026-10-13): a moderator approves only when the proof shows (a) the named engagement existed with that client and (b) the claimed outcome event (payment, non-payment, scope change, silence) is visible or strongly implied; ask-changes or reject when the proof has no identifiable client, is edited or unverifiable, shows only the filer's side with no client interaction, or the 1-5 rating does not match the evidence; proof must concern this engagement, opinions without artifacts never approve, and every ask-changes or reject records a reason |
 | PRD-F5 | Right of reply (Retired) | Dropped | Retired 2026-10-13: public client replies removed per owner approval; the client channel is the private review/correction path in PRD-F13. ID retained, never reused |
 | PRD-F6 | Client record | Must-Have | Signed-in freelancers search for a client and see the client average, contributor count, Limited-record label under five contributors, counts by derived outcome, tag distribution, and the published logs with the filer name; the client sees their own record; expired records are removed; empty states show no score and imply nothing |
 | PRD-F7 | Accounts and sign-in | Must-Have | Sign up and sign in as a freelancer or a client; staff accounts get moderator or admin roles; records and logs are sign-in-only |
@@ -209,6 +209,6 @@ Ideas raised but not accepted. Nothing here may be implemented.
 
 ## 7. Open questions
 
-- `TBD(owner)` What proof standard approves versus rejects a log? (LOG Q9)
-- `TBD(owner)` What per-account and per-client limits apply to invites and logs? (LOG Q7)
+- Resolved 2026-10-13 (LOG Q9): a log is approved versus rejected by the qualitative moderator rubric defined in PRD-F4 — approve when proof shows the named engagement existed and the claimed outcome is visible or strongly implied; reject or ask-changes when proof lacks an identifiable client, is unverifiable or edited, shows only the filer's side, or the rating does not match the evidence; every rejection records a reason.
+- Resolved 2026-10-13 (LOG Q7): per-account and per-client limits on invites and logs are the approved pilot caps recorded in SDD §5 Rate limiting.
 - Technical future deferred, not blocking: automatic QR/primary-source ID checking (LOG Q13) stays out of primary requirements until technically proven; pilot verifies by manual live inspection.

@@ -3,8 +3,8 @@ spine_type: IDEA
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.4
-status: Draft
+doc_version: 1.0
+status: Locked
 owner: slvdrvncntjvr
 created: 2026-09-14
 updated: 2026-10-13
@@ -83,7 +83,7 @@ Status vocabulary: `Active`, `Retired`.
 | Time | Course schedule is context only and imposes NO feature requirements: onboarding and legal module Oct 12-31; verification and client registration Nov 1-14; report form and proof Nov 8-21; moderation Nov 15-28; pilot and UAT Nov 29 - Dec 12; buffer to Dec 16; final documents Dec 17-23, 2026. As-built today is auth/onboarding only (PRD-F7, PRD-F8); other product flows are planned | group_context tracker, GEN ROADMAP and WBS sheets; owner 2026-10-13 |
 | People | Three developers, two QA, two documentation, one project manager; the team staffs moderation during the pilot | group_context Directory sheet; owner 2026-10-12 |
 | Platform | Cloudflare | owner 2026-10-12 |
-| Cost | Student budget; free tiers wherever possible. Exact ceiling `TBD(owner)` | owner |
+| Cost | Student budget; free tiers only for the pilot. Ceiling (owner 2026-10-13): hard stop before any paid upgrade; stay within Cloudflare Workers/D1/R2 free limits; owner is alerted before approaching any free-tier cap and approves any spend explicitly | owner |
 | Legal | Data Privacy Act of 2012 (RA 10173): privacy notice, consent, retention, and a named contact for data requests. Cyber libel exposure (RA 10175) for logs about named businesses | group docs Goal 1; feasibility notes |
 | Language | English only in the product | owner 2026-10-12 |
 | Copy | Product copy states facts plainly. No filler like "this is for..." or marketing phrasing | owner 2026-10-12 |
@@ -92,5 +92,5 @@ Status vocabulary: `Active`, `Retired`.
 
 Questions blocking downstream docs. Mirrored into `LOG`.
 
-- `TBD(owner)` What per-account, per-client, and per-network limits stop praise-stuffing and pile-ons? (LOG Q7)
+- Resolved 2026-10-13 (LOG Q7): per-account, per-client, and per-network limits that stop praise-stuffing and pile-ons are the approved pilot caps recorded in SDD §5 Rate limiting (daily invite/log quotas per freelancer, one log per engagement capped at three per 12-month freelancer/client pair, burst limits on sign-in and uploads per IP and user).
 - Technical future deferred: automatic QR/primary-source ID checking (LOG Q13) stays out of primary requirements until technically proven; pilot verifies by manual live inspection.

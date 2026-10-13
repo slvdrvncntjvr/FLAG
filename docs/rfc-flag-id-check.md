@@ -83,7 +83,7 @@ The Philippine National ID (PhilID card, ePhilID, and the eGovPH digital ID) car
 | 422 | `{ "error": "signature_invalid" }` | Signature check failed |
 | 429 | `{ "error": "rate_limited" }` | More than 5 attempts per user per hour |
 
-Every outcome writes an AUDIT_EVENT with `action = id_check`, the result code, and no QR content. Rate limits are proposal only (`TBD(owner)`, LOG Q7); no numeric limit is approved.
+Every outcome writes an AUDIT_EVENT with `action = id_check`, the result code, and no QR content. Rate limits are the approved pilot caps in SDD §5 Rate limiting (LOG Q7, owner 2026-10-13).
 
 ### 4.1 Worked example (illustrative future, not as-built)
 

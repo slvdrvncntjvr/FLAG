@@ -3,8 +3,8 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.5
-status: Draft
+doc_version: 1.0
+status: Locked
 owner: slvdrvncntjvr
 created: 2026-09-14
 updated: 2026-10-13
@@ -407,7 +407,7 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 | Validation | Zod schemas shared by the form and the server action; the server result is authoritative. File type by magic bytes. Covered work period and optional amount validated server-side (ordered period, non-negative centavos, no conversion). Anchor dates and the 15-day window are validated server-side against engagement evidence; future anchors are rejected | PRD-F2, PRD-F3 |
 | Error handling | Server actions return `{ ok: true, data }` or `{ ok: false, fieldErrors, message }`. Route handlers return 400, 401, 403, 404, 409, 413, 429 with a JSON `{ error }`. A forbidden read of someone else's data returns 404, not 403 | all |
 | Secrets | Wrangler secrets and `.dev.vars` locally (gitignored): `BETTER_AUTH_SECRET`, optional `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `BREVO_API_KEY` or `RESEND_API_KEY`, optional `TURNSTILE_SECRET_KEY`. No SMS key and no ID-vendor key exist | all |
-| Rate limiting | Workers Rate Limiting binding for bursts (sign-in, OTP, uploads, searches) per IP and per user. Daily quotas (invites per freelancer, logs per client per freelancer) counted in D1; limits `TBD(owner)` (LOG Q7) | PRD-F1, PRD-F2, PRD-F9 |
+| Rate limiting | Workers Rate Limiting binding for bursts (sign-in, OTP, uploads, searches) per IP and per user. Daily quotas counted in D1. Approved pilot caps (LOG Q7, owner 2026-10-13): sign-in/OTP 5 per 15 min per IP+email; invites created per freelancer 10/day and 30/week; logs per freelancer total 10/week; logs per freelancer→same client 1 per engagement and at most 3 per 12 months per freelancer/client pair; proof uploads 20/day per user at 10 MB/file; client accept/decline uncapped (invite token is single-use). All caps are generous for a 20-30 user pilot and tunable without a schema change | PRD-F1, PRD-F2, PRD-F9 |
 | Privacy | No request-body logging. Observability logs and AUDIT_EVENT carry ids and action names only, never names, contact data, ID data, facts, or file contents | INV-3, INV-4 |
 | Retention maintenance | Daily Cron `scheduled()` invokes `runRetentionMaintenance` (planned `web/src/features/maintenance/run.ts`): expire past-`expires_at` rows from reads immediately, purge idle drafts (30 days) including abandoned unpublished ask-changes with cases closed as abandoned, rejected material (30 days after final decision), withdrawn logs at their inherited original-publication 12-month deadline, unapproved abandoned revisions and their proofs (30 days idle), proofs and R2 objects with their logs, abandoned uploads, closure purges per the assessed plan, and audit and metadata past 12 months after case close including authorized minimal-history purges. Holds delay physical deletion but never visibility or rating expiry; open-review evidence is force-finished, never deleted mid-review | PRD-F12 |
 | Crawlers | `robots.txt` disallows everything except `/`; `X-Robots-Tag: noindex, nofollow` on every authenticated route | INV-7 |
@@ -468,6 +468,6 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 
 ## 8. Open questions
 
-- `TBD(owner)` What per-account and per-client limits apply to invites and logs? (LOG Q7)
-- `TBD(owner)` What proof standard approves versus rejects a log? (LOG Q9)
+- Resolved 2026-10-13 (LOG Q7): per-account and per-client limits on invites and logs are the approved pilot caps recorded in the §5 Rate limiting row.
+- Resolved 2026-10-13 (LOG Q9): the proof standard that approves versus rejects a log is the qualitative moderator rubric recorded in PRD-F4 and the §5 proof-review note.
 - Technical future deferred, not blocking: automatic QR/primary-source ID checking (LOG Q13) stays out of this design until technically proven; the pilot verifies by manual live inspection.
