@@ -380,7 +380,7 @@ Mutations are Next.js server actions unless a file stream or an external caller 
 | GET, POST | `/api/auth/[...all]` | Public | PRD-F7 | Better Auth handler; email OTP launch, Google only when keys exist |
 | action | `acceptPolicies` | Signed in | PRD-F8 | Writes POLICY_ACCEPTANCE rows for the current versions |
 | action | `submitVerificationCase` | Signed in, freelancer | PRD-F1 | Opens a `verification` MODERATION_CASE from a VERIFICATION_CASE row (reviewer, method, kind, result, name-match, time) plus portfolio links; no ID image, number, QR body, or phone proof is accepted or stored |
-| action | `createEngagement` | Verified freelancer | PRD-F9 | Returns the invite URL once; stores only the token hash; rejects self-invite |
+| action | `createEngagement` | Verified freelancer | PRD-F9 | Returns the invite URL once; stores only the token hash; sets `invite_expires_at` to created time plus the invite TTL of 14 days (the single authoritative value for S-13; implemented as one named constant, not duplicated); rejects self-invite |
 | GET | `/invite/[token]` | Public page | PRD-F9 | Shows inviter display name and what accepting means; no client data |
 | action | `acceptEngagement`, `declineEngagement` | Signed in, client | PRD-F9 | Writes `client_consent` acceptance; decline closes with no signal |
 | action | `saveLogDraft`, `submitLog` | Verified freelancer, engagement owner | PRD-F2 | Enforces the tag set, proof presence, covered period and optional amount, anchor validity, and the 15-day window; binds uploads to the initial LOG_REVISION |
@@ -424,7 +424,7 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 | INV-5 | Schema review, record components | `web/src/server/db/schema.ts`, `web/src/features/records` | The only rating signal is the `rating` column plus the read-time average; record UI renders the average with its count, outcome counts, and tags only; a lint test greps the schema and record components for score, rank, leaderboard, and endorsement fields while allowing `rating` |
 | INV-6 | Server actions, D1 triggers | `web/src/features/logs/*`, `web/src/features/moderation/*`, `web/drizzle/0001_triggers.sql` | No client action touches logs or revisions; decided revisions and submitted logs are frozen and change only through new moderated revisions |
 | INV-7 | `(app)` route group layout, headers, robots | `web/src/app/(app)/layout.tsx`, `web/next.config.ts`, `web/src/app/robots.ts` | Layout redirects signed-out users to sign-in; data access requires a viewer; noindex headers and robots disallow |
-| INV-8 | `requireVerifiedFreelancer()` guard | `web/src/server/auth/guards.ts` | Called first by `createEngagement`, `saveLogDraft`, `submitLog`, and `submitFilerUpdate`; checks `status = 'verified'` and acceptances for current policy versions |
+| INV-8 | `requireVerifiedFreelancer()` guard | `web/src/server/auth/guards.ts`, `web/src/server/auth/guards-core.ts` | Called first by `createEngagement`, `saveLogDraft`, `submitLog`, and `submitFilerUpdate`; `guards.ts` holds the session-bound entry points and `guards-core.ts` holds the pure `assertVerifiedFreelancer` check and `AccessError`; checks `status = 'verified'` and acceptances for current policy versions |
 
 ## 6. Feature-to-design map
 
