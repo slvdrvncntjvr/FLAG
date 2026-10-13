@@ -27,7 +27,7 @@ export function OnboardingForm({ role }: { role: Role | null }) {
                 <span className="block text-sm text-muted">
                   {r === "freelancer"
                     ? "Read client records and, once verified, log your own engagements."
-                    : "Accept engagements from freelancers you work with and reply to logs about you."}
+                    : "Accept engagements from freelancers you work with and see the record of your work."}
                 </span>
               </span>
             </label>

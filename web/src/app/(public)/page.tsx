@@ -7,7 +7,7 @@ export default function Landing() {
       <h1 className="font-serif text-3xl leading-tight">A record of how clients handle freelance work.</h1>
       <p className="mt-4 text-muted">
         Verified freelancers log the outcome of work with clients who registered and accepted the engagement.
-        Every log carries proof and is reviewed by a moderator before it appears. Clients can reply.
+        Every log carries proof and is reviewed by a moderator before it appears. Clients can privately request a review.
       </p>
       <ul className="mt-6 divide-y divide-rule border-y border-rule text-sm">
         <li className="py-3">Positive, mixed, and flagged outcomes are all recorded.</li>

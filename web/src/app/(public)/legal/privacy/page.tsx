@@ -27,7 +27,7 @@ export default function Privacy() {
 
       <h2 className="font-serif text-lg">Why we use it</h2>
       <p>
-        We use this data to authenticate you, to verify freelancers, to run the moderation and reply process, and to
+        We use this data to authenticate you, to verify freelancers, to run the moderation and private review process, and to
         keep the proof-backed record that is the purpose of the service. We do not sell your data, and we do not use it
         for advertising.
       </p>

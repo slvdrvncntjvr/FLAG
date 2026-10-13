@@ -29,7 +29,7 @@ export async function requireOnboardedViewer(): Promise<Viewer> {
   return viewer;
 }
 
-// First statement of createEngagement, submitLog, and corroborate (BUILD §5, INV-8).
+// First statement of createEngagement, submitLog, and submitFilerUpdate (BUILD §5, INV-8).
 export async function requireVerifiedFreelancer(): Promise<Viewer> {
   const viewer = await getViewer();
   assertVerifiedFreelancer(viewer);

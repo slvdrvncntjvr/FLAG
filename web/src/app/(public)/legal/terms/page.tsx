@@ -26,10 +26,10 @@ export default function Terms() {
         without a genuine engagement is removed, and the account that filed it may be suspended.
       </p>
 
-      <h2 className="font-serif text-lg">Clients and replies</h2>
+      <h2 className="font-serif text-lg">Clients and reviews</h2>
       <p>
-        A client named in a published log may post one reply. Published logs cannot be edited or deleted by the client,
-        and FLAG does not compute or display any score, rating, rank, or leaderboard.
+        A client named in a published log may privately request a review or correction with supporting evidence. Published logs cannot be directly edited or deleted by the client,
+        and FLAG displays only the approved 1 to 5 rating and client average.
       </p>
 
       <h2 className="font-serif text-lg">Acceptable use</h2>
