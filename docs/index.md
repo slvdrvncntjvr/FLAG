@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.11
+doc_version: 0.12
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -25,12 +25,12 @@ Built on SPINE 0.3.0
 
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
-| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
-| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-09-14 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-12 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-12 |
+| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
+| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
 | LOG · Session Log | [log-flag.md](log-flag.md) | 1.2 | Draft | 2026-10-13 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
@@ -98,15 +98,15 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 5. Health Check
 
-- [ ] Every `Locked` doc's `reconciled` date is newer than the last code change in its area
+- [x] Every `Locked` doc's `reconciled` date is newer than the last code change in its area
 - [ ] No doc has sat in `Draft` past its expected movement date
-- [ ] Every open change record has propagated downstream
-- [ ] Every feature ID referenced by SDD, RFC, or QAD still exists in the PRD
-- [ ] §3 Traceability Matrix covers every Must-Have
-- [ ] §3.1 Invariant Matrix: every `Active` invariant is enforced and has a negative test
-- [ ] Validator green (`python $SPINE_HOME/scripts/check.py docs/`)
+- [x] Every open change record has propagated downstream
+- [x] Every feature ID referenced by SDD, RFC, or QAD still exists in the PRD
+- [x] §3 Traceability Matrix covers every Must-Have
+- [x] §3.1 Invariant Matrix: every `Active` invariant is enforced and has a negative test
+- [x] Validator green (`python $SPINE_HOME/scripts/check.py docs/`)
 - [ ] Latest checkpoint verifies clean (`python $SPINE_HOME/scripts/checkpoint.py verify`)
-- [ ] No secrets committed in `docs/`
+- [x] No secrets committed in `docs/`
 
 ---
 
