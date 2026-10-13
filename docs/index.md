@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.12
+doc_version: 0.13
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -105,7 +105,7 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 - [x] §3 Traceability Matrix covers every Must-Have
 - [x] §3.1 Invariant Matrix: every `Active` invariant is enforced and has a negative test
 - [x] Validator green (`python $SPINE_HOME/scripts/check.py docs/`)
-- [ ] Latest checkpoint verifies clean (`python $SPINE_HOME/scripts/checkpoint.py verify`)
+- [x] Latest checkpoint verifies clean (`python $SPINE_HOME/scripts/checkpoint.py verify`)
 - [x] No secrets committed in `docs/`
 
 ---
