@@ -3,11 +3,11 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.0
-status: Locked
+doc_version: 2.2
+status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-13
+updated: 2026-10-14
 reconciled: 2026-10-13
 ---
 
@@ -20,14 +20,22 @@ reconciled: 2026-10-13
 
 ## 1. Strategy
 
-- **Automated, integration:** Vitest in the Cloudflare Workers pool against a fresh local D1 and R2 per test file. Every server action and route handler with a sad, abuse, or negative case below gets a test. These run on every pull request.
-- **Automated, end-to-end:** Playwright for the happy paths of PRD-F7, PRD-F8, PRD-F9, PRD-F2 with PRD-F3, PRD-F4, PRD-F6 with PRD-F14, and PRD-F13, at a 360 px viewport and at desktop width.
+- **Automated, integration (implemented):** Vitest in the Cloudflare Workers pool with local D1 migrations applied per test file. Auth/onboarding tests exist in web/tests/nt-10-onboarding-gate.test.ts and web/tests/auth-repairs.test.ts. There is no R2 test binding yet. The case tables below are the target plan, not a claim that every case is automated or passes. Pull-request automation is configured separately.
+- **Automated, end-to-end (planned):** Playwright for the happy paths of PRD-F7, PRD-F8, PRD-F9, PRD-F2 with PRD-F3, PRD-F4, PRD-F6 with PRD-F14, and PRD-F13, at 360 px and desktop. No e2e script or Playwright suite exists yet.
 - **Manual (QA team):** a weekly test pass on a mid-range Android phone in Chrome and in the Messenger in-app browser, following the H cases for the features delivered that week. Results go in the course tracker.
 - **Pilot (Nov 29 - Dec 12):** usability survey for FLAG-M8, owned by QA.
 - **Deliberately untested:** see §6.
 
-**Runner:** `npm test` and `npm run e2e` from `web/`
+**Runner:** npm test from web/. npm run e2e remains planned.
 **Location:** `web/tests/`, `web/e2e/`, invariant tests named `web/tests/nt-<nn>-*.test.ts`
+
+cr-001 regression coverage: incomplete freelancer acknowledgment changes neither role nor acceptance history; a failed policy insert rolls back the role; concurrent duplicate onboarding creates one current acceptance per policy; expired and reused OTPs are rejected; staff-role input is refused; cross-origin OTP requests are refused; missing mail fails outside localhost; D1 admits exactly five concurrent attempts across limiter instances, keeps hashed identifiers, separates IP+email buckets and send/verify buckets, and resets after fifteen minutes. S-11 now actually tests expiry; the former wrong-code test remains separately. NT-10 tests the fail-closed verification guard. AB-13's real onboarding-route redirect remains an integration/E2E release check, not claimed by that pure guard test.
+
+2026-10-14 dev release smoke checks passed via web/scripts/verify-dev-release.mjs: actual DB/auth bindings, landing/sign-in/legal/anonymous-session routes, signed-out /home and /onboarding redirects to /sign-in, noindex headers, policy versions 2026-10-14, and the sixth invalid-code attempt returning 429 with a retry delay. These check the anonymous access boundary; they do not claim a full signed-in AB-13 flow or a human email-delivery/onboarding UI pass.
+
+cr-001 deployment checks: npm run test:deploy runs six Node tests in web/scripts/check-ci-target.test.mjs:8. They reject the legacy default deploy to flag-dev, production operations from a dev commit, and selecting dev for the production Worker; accept the correct combinations; check CLI/environment precedence and passthrough flags; and preserve intentional local manual deploys. These supplement the 21 Workers-pool application tests.
+
+Wrangler dry runs with WORKERS_CI=1 and WORKERS_CI_BRANCH=dev also confirmed actual plain default deploys to both CI targets (flag and flag-dev) are rejected by the custom build before upload. The first experiment showed adapter-only protection did not catch plain Wrangler; the custom-build check closes that path.
 
 ## 2. Happy path cases
 

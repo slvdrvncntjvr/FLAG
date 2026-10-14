@@ -11,6 +11,9 @@
 		"binding": "ASSETS"
 	},
 	"observability": { "enabled": true },
+	"build": {
+		"command": "node scripts/check-wrangler-build.mjs"
+	},
 
 	// ---- Production (default): deployed from `main` ----
 	// URL: https://flag.factsfirst.workers.dev

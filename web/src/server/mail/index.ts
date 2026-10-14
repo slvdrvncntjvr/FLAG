@@ -36,8 +36,8 @@ export async function sendMail(env: MailEnv, mail: Mail): Promise<{ sent: boolea
       }),
     });
     if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      throw new Error(`mail_failed:brevo_${res.status}${detail ? `:${detail.slice(0, 200)}` : ""}`);
+      // Provider bodies can contain contact data. Keep only the status in errors/logs.
+      throw new Error(`mail_failed:brevo_${res.status}`);
     }
     return { sent: true };
   }

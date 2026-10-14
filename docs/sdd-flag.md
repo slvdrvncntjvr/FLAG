@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.0
-status: Locked
+doc_version: 2.0
+status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-13
+updated: 2026-10-14
 reconciled: 2026-10-13
 ---
 
@@ -62,7 +62,7 @@ Locations under `web/`. Built so far: Auth, Onboarding, Data access for the acco
 
 ## 3. Data model
 
-**Schema file:** `web/src/server/db/schema.ts` (USER, SESSION, ACCOUNT, AUTH_VERIFICATION, POLICY_ACCEPTANCE built so far; every other entity below is design-first and enumerated before any future migration)
+**Schema file:** `web/src/server/db/schema.ts` (USER, SESSION, ACCOUNT, AUTH_VERIFICATION, POLICY_ACCEPTANCE, FREELANCER_PROFILE, VERIFICATION_CASE, PORTFOLIO_LINK, CLIENT_PROFILE, and ENGAGEMENT exist; only auth/onboarding workflows are implemented. AUTH_RATE_LIMIT is approved by cr-001 and added in this repair. The remaining entities are design-first.)
 
 The ERD below is the schema contract (hard rule 16): code may only use the entities, fields, and relationships it defines. Types are D1/SQLite storage types as Drizzle will declare them: `text` (including ISO-8601 timestamps and enum values), `integer` (including booleans as 0/1, the 1-5 rating, and money in centavos). The account tables keep their exact built fields; the `phone_number` columns on USER are existing and stay, but no pilot flow reads or requires them.
 
@@ -147,6 +147,11 @@ erDiagram
         text version
         text accepted_at
         text retired_at "nullable until retired; planned, future migration: anchors the inactive-consent purge deadline"
+    }
+    AUTH_RATE_LIMIT {
+        text key PK "domain-separated HMAC; no raw IP or email"
+        integer count "positive request count"
+        integer expires_at "Unix milliseconds; fixed window expiry"
     }
     FREELANCER_PROFILE {
         text user_id PK, FK
@@ -311,6 +316,7 @@ erDiagram
 | SESSION | PRD-F7 | INV-7 | PII | Until expiry | Better Auth core |
 | ACCOUNT | PRD-F7 | — | secret | Life of account | Better Auth core; OAuth tokens |
 | AUTH_VERIFICATION | PRD-F7 | — | secret | Until code expiry | Better Auth email one-time codes |
+| AUTH_RATE_LIMIT | PRD-F7 | — | internal | Expired buckets removed on authentication requests | HMAC of trusted IP and route, plus normalized email on OTP routes; no raw IP/email; cr-001 |
 | POLICY_ACCEPTANCE | PRD-F8, PRD-F9 | INV-8 | internal | Current effective rows stay while needed to gate an active account and are never purged by the gate; retired rows purge 12 months after the retired_at anchor (policy superseded/inactive, account closure, or consented-purpose end), with holds excepted | Append-only except authorized maintenance purge; retired_at is a timestamp only, no PII; planned field, future migration |
 | FREELANCER_PROFILE | PRD-F1 | INV-3, INV-8 | PII | Life of account | No ID hash, image, or number column of any kind |
 | VERIFICATION_CASE | PRD-F1 | INV-3 | internal | 12 months after case close (minimal); never holds raw ID data | Reviewer, method, result, name-match, and time only |
@@ -327,6 +333,8 @@ erDiagram
 | DATA_REQUEST | PRD-F12 | — | PII | 12 months after case close | Export, correction, deletion, and close requests |
 
 ### 3.3 Constraints and indexes
+
+AUTH_RATE_LIMIT (cr-001): PRIMARY KEY(key), CHECK(count >= 1), INDEX(expires_at). A conditional UPSERT admits a request only while below its limit or after expiry; the check and increment are atomic across Worker instances. OTP send and verification have separate five-request/fifteen-minute buckets keyed by IP+normalized email+route. Expired buckets are deleted on auth requests; no raw identifying values are stored. The general auth burst limit uses the same durable storage. Missing trusted IP falls back to a shared bucket, never a client-supplied forwarded address.
 
 | Constraint | On | Why | Enforces |
 |------------|----|-----|----------|
@@ -407,7 +415,7 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 | Validation | Zod schemas shared by the form and the server action; the server result is authoritative. File type by magic bytes. Covered work period and optional amount validated server-side (ordered period, non-negative centavos, no conversion). Anchor dates and the 15-day window are validated server-side against engagement evidence; future anchors are rejected | PRD-F2, PRD-F3 |
 | Error handling | Server actions return `{ ok: true, data }` or `{ ok: false, fieldErrors, message }`. Route handlers return 400, 401, 403, 404, 409, 413, 429 with a JSON `{ error }`. A forbidden read of someone else's data returns 404, not 403 | all |
 | Secrets | Wrangler secrets and `.dev.vars` locally (gitignored): `BETTER_AUTH_SECRET`, optional `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `BREVO_API_KEY` or `RESEND_API_KEY`, optional `TURNSTILE_SECRET_KEY`. No SMS key and no ID-vendor key exist | all |
-| Rate limiting | Workers Rate Limiting binding for bursts (sign-in, OTP, uploads, searches) per IP and per user. Daily quotas counted in D1. Approved pilot caps (LOG Q7, owner 2026-10-13): sign-in/OTP 5 per 15 min per IP+email; invites created per freelancer 10/day and 30/week; logs per freelancer total 10/week; logs per freelancer→same client 1 per engagement and at most 3 per 12 months per freelancer/client pair; proof uploads 20/day per user at 10 MB/file; client accept/decline uncapped (invite token is single-use). All caps are generous for a 20-30 user pilot and tunable without a schema change | PRD-F1, PRD-F2, PRD-F9 |
+| Rate limiting | Auth uses atomic D1 AUTH_RATE_LIMIT buckets (cr-001): sign-in/OTP 5 per 15 min per IP+email, separate send/verification buckets, plus durable general-auth bursts of 20/min per IP/route. Future upload/search burst bindings and daily quotas remain planned. Approved remaining pilot caps (LOG Q7, owner 2026-10-13): invites created per freelancer 10/day and 30/week; logs per freelancer total 10/week; logs per freelancer→same client 1 per engagement and at most 3 per 12 months per freelancer/client pair; proof uploads 20/day per user at 10 MB/file; client accept/decline uncapped (invite token is single-use). All caps are tunable without a schema change | PRD-F1, PRD-F2, PRD-F7, PRD-F9 |
 | Privacy | No request-body logging. Observability logs and AUDIT_EVENT carry ids and action names only, never names, contact data, ID data, facts, or file contents | INV-3, INV-4 |
 | Retention maintenance | Daily Cron `scheduled()` invokes `runRetentionMaintenance` (planned `web/src/features/maintenance/run.ts`): expire past-`expires_at` rows from reads immediately, purge idle drafts (30 days) including abandoned unpublished ask-changes with cases closed as abandoned, rejected material (30 days after final decision), withdrawn logs at their inherited original-publication 12-month deadline, unapproved abandoned revisions and their proofs (30 days idle), proofs and R2 objects with their logs, abandoned uploads, closure purges per the assessed plan, and audit and metadata past 12 months after case close including authorized minimal-history purges. Holds delay physical deletion but never visibility or rating expiry; open-review evidence is force-finished, never deleted mid-review | PRD-F12 |
 | Crawlers | `robots.txt` disallows everything except `/`; `X-Robots-Tag: noindex, nofollow` on every authenticated route | INV-7 |

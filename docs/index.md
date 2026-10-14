@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.13
+doc_version: 0.16
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-13
+updated: 2026-10-14
 reconciled: 2026-09-14
 ---
 
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.2 | Review | 2026-10-14 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.2 | Draft | 2026-10-13 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.0 | Review | 2026-10-14 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.2 | Review | 2026-10-14 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.2 | Review | 2026-10-14 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.6 | Draft | 2026-10-14 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -51,7 +51,7 @@ Change records against `Locked` documents. See engine §7.3.
 
 | CR ID | Date | Summary | Trigger doc | Docs touched | File |
 |-------|------|---------|-------------|--------------|------|
-| none | | No CRs yet. As of 2026-10-13 the launch suite (IDEA, BUILD, PRD, SDD, QAD, OPS) is `Locked` v1.0; any further change to these docs now requires a change record (engine §7.3). LOG and INDEX stay living; RFC flag-rfc-001 stays Draft/deferred | | | |
+| cr-001 | 2026-10-14 | Owner-approved audit repairs, retained build-guide edits, and durable authentication throttling; implementation authorized while changed docs are Review | BUILD, SDD | build-flag.md, sdd-flag.md, qad-flag.md, ops-flag.md | [cr-001-flag-audit-fixes.md](cr-001-flag-audit-fixes.md) |
 
 ---
 
@@ -103,7 +103,7 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 - [x] Every open change record has propagated downstream
 - [x] Every feature ID referenced by SDD, RFC, or QAD still exists in the PRD
 - [x] §3 Traceability Matrix covers every Must-Have
-- [x] §3.1 Invariant Matrix: every `Active` invariant is enforced and has a negative test
+- [x] §3.1 Invariant Matrix maps every Active invariant to its designed enforcement and planned negative tests; implemented test coverage is stated separately in QAD §1
 - [x] Validator green (`python $SPINE_HOME/scripts/check.py docs/`)
 - [x] Latest checkpoint verifies clean (`python $SPINE_HOME/scripts/checkpoint.py verify`)
 - [x] No secrets committed in `docs/`
@@ -111,6 +111,10 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-14 latest release status: owner authorized and completed migration 0003 to flag-db-dev and manual deployment to flag-dev, version bd7b2957-e125-4dfe-a4ea-41c139510ca6. Active dev DB/auth bindings and seven routes passed live checks, including policy versions and the OTP limit. Production release and dashboard CI-setting corrections remain pending. The owner subsequently requested committing/pushing to dev; six deployment tests and actual negative/positive CI dry runs passed before that push.
+
+- 2026-10-14 current status: owner-approved cr-001 local repairs complete: atomic onboarding, durable D1 auth limits, missing-mail checks, privacy/terms versions 2026-10-14, guarded environment-specific deployment scripts, compatible security updates, and local fonts. All 21 tests, lint, typechecks, and full OpenNext build pass; fresh local migrations pass; checkpoint verification is clean. Remote migration/deployment and dashboard settings remain pending. Auth/onboarding is the implemented workflow boundary; supporting verification and engagement tables exist but their workflows remain planned. QAD case IDs and the invariant matrix describe the target test plan. Superseded historical notes below remain history.
 
 - 2026-10-12 overhaul on branch `foverhaul`: tier raised from 2 to 3; product reshaped around the engagement handshake, eight owner-confirmed invariants, and the course SMART goals in `group_context/`. Feature IDs PRD-F1 to PRD-F6 keep their meaning; PRD-F7 to PRD-F13 are new.
 - 2026-10-12: PRD-F7 and PRD-F8 built on `foverhaul` against Draft docs with owner authorization (LOG); 13 Vitest cases pass in the Workers pool. Verification status (PRD-F1) does not exist yet, so `requireVerifiedFreelancer()` refuses everyone.

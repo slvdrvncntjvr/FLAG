@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.0
-status: Locked
+doc_version: 2.2
+status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-13
+updated: 2026-10-14
 reconciled: 2026-10-13
 ---
 
@@ -31,9 +31,9 @@ Read in this order before writing code:
 6. This guide
 7. `QAD` - before calling anything done
 
-**Only build against `Locked` docs.** All docs are `Draft` as of 2026-10-13. The owner may authorize building a specific feature against Draft; record that in `LOG`.
+**Only build against `Locked` docs or a specific owner-approved change record.** The launch suite locked on 2026-10-13. cr-001 authorizes the audit repairs while BUILD, SDD, QAD, and OPS are Review; IDEA and PRD remain Locked. This approval does not authorize implementing the entire future feature backlog.
 
-Docs-only alignment changes no shipped legal pages: the live privacy/terms copy still reflects the prior scope (no rating, one public reply, permanent retention) and must be reconciled with the approved contract before launch of the new scope.
+cr-001 aligns privacy/terms with the approved scope and bumps both versions to 2026-10-14, requiring reacceptance. The pages distinguish available accounts/onboarding from planned workflows. Dev deployed and verified on 2026-10-14; production remains on its previous release.
 
 ### To build X, read Y
 
@@ -78,15 +78,17 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Icons | lucide-react | 1.55.0 | 2026-10-12 | https://lucide.dev/ |
 | QR decode (browser) | jsqr | 1.4.0 | 2026-10-12 | https://www.npmjs.com/package/jsqr |
 | CBOR (ID check) | cbor-x | 1.6.6 | 2026-10-12 | https://www.npmjs.com/package/cbor-x |
-| Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.11, 1.3.6 | 2026-10-12 | https://developers.cloudflare.com/workers/testing/vitest-integration/ |
+| Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.11, 1.4.2 | 2026-10-14 | https://www.npmjs.com/package/@cloudflare/vitest-plugin/v/1.4.2 |
 | End-to-end tests | @playwright/test | 1.64.0 | 2026-10-12 | https://playwright.dev/ |
 | Lint | eslint, eslint-config-next | 9.39.5, 16.3.8 | 2026-10-12 | https://nextjs.org/docs/app/api-reference/config/eslint |
-| Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/google | bundled by Next | 2026-10-12 | https://nextjs.org/docs/app/getting-started/fonts |
+| Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/local | @fontsource-variable/source-serif-4 5.3.1, @fontsource-variable/inter 5.3.0, @fontsource/ibm-plex-mono 5.3.0 | 2026-10-14 | https://www.npmjs.com/package/@fontsource-variable/source-serif-4/v/5.3.1 , https://www.npmjs.com/package/@fontsource-variable/inter/v/5.3.0 , https://www.npmjs.com/package/@fontsource/ibm-plex-mono/v/5.3.0 |
 
 Version notes:
+- Fonts retain the same faces and Latin subsets but are pinned npm assets, loaded locally because Google Fonts requests failed during Worker build verification. No Google Fonts network fetch is needed at build time. OFL licenses are distributed under web/public/font-licenses/.
 - Next 16.4.0 is out, but OpenNext's support PR for it was still open on 2026-10-12. 16.3.8 is the lowest 16.x the adapter accepts and includes the image-optimizer SSRF fix.
 - better-auth below 1.7.7 has a critical magic-link account takeover (GHSA-965c-763c-88jm). Never downgrade.
-- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin` (package README, 2026-10-12). 1.3.6 (2026-10-02) is the newest release older than 7 days. Its peer range is vitest ^4.1.0.
+- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin`. cr-001 updates the plugin to 1.4.2 for security fixes; npm verified 2026-10-14, peer vitest ^4.1.0 or ^5.0.0. Existing Vitest stays 4.1.11.
+- cr-001 pins compatible transitive tool overrides: @node-minify/core's glob 10.5.0 and @esbuild-kit/core-utils' esbuild 0.25.12. Verified through installation/audit on 2026-10-14; sources https://www.npmjs.com/package/glob/v/10.5.0 and https://www.npmjs.com/package/esbuild/v/0.25.12 . The audit falls from 17 entries to five high entries from the same braces advisory through ESLint. braces 3.0.3 remains npm's latest on 2026-10-14; no compatible patched release exists. Do not run audit fix --force to downgrade the Next 16 lint configuration.
 - TypeScript stays on 5.x and ESLint on 9.x until Next's tooling confirms the new majors.
 - Wait 7 days after a release before bumping a pin, unless the release fixes a security advisory.
 
@@ -118,18 +120,48 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-12
 | Dev | `npm run dev` (`next dev`, with local D1 and R2 through `initOpenNextCloudflareForDev`) |
 | Build | `npm run build` (`next build`) |
 | Preview on Workers runtime | `npm run preview` (`opennextjs-cloudflare build && opennextjs-cloudflare preview`) |
-| Deploy | `npm run deploy` (`opennextjs-cloudflare build && opennextjs-cloudflare deploy`) |
+| Build Worker (production) | `npm run build:worker` (`opennextjs-cloudflare build`) |
+| Build Worker (dev) | `npm run build:worker:dev` (`opennextjs-cloudflare build --env dev`) |
+| Deploy already-built Worker (production) | `npm run deploy:worker` (configuration guard then `opennextjs-cloudflare deploy`) |
+| Deploy already-built Worker (dev) | `npm run deploy:worker:dev` (configuration guard then `opennextjs-cloudflare deploy --env dev`) |
+| Manual build and deploy | `npm run deploy` (production), `npm run deploy:dev` (dev) |
+| Verify dev release | `npm run verify:dev` (read-only binding metadata plus anonymous route and invalid-code checks; no mail/signup) |
 | Test | `npm test` (`vitest run`) |
+| Deployment boundary tests | `npm run test:deploy` (six Node tests for Workers Builds branch/environment checks) |
 | End-to-end | `npm run e2e` (`playwright test`) |
 | Lint | `npm run lint` (`eslint`) |
 | Typecheck | `npm run typecheck` (`tsc --noEmit` for the app, then for `tests/`) |
 | Generate migration | `npm run db:generate` (`drizzle-kit generate`) |
 | Apply migrations locally | `npm run db:migrate:local` (`wrangler d1 migrations apply flag-db --local`) |
-| Apply migrations remote | `npm run db:migrate:remote -- --env preview` (`wrangler d1 migrations apply flag-db --remote`) |
-| Cloudflare binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv`) |
+| Apply migrations remote | `npm run db:migrate:remote` (production), `npm run db:migrate:dev` (dev); no environment named preview exists |
+| Cloudflare binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv --strict-vars false`) |
 | Docs validator | `python $SPINE_HOME/scripts/check.py docs/` (from repo root) |
 
 Long-running commands (dev servers, watchers) must be run by the owner in their own terminal, not by an agent in a blocking shell call.
+
+### 3.1 Deploy and migrations (read before any schema change)
+
+Cloudflare Workers Builds is intended to deploy `flag` from `main` and `flag-dev` from `dev`, with root directory `web` for both. Configure separate build and deploy commands: production uses `npm run build:worker` then `npm run deploy:worker`; dev uses `npm run build:worker:dev` then `npm run deploy:worker:dev`. Each service's production branch must match its intended branch. Non-production branch builds are optional and need explicit preview/upload commands and environments; do not use the full deploy scripts as the build command. Set watch paths to application changes if documentation-only builds are unwanted.
+
+Evidence from the 2026-10-14 audit: supplied build log ran a deployment during the build and then a second deployment without --env dev, overriding only the Worker name. Historical flag-dev version a9393ce2 used production DB/auth values; active version 222b8b96 used the correct dev values. A green build alone does not prove isolation. After deployment verify the actual version's DB binding and BETTER_AUTH_URL. GitHub's original flag-dev failure had no inline error and its build API required unavailable Workers CI permissions. Only the checks for deliberately configured branches should run; do not dismiss unexpected checks without inspecting their commands.
+
+Reference, checked 2026-10-14: https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/#wrangler-environments and https://opennext.js.org/cloudflare/howtos/dev-deploy . Dashboard settings remain external configuration and must be verified separately from the repository scripts.
+
+Push protection: web/open-next.config.ts:2 loads the CI check before adapter operations and propagates the selected environment to child commands. Plain Wrangler can bypass adapter config, so web/wrangler.jsonc:12 also invokes web/scripts/check-wrangler-build.mjs:1 before Wrangler uploads. web/scripts/check-ci-target.mjs:16 rejects a CI Worker-name/environment mismatch and rejects flag operations outside main or flag-dev operations outside dev. This prevents the old commands from promoting a dev commit to production or overriding only the dev Worker name while selecting production bindings. Correct dashboard commands are still required; incorrect commands deliberately fail. Cloudflare exposes WORKERS_CI_BRANCH per https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#default-variables .
+
+**Database migrations are NOT automatic, and this is deliberate.** Auto-deploy ships code only. D1 migrations are forward-only with no automatic rollback, so they are applied by hand, preview before production. The trigger is mechanical: any change that adds or edits a file under `web/drizzle/` — i.e. any structural change to `web/src/server/db/schema.ts` (new table, new/renamed/removed column, index, constraint, CHECK, type, or default change) — needs a migration. Pure code, copy, styling, routing, or logic changes that use existing tables do NOT.
+
+When schema changes, run these three steps in order, from `web/`:
+
+1. Generate the migration: `npm run db:generate` (writes the next `drizzle/000X_*.sql`).
+2. Apply backward-compatible migrations to the database BEFORE the code that needs them goes live:
+   - preview DB: `npm run db:migrate:dev` (`wrangler d1 migrations apply flag-db-dev --remote --env dev`)
+   - production DB: `npm run db:migrate:remote` (`wrangler d1 migrations apply flag-db --remote`)
+3. Push the code only after the corresponding database is ready and the build commands above are verified; auto-deploy ships it. A destructive/renaming change needs an expand-and-contract rollout, not a blind migration ahead of running code.
+
+cr-001 adds web/drizzle/0003_melted_the_twelve.sql for AUTH_RATE_LIMIT. Local and remote dev applications passed; dev release completed after explicit authorization on 2026-10-14. Production migration/deployment still need separate authorization. npm run verify:dev passed against active version bd7b2957-e125-4dfe-a4ea-41c139510ca6.
+
+Failure mode if skipped: the deploy succeeds but the live page throws a database error because the table or column it expects does not exist yet (local works because the local D1 was already migrated). The fix is simply to run the matching migrate command.
 
 ---
 
@@ -175,7 +207,7 @@ Repo-specific prohibitions. These are enforced like engine §8 Hard Rules.
 - [ ] QAD cases for the feature ID pass, including every negative test for the invariants it touches
 - [ ] §7 UI checklist passes for any screen touched
 - [ ] Docs updated if behavior changed; `INDEX` row bumped
-- [ ] Legal copy reconciled before launch of new scope (live privacy/terms still promise the prior scope); docs-only alignment changes no shipped legal pages
+- [ ] Policy source aligns with the approved scope; verify the 2026-10-14 versions on the deployed legal pages before release
 
 ---
 

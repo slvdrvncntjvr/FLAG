@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, notExists, sql } from "drizzle-orm";
 import type { Db } from "@/server/db";
 import { policyAcceptance, user, type Policy, type Role } from "@/server/db/schema";
 import { missingPolicies, POLICY_VERSIONS } from "@/lib/policies";
@@ -29,24 +29,25 @@ export function isOnboarded(viewer: Viewer) {
   return viewer.role !== null && viewer.missingPolicies.length === 0;
 }
 
-// Role is chosen once, only as freelancer or client, and only while still null (AB-12).
-export async function chooseRole(db: Db, userId: string, role: "freelancer" | "client") {
-  const updated = await db
-    .update(user)
-    .set({ role, updatedAt: new Date().toISOString() })
-    .where(and(eq(user.id, userId), isNull(user.role)))
-    .returning({ id: user.id });
-  return updated.length === 1;
-}
-
-export async function recordAcceptances(db: Db, userId: string, policies: Policy[]) {
-  if (policies.length === 0) return;
-  await db.insert(policyAcceptance).values(
-    policies.map((policy) => ({
-      id: crypto.randomUUID(),
-      userId,
-      policy,
-      version: POLICY_VERSIONS[policy],
-    })),
-  );
+// D1 batches are transactional. A failed policy insert rolls back the role change.
+// Conditional inserts also make concurrent duplicate submissions idempotent.
+export async function commitOnboarding(db: Db, userId: string, role: Role, policies: Policy[]) {
+  const choose = db.update(user).set({ role, updatedAt: new Date().toISOString() })
+    .where(and(eq(user.id, userId), isNull(user.role), eq(user.banned, false)));
+  const acceptances = policies.map((policy) => db.insert(policyAcceptance).select(
+    db.select({
+      id: sql<string>`${crypto.randomUUID()}`.as("id"),
+      userId: user.id,
+      policy: sql<Policy>`${policy}`.as("policy"),
+      version: sql<string>`${POLICY_VERSIONS[policy]}`.as("version"),
+      acceptedAt: sql<string>`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`.as("accepted_at"),
+    }).from(user).where(and(
+      eq(user.id, userId), eq(user.banned, false), eq(user.role, role),
+      notExists(db.select({ id: policyAcceptance.id }).from(policyAcceptance).where(and(
+        eq(policyAcceptance.userId, userId), eq(policyAcceptance.policy, policy),
+        eq(policyAcceptance.version, POLICY_VERSIONS[policy]),
+      ))),
+    )),
+  ));
+  await db.batch([choose, ...acceptances]);
 }

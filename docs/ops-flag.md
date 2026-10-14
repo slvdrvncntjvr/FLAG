@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.0
-status: Locked
+doc_version: 2.2
+status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-13
+updated: 2026-10-14
 reconciled: 2026-10-13
 ---
 
@@ -17,16 +17,16 @@ reconciled: 2026-10-13
 
 ---
 
-Nothing here is deployed yet. Commands are the planned ones from BUILD §3 and `web/package.json` scripts; each is marked verified only after it has been run against a real environment. Distinctions between planned and implemented are stated inline. SDD owns the actual fields and state; this doc states operations only and guesses no SQL columns.
+Accounts/onboarding are deployed in production and dev. Verification, engagement, proof, moderation, record, and retention workflows remain planned. cr-001 repairs deployed to dev on 2026-10-14 as version bd7b2957-e125-4dfe-a4ea-41c139510ca6 after migration 0003 applied to flag-db-dev. Production remains on the previous release. Commands come from BUILD §3 and web/package.json; SDD owns the fields and state.
 
-Docs-only alignment changes no shipped legal pages: the live privacy/terms copy still reflects the prior scope (no rating, one public reply, permanent retention) and must be reconciled with the approved contract before launch of the new scope.
+Dev's live privacy/terms versions 2026-10-14 are verified; existing dev accounts must accept again. Policy text labels planned workflows explicitly and does not claim retention automation already exists. Production policy release remains pending.
 
 ## 1. Environments
 
 | Environment | URL | Branch | Worker / D1 | Deploy trigger | Owner |
 |-------------|-----|--------|-------------|----------------|-------|
 | Production (default) | https://flag.factsfirst.workers.dev | `main` | `flag` / `flag-db` | Workers Builds auto-deploy on `main`; manual `npm run deploy` also targets default | slvdrvncntjvr |
-| Preview | https://flag-dev.factsfirst.workers.dev | `dev` | `flag-dev` / `flag-db-dev` | Manual `npm run deploy:dev` (builds then deploys with `--env dev`); no `--env preview` exists in `wrangler.jsonc` | slvdrvncntjvr |
+| Preview | https://flag-dev.factsfirst.workers.dev | `dev` | `flag-dev` / `flag-db-dev` | Workers Builds with separate dev build/deploy commands; manual npm run deploy:dev remains a fallback; no environment named preview exists | slvdrvncntjvr |
 | Local | http://localhost:3000 | any | local D1/R2 via `initOpenNextCloudflareForDev` | `npm run dev` | each developer |
 
 Each environment has its own D1 database and per-env secrets (`wrangler secret put <NAME> --env dev` for preview). Pilot data never goes into preview. R2 for proof files is PLANNED, not yet wired: `wrangler.jsonc` has no `PROOFS` binding as of 2026-10-13, so no claim is made that proof storage is already connected.
@@ -39,16 +39,25 @@ Scripts copied from `web/package.json` (run from `web/`). Migration order: previ
 |------|---------|-------|
 | Apply migrations (preview) | `npm run db:migrate:dev` (`wrangler d1 migrations apply flag-db-dev --remote --env dev`) | Before the preview code that needs them |
 | Apply migrations (production) | `npm run db:migrate:remote` (`wrangler d1 migrations apply flag-db --remote`) | Before the production code that needs them |
-| Deploy (production, default) | `npm run deploy` (`opennextjs-cloudflare build && opennextjs-cloudflare deploy`) | Targets the default production Worker |
-| Deploy (preview) | `npm run deploy:dev` (`opennextjs-cloudflare build && opennextjs-cloudflare deploy -- --env dev`) | The only preview path; `--env preview` does not exist |
-| Smoke check | Sign in, open a client record, open the moderation queue | Manual, two minutes |
-| Binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv`) | After binding changes |
+| Workers Builds production | Build npm run build:worker; deploy npm run deploy:worker | Root web; production branch main; never put the full deploy script in Build command |
+| Workers Builds dev | Build npm run build:worker:dev; deploy npm run deploy:worker:dev | Root web; production branch dev; both commands select dev |
+| Manual deploy (production) | `npm run deploy` | Builds then runs the guarded production deploy |
+| Manual deploy (dev) | `npm run deploy:dev` | Builds then runs the guarded dev deploy |
+| Smoke check (current release) | Sign in, accept current policies, open /home; verify signed-out /home and /onboarding redirect to /sign-in | Client records and moderation queue are future release checks, not current routes |
+| Binding types | `npm run cf-typegen` | After binding changes; --strict-vars false permits both deployed and local URLs |
+| Verify dev release | `npm run verify:dev` | Active version's DB/auth bindings, seven anonymous routes, legal versions/noindex, and five-then-429 invalid-code limit; sends no mail or signup |
+
+web/drizzle/0003_melted_the_twelve.sql applied to remote dev on 2026-10-14; no pending dev migrations remained. Apply it to production before production release, with separate owner authorization. Deployment does not apply migrations. Dev migration and deployment were explicitly authorized after the original local-only CR approval.
+
+After every deployment, inspect the deployed version's actual DB binding and BETTER_AUTH_URL. Historical flag-dev version a9393ce2 had production bindings; version 222b8b96 was correct at the initial audit, and released version bd7b2957-e125-4dfe-a4ea-41c139510ca6 was verified correct after this dev release. CI name overrides change the name, not the selected environment's bindings. Unexpected GitHub checks need command/branch inspection; a green build does not prove correct targeting. Dashboard command changes are still pending and were not saved in this session.
+
+Before the requested dev push, cr-001 adds a CI branch/environment check at adapter config load (web/open-next.config.ts:2) and in Wrangler's custom build (web/scripts/check-wrangler-build.mjs:1). A dev commit cannot deploy the production target through the legacy full-deploy build command. A default plain Wrangler deploy in the flag-dev build also fails unless dev is selected. Supported adapter commands propagate their selected environment to child Wrangler commands. Local manual commands remain available. Dry-run tests confirmed both mismatches are rejected before upload. Red checks require correcting the dashboard settings, not disabling the check.
 
 **Rollback:** `npx wrangler rollback` returns the default production Worker to the previous version (`--env dev` for preview). D1 migrations are not rolled back; they are forward-only. Procedure approved by owner 2026-10-13; a rollback dry-run on the `dev`/preview Worker is scheduled as part of pre-pilot readiness and this note is stamped verified once that run passes.
 
 ## 3. Configuration and secrets
 
-Current runtime code (`web/src/server/auth/config.ts`, `web/src/server/mail/index.ts`) reads the names below. Brevo-first: `sendMail` selects Brevo when `BREVO_API_KEY` is set, else Resend, else a local/dev-console no-op. Values are never recorded in this document or any other doc in `docs/`. Local values live in `web/.dev.vars`, which is gitignored.
+Current runtime code (web/src/server/auth/config.ts, web/src/server/mail/index.ts) reads the names below. Brevo is selected when configured, otherwise Resend. Missing both keys returns HTTP 503 before OTP generation outside actual HTTP localhost development; no prefix match treats localhost.attacker.example as local. Local development may print a code; provider failure logs carry a status/error name, never response bodies. Values are never recorded in docs; local secrets live in gitignored web/.dev.vars.
 
 | Name | Purpose | Store | Required |
 |------|---------|-------|----------|
@@ -61,7 +70,7 @@ Current runtime code (`web/src/server/auth/config.ts`, `web/src/server/mail/inde
 | `GOOGLE_CLIENT_SECRET` | Google sign-in (optional) | Wrangler secret | no — currently disabled without keys |
 | `DB` | D1 binding | wrangler.jsonc | yes |
 
-Planned, not launch-required: `PROOFS` R2 binding (proof storage, planned), Rate Limiting bindings (planned), `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` (bot check stays disabled without keys), Workers Cron trigger wiring for retention (planned, §5). There is NO SMS key and NO PhilSys/ID-vendor key launch requirement: pilot verification is manual live inspection per PRD-F1, and RFC 001 automatic checking is deferred future. No secret for a prohibited-forever flow exists.
+Planned: PROOFS R2 binding, upload/search burst bindings, TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY, and retention Cron wiring. cr-001 authentication limits use D1 AUTH_RATE_LIMIT and the existing BETTER_AUTH_SECRET for hashed keys. No SMS or ID-vendor key is required; pilot verification is manual live inspection per PRD-F1 and RFC 001 automatic checking remains deferred.
 
 ## 4. Monitoring
 
@@ -133,7 +142,7 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 
 **Symptom:** users report missing invite, code, or decision mail.
 **Likely cause:** Brevo key missing or quota hit; fallback Resend key missing; sender address misconfigured.
-**Diagnose:** check which provider `sendMail` selected (Brevo when its key is set, else Resend, else no-op); inspect the Brevo dashboard first, then Resend; confirm `MAIL_FROM` and per-env secrets.
+**Diagnose:** missing both per-env mail keys produces HTTP 503 at code requests after cr-001 is released. Otherwise inspect the selected Brevo/Resend dashboard, sender, quota, and per-env secrets. Better Auth may handle delivery errors in a background callback, so an accepted request alone does not prove delivered mail.
 **Fix:** rotate or set the per-env mail key; correct `MAIL_FROM`; resend the affected notification. Never paste a key into a doc or chat log.
 **Escalate to:** slvdrvncntjvr.
 
@@ -160,4 +169,4 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 - [ ] Restore from backup tested
 - [ ] No secrets in the repo or in `docs/`
 - [ ] Every network-exposed endpoint has auth, or a documented exception (SDD §4)
-- [ ] Legal copy and policy versions reconciled with the approved contract before launch of new scope (live pages still promise the prior scope); docs-only alignment changes no shipped legal pages
+- [ ] Verify approved legal copy and privacy/terms version 2026-10-14 on deployed pages; planned feature scope remains explicit

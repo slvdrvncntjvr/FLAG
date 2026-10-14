@@ -21,9 +21,17 @@ export default function Terms() {
 
       <h2 className="font-serif text-lg">Filing a log</h2>
       <p>
-        Every log must be truthful and supported by proof. A log without proof is not accepted. A log is reviewed by a
-        moderator and is not visible to anyone else until it is approved. A log that is false, misleading, or filed
+        When logging launches, a log requires a registered client who accepted the engagement, a rating from 1 to 5,
+        and proof supporting the facts. File within fifteen calendar days of completion or termination, or the first
+        missed agreed payment or milestone during ongoing work. One log is allowed per engagement. A moderator reviews
+        every log before other readers see it; private evidence is restricted to the parties and moderators. A false, misleading log or one filed
         without a genuine engagement is removed, and the account that filed it may be suspended.
+      </p>
+      <p>
+        Approved publications expire twelve months after original publication; later updates do not extend retention.
+        Verification means identity checked, not a guarantee of trustworthiness. Declining an engagement produces no
+        warning or negative rating. Verification, engagements, logs, records, and private correction workflows are
+        planned features and are not available in the current account and onboarding release.
       </p>
 
       <h2 className="font-serif text-lg">Clients and reviews</h2>

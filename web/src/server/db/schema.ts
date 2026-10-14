@@ -87,6 +87,17 @@ export const authVerification = sqliteTable(
   (t) => [index("auth_verification_identifier_idx").on(t.identifier)],
 );
 
+// cr-001: atomic, durable auth buckets. Keys never contain raw IP/email values.
+export const authRateLimit = sqliteTable(
+  "auth_rate_limit",
+  {
+    key: text("key").primaryKey(),
+    count: integer("count").notNull(),
+    expiresAt: integer("expires_at").notNull(),
+  },
+  (t) => [index("auth_rate_limit_expiry_idx").on(t.expiresAt), check("auth_rate_limit_count_check", sql`${t.count} >= 1`)],
+);
+
 export const POLICIES = ["privacy", "terms", "freelancer_ack", "client_consent"] as const;
 export type Policy = (typeof POLICIES)[number];
 

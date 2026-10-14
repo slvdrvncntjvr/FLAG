@@ -15,13 +15,15 @@ export default function Privacy() {
       <h2 className="font-serif text-lg">What we collect</h2>
       <ul className="list-disc space-y-1 pl-5">
         <li>Your email address and the account, sign-in, and session records needed to run your account.</li>
-        <li>Which policies you accepted and when, kept as a permanent record you cannot edit or delete.</li>
+        <li>Which policies you accepted, their versions, and when. You cannot directly alter acceptance history.</li>
         <li>
-          For freelancers who verify: a phone number, portfolio links, and a one-way cryptographic value (HMAC) derived
-          from a government ID. We never store an image of an ID or the full ID number.
+          When verification becomes available: portfolio links and the moderator&apos;s inspection method, result,
+          name-match result, and time. A moderator views a supported government ID live; we do not record the inspection,
+          save an ID image or full ID number, or require an ID-derived hash or phone verification.
         </li>
         <li>
-          For logs and engagements: the content you submit, the proof files you upload, and the client named in a log.
+          When engagements and logs become available: the accepted engagement, facts, rating, covered work period,
+          optional amount, proof files, and review history you submit.
         </li>
       </ul>
 
@@ -34,16 +36,38 @@ export default function Privacy() {
 
       <h2 className="font-serif text-lg">Who can see it</h2>
       <p>
-        Client records and logs are visible only to signed-in users and are never shown to search engines. Proof files
-        are visible only to moderators, the freelancer who filed them, and the client named in the log. Email codes are
-        sent through our email provider solely to deliver your sign-in code.
+        Published client records and logs will be visible to signed-in freelancers; clients see their own record.
+        Readers see the filer&apos;s name, but not contact or ID data. Proof files are restricted to the filer, named client,
+        and moderators. An admin has no blanket proof access. Private review requests and notes stay with the parties
+        and moderators. Records and logs are never served to signed-out visitors or search engines. Our email provider
+        receives your address solely to deliver transactional messages.
       </p>
 
       <h2 className="font-serif text-lg">How long we keep it</h2>
       <p>
-        We keep account and verification data for as long as your account is active. Policy acceptances and published,
-        moderator-approved logs are kept as a permanent record even after an account is closed, because they document
-        decisions that others relied on. You can ask us to close your account at any time.
+        Account data is kept while needed to run your account. Sign-in codes expire after ten minutes and sessions
+        after fourteen days. Authentication rate-limit records contain hashed keys rather than raw IP or email values;
+        expired rate-limit records are removed during authentication requests.
+      </p>
+      <p>
+        The following policy applies when engagement features launch. Published experiences and their proofs are kept
+        for twelve months from original publication; updates do not restart that period. Expired, hidden, or withdrawn
+        experiences do not contribute to visible records or ratings. Idle drafts and abandoned unpublished material
+        are deleted after thirty days of inactivity; rejected material after thirty days from the final decision.
+        An abandoned proposed update does not delete the active publication.
+      </p>
+      <p>
+        Minimal verification, moderation, and correction history is kept for twelve months after its case closes.
+        Current policy acceptance stays while needed to gate an active account. Retired acceptance history is kept
+        for twelve months after its policy or purpose ends or the account closes. A documented open review or legal
+        obligation may delay deletion; it does not extend a publication&apos;s visibility or rating contribution.
+      </p>
+      <p>
+        You may request account closure at any time. We assess closure and erasure individually within thirty days,
+        revoke access, and remove data as the assessment permits. Closing an account does not automatically erase
+        unexpired records or consent history. If a name or content needs earlier erasure, the affected publication is
+        hidden or withdrawn. These periods are FLAG&apos;s policy, not universal legal retention requirements. Requests
+        currently go to the contact address below; account-request and retention automation have not launched.
       </p>
 
       <h2 className="font-serif text-lg">Your rights</h2>

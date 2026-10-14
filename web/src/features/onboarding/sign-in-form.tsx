@@ -18,7 +18,7 @@ export function SignInForm() {
     setError(null);
     const { error } = await authClient.emailOtp.sendVerificationOtp({ email: email.trim(), type: "sign-in" });
     setPending(false);
-    if (error) return setError(error.status === 429 ? "Too many attempts. Wait a minute." : "Could not send the code.");
+    if (error) return setError(error.status === 429 ? "Too many attempts. Try again after fifteen minutes." : "Could not send the code. Try again later.");
     setStep("code");
   }
 
@@ -35,7 +35,7 @@ export function SignInForm() {
     setPending(false);
     if (error)
       return setError(
-        error.status === 429 ? "Too many attempts. Wait a minute." : "Code is incorrect or expired.",
+        error.status === 429 ? "Too many attempts. Try again after fifteen minutes." : "Code is incorrect or expired.",
       );
     router.replace("/onboarding");
   }

@@ -3,6 +3,7 @@ import { createAuth } from "@/server/auth/config";
 import { createDb } from "@/server/db";
 
 export const BASE = "http://localhost:3000";
+let clientNumber = 0;
 
 export function setup() {
   const db = createDb(env.DB);
@@ -14,7 +15,8 @@ export function setup() {
   );
 
   // Each setup() is a distinct client IP so rate limits do not leak between tests.
-  const ip = `203.0.113.${Math.floor(Math.random() * 250) + 1}`;
+  const client = ++clientNumber;
+  const ip = `2001:db8::${client.toString(16)}`;
 
   async function post(path: string, body: unknown, cookie?: string) {
     return auth.handler(
