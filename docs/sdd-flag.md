@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.0
+doc_version: 2.2
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-14
+updated: 2026-10-15
 reconciled: 2026-10-13
 ---
 
@@ -44,6 +44,8 @@ Cloudflare Worker  ---  OpenNext adapter  ---  Next.js (web/)
 
 ## 2. Components
 
+Issue #5 wires PROOFS to separate configured buckets at `web/wrangler.jsonc:29` and `web/wrangler.jsonc:54`, with local R2 emulation and generated binding types. The local Workers tests exercise storage primitives (`web/tests/f03-storage.test.ts:1`); remote bucket provisioning/privacy verification and proof workflows remain pending.
+
 Locations under `web/`. Built so far: Auth, Onboarding, Data access for the account tables, Mail. Each feature folder is owned by one developer (BUILD §4). `CLIENT_REPLY` and `CORROBORATION` from the prior design are removed: PRD-F5 and PRD-F10 are Retired, and no reply, same-experience, upvote, or agreement-count path is designed, stored, or rendered.
 
 | Component | Responsibility | Serves | Location |
@@ -62,7 +64,7 @@ Locations under `web/`. Built so far: Auth, Onboarding, Data access for the acco
 
 ## 3. Data model
 
-**Schema file:** `web/src/server/db/schema.ts` (USER, SESSION, ACCOUNT, AUTH_VERIFICATION, POLICY_ACCEPTANCE, FREELANCER_PROFILE, VERIFICATION_CASE, PORTFOLIO_LINK, CLIENT_PROFILE, and ENGAGEMENT exist; only auth/onboarding workflows are implemented. AUTH_RATE_LIMIT is approved by cr-001 and added in this repair. The remaining entities are design-first.)
+**Schema file:** `web/src/server/db/schema.ts` (USER, SESSION, ACCOUNT, AUTH_VERIFICATION, AUTH_RATE_LIMIT, POLICY_ACCEPTANCE, FREELANCER_PROFILE, VERIFICATION_CASE, PORTFOLIO_LINK, CLIENT_PROFILE, and ENGAGEMENT exist. Issue #5 adds ENGAGEMENT_LOG, LOG_REVISION, LOG_TAG, and PROOF_FILE at `web/src/server/db/schema.ts:259`, `:291`, `:329`, and `:346`. Only auth/onboarding workflows are implemented; the new tables are a local schema foundation, not released log/proof functionality. The remaining entities are design-first.)
 
 The ERD below is the schema contract (hard rule 16): code may only use the entities, fields, and relationships it defines. Types are D1/SQLite storage types as Drizzle will declare them: `text` (including ISO-8601 timestamps and enum values), `integer` (including booleans as 0/1, the 1-5 rating, and money in centavos). The account tables keep their exact built fields; the `phone_number` columns on USER are existing and stay, but no pilot flow reads or requires them.
 
@@ -333,6 +335,8 @@ erDiagram
 | DATA_REQUEST | PRD-F12 | — | PII | 12 months after case close | Export, correction, deletion, and close requests |
 
 ### 3.3 Constraints and indexes
+
+Issue #5 implements the new tables' CHECK, UNIQUE, and foreign-key constraints in `web/src/server/db/schema.ts:259` onward. Covered-period and anchor dates must be real canonical YYYY-MM-DD dates; invalid SQLite date results are rejected explicitly. A composite foreign key keeps the current revision and each bound proof on their own parent log, backed by UNIQUE LOG_REVISION(id, log_id); UNIQUE LOG_REVISION(log_id, rev_no) prevents duplicate revision numbers. New foreign keys use RESTRICT. Submission/filing-window, frozen-content, moderation, and retention triggers described below remain planned for their corresponding workflow issues; this foundation adds no mutation or read endpoint. Human-reference allocation remains the intake handler's responsibility.
 
 AUTH_RATE_LIMIT (cr-001): PRIMARY KEY(key), CHECK(count >= 1), INDEX(expires_at). A conditional UPSERT admits a request only while below its limit or after expiry; the check and increment are atomic across Worker instances. OTP send and verification have separate five-request/fifteen-minute buckets keyed by IP+normalized email+route. Expired buckets are deleted on auth requests; no raw identifying values are stored. The general auth burst limit uses the same durable storage. Missing trusted IP falls back to a shared bucket, never a client-supplied forwarded address.
 

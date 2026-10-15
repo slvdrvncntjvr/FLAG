@@ -25,6 +25,10 @@
 			"migrations_dir": "drizzle"
 		}
 	],
+	// Private proof storage; no public bucket domain or presigned reads.
+	"r2_buckets": [
+		{ "binding": "PROOFS", "bucket_name": "flag-proofs", "remote": false }
+	],
 	"vars": {
 		"BETTER_AUTH_URL": "https://flag.factsfirst.workers.dev",
 		"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
@@ -46,6 +50,9 @@
 					"database_id": "54aca5df-2ae7-4150-bd75-0f6365e5bfa3",
 					"migrations_dir": "drizzle"
 				}
+			],
+			"r2_buckets": [
+				{ "binding": "PROOFS", "bucket_name": "flag-proofs-dev", "remote": false }
 			],
 			"vars": {
 				"BETTER_AUTH_URL": "https://flag-dev.factsfirst.workers.dev",

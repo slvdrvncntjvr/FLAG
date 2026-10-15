@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.2
+doc_version: 2.3
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-14
+updated: 2026-10-15
 reconciled: 2026-10-13
 ---
 
@@ -29,7 +29,9 @@ Dev's live privacy/terms versions 2026-10-14 are verified; existing dev accounts
 | Preview | https://flag-dev.factsfirst.workers.dev | `dev` | `flag-dev` / `flag-db-dev` | Workers Builds with separate dev build/deploy commands; manual npm run deploy:dev remains a fallback; no environment named preview exists | slvdrvncntjvr |
 | Local | http://localhost:3000 | any | local D1/R2 via `initOpenNextCloudflareForDev` | `npm run dev` | each developer |
 
-Each environment has its own D1 database and per-env secrets (`wrangler secret put <NAME> --env dev` for preview). Pilot data never goes into preview. R2 for proof files is PLANNED, not yet wired: `wrangler.jsonc` has no `PROOFS` binding as of 2026-10-13, so no claim is made that proof storage is already connected.
+Each environment has its own D1 database and per-env secrets (`wrangler secret put <NAME> --env dev` for preview). Pilot data never goes into preview. Issue #5 configures PROOFS at `web/wrangler.jsonc:29` (production flag-proofs) and `web/wrangler.jsonc:54` (dev flag-proofs-dev); local development uses emulated R2. `web/vitest.config.mts:13` binds local test storage. These are repository/local changes: remote buckets, privacy settings, and deployment have not been provisioned or verified in this task. Proof upload/streaming and retention workflows remain planned.
+
+Before releasing this foundation, provision the two named buckets with public r2.dev access and custom domains disabled, verify the target binding, and apply migration 0004_clever_arclight to the target D1 database before deploying code that needs it. The guarded deploy checks Worker, database, auth URL, and bucket selection (`web/scripts/check-resource-bindings.mjs:2`); it cannot prove a remote bucket's privacy settings. Remote release operations require their own owner instruction.
 
 ## 2. Deploy
 
@@ -160,7 +162,7 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 |------|-----------|----------|----------------|
 | D1 | Continuous (D1 Time Travel, 30 days on paid, 7 on free) | Cloudflare | not yet |
 | D1 export | Weekly during the pilot (`wrangler d1 export`) | Owner's encrypted drive | not yet |
-| R2 proofs | Durability of the planned bucket once wired | Cloudflare (planned) | n/a — bucket not yet wired |
+| R2 proofs | Durability of the configured private buckets after remote provisioning | Cloudflare (remote provisioning pending); local R2 binding tested | not yet; local put/get/delete primitives pass, not a remote backup/restore test |
 
 ## 7. Production readiness gate
 
