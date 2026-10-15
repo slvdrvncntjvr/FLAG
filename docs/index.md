@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.18
+doc_version: 0.19
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,7 +31,7 @@ Built on SPINE 0.3.0
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.2 | Review | 2026-10-15 | 2026-10-13 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.4 | Review | 2026-10-15 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.3 | Review | 2026-10-15 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.8 | Draft | 2026-10-15 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.9 | Draft | 2026-10-15 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -111,6 +111,8 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-15 PR review readiness: temporary HANDOFF.md deleted; upstream dev is unchanged at 10db33d. Remote inspection reports R2 is disabled (10042), so configured buckets cannot yet be provisioned, and dev migration 0004 is pending. PR may be pushed for review; merge into auto-deploying dev stays on hold until storage/release prerequisites are ready.
 
 - 2026-10-15 issue #5 local implementation complete: four log/proof tables and migration 0004_clever_arclight, separate private-bucket configs, R2 test binding, and deployment resource checks. All 69 Workers tests, nine Node deployment tests, lint, app/test typechecks, and the full dev Worker build pass; fresh local migrations and snapshot preservation verified. Remote buckets/privacy, migration, and release remain pending; product workflow boundary remains auth/onboarding.
 
