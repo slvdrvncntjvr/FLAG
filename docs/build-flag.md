@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.2
+doc_version: 2.3
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-14
+updated: 2026-10-15
 reconciled: 2026-10-13
 ---
 
@@ -32,6 +32,8 @@ Read in this order before writing code:
 7. `QAD` - before calling anything done
 
 **Only build against `Locked` docs or a specific owner-approved change record.** The launch suite locked on 2026-10-13. cr-001 authorizes the audit repairs while BUILD, SDD, QAD, and OPS are Review; IDEA and PRD remain Locked. This approval does not authorize implementing the entire future feature backlog.
+
+2026-10-15 task-specific owner override (LOG): issue #5 may implement the existing Review-state design for the PRD-F2/PRD-F3 database and R2 foundation. Later workflows remain separately scoped.
 
 cr-001 aligns privacy/terms with the approved scope and bumps both versions to 2026-10-14, requiring reacceptance. The pages distinguish available accounts/onboarding from planned workflows. Dev deployed and verified on 2026-10-14; production remains on its previous release.
 
@@ -160,6 +162,8 @@ When schema changes, run these three steps in order, from `web/`:
 3. Push the code only after the corresponding database is ready and the build commands above are verified; auto-deploy ships it. A destructive/renaming change needs an expand-and-contract rollout, not a blind migration ahead of running code.
 
 cr-001 adds web/drizzle/0003_melted_the_twelve.sql for AUTH_RATE_LIMIT. Local and remote dev applications passed; dev release completed after explicit authorization on 2026-10-14. Production migration/deployment still need separate authorization. npm run verify:dev passed against active version bd7b2957-e125-4dfe-a4ea-41c139510ca6.
+
+Issue #5 adds `web/drizzle/0004_clever_arclight.sql` for the four log/proof tables; a fresh local D1 application passed. Before an authorized remote release, provision the private R2 buckets named by `web/wrangler.jsonc:29` (flag-proofs) and `web/wrangler.jsonc:54` (flag-proofs-dev), with public r2.dev access and custom domains disabled, then apply migration 0004 to the target database. Remote provisioning, bucket privacy, and migration application have not been performed or verified by this local task. Local development uses emulated R2 (`remote: false`). `web/scripts/check-resource-bindings.mjs:2` checks environment-specific bucket, Worker, database, and auth URL before the guarded deploy command. Nine Node deployment tests now include actual Wrangler config isolation and rejection of missing/swapped/remote-preview proof bindings, plus regression checks for database/auth/Worker drift.
 
 Failure mode if skipped: the deploy succeeds but the live page throws a database error because the table or column it expects does not exist yet (local works because the local D1 was already migrated). The fix is simply to run the matching migrate command.
 

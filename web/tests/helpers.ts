@@ -37,7 +37,7 @@ export function setup() {
     return { res, cookie, userId: body.user?.id };
   }
 
-  return { db, auth, codes, post, signIn, ip };
+  return { db, auth, codes, post, signIn, ip, proofs: env.PROOFS };
 }
 
 // Independent fixtures keep constraint tests below the action/validation layer.

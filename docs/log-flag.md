@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.7
+doc_version: 1.8
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,6 +19,8 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-15 | Issue #5 final dev deployment dry run passed with DB flag-db-dev, PROOFS flag-proofs-dev, and the dev authentication URL | Built Worker packaging and selected bindings verified by Wrangler deploy --env dev --dry-run. The command exited without uploading; remote bucket existence/privacy and remote migration remain unverified | LOG, INDEX |
+| 2026-10-15 | Issue #5 storage milestone: isolated PROOFS configs (flag-proofs / flag-proofs-dev), local Workers R2 binding, generated types, and guarded deployment resource checks; 69 Workers tests, nine Node deployment tests, lint, app/test typechecks, and full OpenNext dev Worker build pass | Commit follows schema milestone 89ba501. Drizzle regeneration reports no changes; snapshot comparison confirms exactly four added tables with all existing tables unchanged. Local D1 migrations passed. Remote R2 provisioning/privacy, migration 0004, and deployment remain separate release work; upload, publication, and retention workflows remain planned | BUILD, SDD, QAD, OPS, LOG, INDEX |
 | 2026-10-15 | Issue #5 schema milestone: four documented tables plus migration 0004_clever_arclight, with 46 passing direct-D1 tests and a successful fresh local migration of all five SQL files | Covers rating/outcome/date/amount/tag checks, uniqueness, restrictive foreign keys, and composite keys preventing cross-log revision/proof references. No workflow endpoints or submission/moderation/retention triggers added. Their later issues remain planned | SDD, QAD, LOG, INDEX |
 | 2026-10-15 | Owner authorized issue #5 implementation against the existing Review-state SDD, BUILD, and QAD after the task-specific approval question; work is on f5-log-proof-schema from dev at 10db33d | Owner replied continue to the pending approval. Scope is the four documented log/proof tables, a forward migration, environment-isolated private R2 bindings, and local integration tests. This does not authorize the remaining workflow backlog or a remote release. Commit validated milestones; leave temporary HANDOFF.md untracked | LOG, INDEX |
 | 2026-10-14 | CI dry-run testing found plain Wrangler bypasses adapter config; added the same branch/environment check as Wrangler's custom build. Default Wrangler CI dry runs for both flag and flag-dev on branch dev now fail before upload | No real deployment or database mutation occurred during these checks. Preserve the failed experiment rather than assuming adapter protection covers every invocation path | cr-001, BUILD, OPS, QAD |

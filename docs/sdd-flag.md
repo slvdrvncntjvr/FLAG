@@ -3,7 +3,7 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.1
+doc_version: 2.2
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -43,6 +43,8 @@ Cloudflare Worker  ---  OpenNext adapter  ---  Next.js (web/)
 ```
 
 ## 2. Components
+
+Issue #5 wires PROOFS to separate configured buckets at `web/wrangler.jsonc:29` and `web/wrangler.jsonc:54`, with local R2 emulation and generated binding types. The local Workers tests exercise storage primitives (`web/tests/f03-storage.test.ts:1`); remote bucket provisioning/privacy verification and proof workflows remain pending.
 
 Locations under `web/`. Built so far: Auth, Onboarding, Data access for the account tables, Mail. Each feature folder is owned by one developer (BUILD §4). `CLIENT_REPLY` and `CORROBORATION` from the prior design are removed: PRD-F5 and PRD-F10 are Retired, and no reply, same-experience, upvote, or agreement-count path is designed, stored, or rendered.
 
