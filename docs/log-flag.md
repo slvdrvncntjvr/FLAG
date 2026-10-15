@@ -3,11 +3,11 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.6
+doc_version: 1.7
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-14
+updated: 2026-10-15
 reconciled: 2026-09-14
 ---
 
@@ -19,6 +19,8 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-15 | Issue #5 schema milestone: four documented tables plus migration 0004_clever_arclight, with 46 passing direct-D1 tests and a successful fresh local migration of all five SQL files | Covers rating/outcome/date/amount/tag checks, uniqueness, restrictive foreign keys, and composite keys preventing cross-log revision/proof references. No workflow endpoints or submission/moderation/retention triggers added. Their later issues remain planned | SDD, QAD, LOG, INDEX |
+| 2026-10-15 | Owner authorized issue #5 implementation against the existing Review-state SDD, BUILD, and QAD after the task-specific approval question; work is on f5-log-proof-schema from dev at 10db33d | Owner replied continue to the pending approval. Scope is the four documented log/proof tables, a forward migration, environment-isolated private R2 bindings, and local integration tests. This does not authorize the remaining workflow backlog or a remote release. Commit validated milestones; leave temporary HANDOFF.md untracked | LOG, INDEX |
 | 2026-10-14 | CI dry-run testing found plain Wrangler bypasses adapter config; added the same branch/environment check as Wrangler's custom build. Default Wrangler CI dry runs for both flag and flag-dev on branch dev now fail before upload | No real deployment or database mutation occurred during these checks. Preserve the failed experiment rather than assuming adapter protection covers every invocation path | cr-001, BUILD, OPS, QAD |
 | 2026-10-14 | Owner requested committing/pushing the audit fixes to dev. Remote dev and local dev aligned at 3582f7e. Add a CI branch/environment check at adapter config load before pushing | Legacy dashboard commands could deploy during Build or select default production bindings for flag-dev during Deploy. The check rejects mismatched targets and branches rather than permitting an unintended production release; six Node deployment tests supplement the passing app suite. Dashboard settings still need correction | cr-001, BUILD, OPS, QAD, INDEX |
 | 2026-10-14 | Authorized dev release completed: migration 0003 applied to flag-db-dev, no pending migrations; audit code deployed to flag-dev as bd7b2957-e125-4dfe-a4ea-41c139510ca6. Live verification passed | Actual active version uses dev DB/auth URL; protected redirects, legal versions 2026-10-14, noindex headers, anonymous session, and five-then-429 OTP limit verified by npm run verify:dev. Invalid-code probes sent no mail and created no account. Production and dashboard settings unchanged; workspace remains uncommitted | cr-001, BUILD, QAD, OPS, INDEX |

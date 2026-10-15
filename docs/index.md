@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.16
+doc_version: 0.17
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-14
+updated: 2026-10-15
 reconciled: 2026-09-14
 ---
 
@@ -28,10 +28,10 @@ Built on SPINE 0.3.0
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
 | BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.2 | Review | 2026-10-14 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.0 | Review | 2026-10-14 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.2 | Review | 2026-10-14 | 2026-10-13 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.1 | Review | 2026-10-15 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.3 | Review | 2026-10-15 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.2 | Review | 2026-10-14 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.6 | Draft | 2026-10-14 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.7 | Draft | 2026-10-15 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -111,6 +111,8 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-15: issue #5 implementation authorized against the existing Review-state design (LOG). Branch f5-log-proof-schema starts from dev/origin/dev at 10db33d. Scope is the PRD-F2/PRD-F3 database and storage foundation; later workflow issues and remote release operations are separate.
 
 - 2026-10-14 latest release status: owner authorized and completed migration 0003 to flag-db-dev and manual deployment to flag-dev, version bd7b2957-e125-4dfe-a4ea-41c139510ca6. Active dev DB/auth bindings and seven routes passed live checks, including policy versions and the OTP limit. Production release and dashboard CI-setting corrections remain pending. The owner subsequently requested committing/pushing to dev; six deployment tests and actual negative/positive CI dry runs passed before that push.
 
