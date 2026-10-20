@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth/config";
 import { createDb } from "@/server/db";
+import { clientProfile, engagement, engagementLog, freelancerProfile, user } from "@/server/db/schema";
 
 export const BASE = "http://localhost:3000";
 let clientNumber = 0;
@@ -36,5 +37,34 @@ export function setup() {
     return { res, cookie, userId: body.user?.id };
   }
 
-  return { db, auth, codes, post, signIn, ip };
+  return { db, auth, codes, post, signIn, ip, proofs: env.PROOFS };
+}
+
+// Independent fixtures keep constraint tests below the action/validation layer.
+export async function seedLog() {
+  const db = createDb(env.DB);
+  const id = crypto.randomUUID();
+  const freelancerId = `freelancer-${id}`;
+  const clientUserId = `client-user-${id}`;
+  const clientId = `client-${id}`;
+  const engagementId = `engagement-${id}`;
+  const logId = `log-${id}`;
+  await db.batch([
+    db.insert(user).values([
+      { id: freelancerId, name: "Test Freelancer", email: `${freelancerId}@example.invalid`, role: "freelancer" },
+      { id: clientUserId, name: "Test Client", email: `${clientUserId}@example.invalid`, role: "client" },
+    ]),
+    db.insert(freelancerProfile).values({ userId: freelancerId, displayName: "Test Freelancer", status: "verified" }),
+    db.insert(clientProfile).values({ id: clientId, userId: clientUserId, displayName: "Test Client", kind: "individual" }),
+    db.insert(engagement).values({
+      id: engagementId, freelancerId, clientId, title: "Test project", clientNameHint: "Test Client",
+      startedOn: "2026-10-01", status: "accepted", inviteTokenHash: `hash-${id}`,
+      inviteExpiresAt: "2026-10-15T00:00:00.000Z", acceptedAt: "2026-10-01T00:00:00.000Z",
+    }),
+    db.insert(engagementLog).values({
+      id: logId, ref: `FL-${id}`, engagementId, freelancerId, clientId,
+      anchorKind: "completed", anchorDate: "2026-10-14",
+    }),
+  ]);
+  return { db, logId, engagementId, freelancerId, clientId, clientUserId };
 }

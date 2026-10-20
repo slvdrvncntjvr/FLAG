@@ -10,6 +10,7 @@ export default defineConfig({
         compatibilityDate: "2026-10-01",
         compatibilityFlags: ["nodejs_compat"],
         d1Databases: ["DB"],
+        r2Buckets: ["PROOFS"],
         bindings: { TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "drizzle")) },
       },
     })),

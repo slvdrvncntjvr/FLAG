@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.2
+doc_version: 2.4
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-14
+updated: 2026-10-21
 reconciled: 2026-10-13
 ---
 
@@ -32,6 +32,8 @@ Read in this order before writing code:
 7. `QAD` - before calling anything done
 
 **Only build against `Locked` docs or a specific owner-approved change record.** The launch suite locked on 2026-10-13. cr-001 authorizes the audit repairs while BUILD, SDD, QAD, and OPS are Review; IDEA and PRD remain Locked. This approval does not authorize implementing the entire future feature backlog.
+
+2026-10-15 task-specific owner override (LOG): issue #5 may implement the existing Review-state design for the PRD-F2/PRD-F3 database and R2 foundation. Later workflows remain separately scoped.
 
 cr-001 aligns privacy/terms with the approved scope and bumps both versions to 2026-10-14, requiring reacceptance. The pages distinguish available accounts/onboarding from planned workflows. Dev deployed and verified on 2026-10-14; production remains on its previous release.
 
@@ -127,7 +129,8 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-12
 | Manual build and deploy | `npm run deploy` (production), `npm run deploy:dev` (dev) |
 | Verify dev release | `npm run verify:dev` (read-only binding metadata plus anonymous route and invalid-code checks; no mail/signup) |
 | Test | `npm test` (`vitest run`) |
-| Deployment boundary tests | `npm run test:deploy` (six Node tests for Workers Builds branch/environment checks) |
+| Deployment boundary and R2 audit tests | `npm run test:deploy` (17 Node tests for branch/environment/account checks and conservative R2 audit policy) |
+| Inspect R2 resources and usage | `npm run audit:r2` (read-only API inspection; exit 1 unsafe/incomplete resource inspection, exit 2 warnings/incomplete billing access; never a spending cap) |
 | End-to-end | `npm run e2e` (`playwright test`) |
 | Lint | `npm run lint` (`eslint`) |
 | Typecheck | `npm run typecheck` (`tsc --noEmit` for the app, then for `tests/`) |
@@ -160,6 +163,10 @@ When schema changes, run these three steps in order, from `web/`:
 3. Push the code only after the corresponding database is ready and the build commands above are verified; auto-deploy ships it. A destructive/renaming change needs an expand-and-contract rollout, not a blind migration ahead of running code.
 
 cr-001 adds web/drizzle/0003_melted_the_twelve.sql for AUTH_RATE_LIMIT. Local and remote dev applications passed; dev release completed after explicit authorization on 2026-10-14. Production migration/deployment still need separate authorization. npm run verify:dev passed against active version bd7b2957-e125-4dfe-a4ea-41c139510ca6.
+
+Issue #5 adds `web/drizzle/0004_clever_arclight.sql` for the four log/proof tables; a fresh local D1 application passed. Before an authorized remote release, provision the private R2 buckets named by `web/wrangler.jsonc:30` (flag-proofs) and `web/wrangler.jsonc:55` (flag-proofs-dev), with public r2.dev access and custom domains disabled, then apply migration 0004 to the target database. Remote provisioning, bucket privacy, and migration application have not been performed or verified by this local task. Local development uses emulated R2 (`remote: false`). `web/scripts/check-resource-bindings.mjs:2` checks environment-specific bucket, Worker, database, and auth URL before the guarded deploy command. Nine Node deployment tests now include actual Wrangler config isolation and rejection of missing/swapped/remote-preview proof bindings, plus regression checks for database/auth/Worker drift.
+
+2026-10-21 follow-up: owner enabled R2 and requested CLI provisioning/cost checks. Both configured buckets were provisioned at 2026-10-20 15:56 UTC as Standard, empty, with public r2.dev disabled, no custom domains, and Sippy disabled; read back through Cloudflare APIs and Wrangler info. `web/wrangler.jsonc:5` pins the approved account, and deployment checks reject missing/different account IDs. `web/scripts/audit-r2.mjs:1` rechecks bucket safety, all active deployment versions for both Workers, and shared account R2 analytics over a rolling 31-day window. The command does not upload/read proof contents, mutate resources, provision subscriptions, or deploy. It uses CLOUDFLARE_API_TOKEN when supplied, otherwise the existing Wrangler OAuth login, without printing the token. Current OAuth access returns 403 for subscriptions/notification policies, so Workers plan, invoices, and alerts remain unverified. The audit must report those limitations; it cannot establish a hard $0 spending cap. Dev migration 0004 and a code release remain pending.
 
 Failure mode if skipped: the deploy succeeds but the live page throws a database error because the table or column it expects does not exist yet (local works because the local D1 was already migrated). The fix is simply to run the matching migrate command.
 

@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.2
+doc_version: 2.4
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-14
+updated: 2026-10-21
 reconciled: 2026-10-13
 ---
 
@@ -29,7 +29,11 @@ Dev's live privacy/terms versions 2026-10-14 are verified; existing dev accounts
 | Preview | https://flag-dev.factsfirst.workers.dev | `dev` | `flag-dev` / `flag-db-dev` | Workers Builds with separate dev build/deploy commands; manual npm run deploy:dev remains a fallback; no environment named preview exists | slvdrvncntjvr |
 | Local | http://localhost:3000 | any | local D1/R2 via `initOpenNextCloudflareForDev` | `npm run dev` | each developer |
 
-Each environment has its own D1 database and per-env secrets (`wrangler secret put <NAME> --env dev` for preview). Pilot data never goes into preview. R2 for proof files is PLANNED, not yet wired: `wrangler.jsonc` has no `PROOFS` binding as of 2026-10-13, so no claim is made that proof storage is already connected.
+Each environment has its own D1 database and per-env secrets (`wrangler secret put <NAME> --env dev` for preview). Pilot data never goes into preview. Issue #5 configures PROOFS at `web/wrangler.jsonc:30` (production flag-proofs) and `web/wrangler.jsonc:55` (dev flag-proofs-dev); local development uses emulated R2. `web/vitest.config.mts:13` binds local test storage. These are repository/local changes: remote buckets, privacy settings, and deployment have not been provisioned or verified in this task. Proof upload/streaming and retention workflows remain planned.
+
+2026-10-21 latest remote status supersedes the provisioning note above: owner enabled R2; both configured buckets now exist as Standard with 0 objects/0 B reported by Wrangler. Public r2.dev is disabled, custom domains absent, and Sippy disabled. The only lifecycle rule is Cloudflare's default seven-day abort of incomplete multipart uploads; no automatic completed-object deletion or Infrequent Access transition is configured. Active flag version 9b1fdc1d and flag-dev version b5cb183e still have no PROOFS binding and have the correct separate DB/auth bindings. Their deployed code has not changed in this follow-up. API evidence is summarized by `web/scripts/audit-r2.mjs:1`; it never exposes proof contents or secret values.
+
+Before releasing this foundation, provision the two named buckets with public r2.dev access and custom domains disabled, verify the target binding, and apply migration 0004_clever_arclight to the target D1 database before deploying code that needs it. The guarded deploy checks Worker, database, auth URL, and bucket selection (`web/scripts/check-resource-bindings.mjs:2`); it cannot prove a remote bucket's privacy settings. Remote release operations require their own owner instruction.
 
 ## 2. Deploy
 
@@ -72,6 +76,8 @@ Current runtime code (web/src/server/auth/config.ts, web/src/server/mail/index.t
 
 Planned: PROOFS R2 binding, upload/search burst bindings, TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY, and retention Cron wiring. cr-001 authentication limits use D1 AUTH_RATE_LIMIT and the existing BETTER_AUTH_SECRET for hashed keys. No SMS or ID-vendor key is required; pilot verification is manual live inspection per PRD-F1 and RFC 001 automatic checking remains deferred.
 
+PROOFS status clarification (2026-10-21): configured and provisioned on the feature branch; not bound to the active deployed Workers. Upload endpoints and runtime quota enforcement remain planned. A native R2 binding is not a spend cap, and `remote: false` selects local emulation only; it does not disable the remote binding after deployment.
+
 ## 4. Monitoring
 
 | Signal | Source | Threshold | Alert |
@@ -81,6 +87,7 @@ Planned: PROOFS R2 binding, upload/search burst bindings, TURNSTILE_SITE_KEY / T
 | Worker errors | Workers Observability | More than 1 percent of requests over 15 minutes | Cloudflare notification email to the owner |
 | Email delivery failures | Brevo dashboard first, Resend dashboard as fallback | Any bounce on invites, codes, or decision mail | Checked weekly |
 | D1 storage | Cloudflare dashboard | 400 MB (free tier limit 500 MB) | Checked weekly |
+| Shared R2 account usage | `npm run audit:r2` | Operational warning at 80% of included Standard storage/operations, conservatively counting unknown operations against both classes | Manual CLI report; no email alert or automatic cutoff is claimed configured |
 | Retention compliance | Retention job log plus hold register | 100 percent of expired published records removed from visible history and rating on schedule; 100 percent of holds documented (FLAG-M12) | Reviewed weekly |
 
 No public-reply queue metric and no corroboration metric exist: PRD-F5 and PRD-F10 are Retired, so there is nothing to count. No forever-retention signal exists: expiry is enforced.
@@ -95,6 +102,14 @@ No public-reply queue metric and no corroboration metric exist: PRD-F5 and PRD-F
 Never log secrets, tokens, request bodies, names, contact data, ID data, proof contents, facts, or file contents. Observability logs and AUDIT_EVENT carry ids and action names only.
 
 ## 5. Runbooks
+
+### R2 cost and privacy checks
+
+Run `npm run audit:r2` from web/ with the approved account. It checks Standard storage, disabled public access/custom domains/imports, lifecycle safety, live Worker environment isolation, and account-wide analytics. A rolling 31-day lookback avoids undercounting caused by a calendar-month reset when the subscription anniversary is unknown; per-bucket storage peaks are summed conservatively, including deleted buckets and metadata. Unknown operation types remain warnings and count against both operation allowances for the warning calculation. Samples can lag; this is an inspection, not runtime enforcement or an invoice.
+
+Exit 1 means a resource/config/analytics check failed or a safety violation exists. Exit 2 means warnings or incomplete billing/alert verification; do not describe it as a clean billing review. The current OAuth token returns 403 for subscriptions and notification policies. More appropriately scoped API access is needed for those account settings, not a dashboard requirement for bucket provisioning. Cloudflare's `usage_model: standard` metadata alone does not prove the Workers Free or Paid subscription. No budget alert has been configured or verified in this task.
+
+Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 million Class A and 10 million Class B operations, not one allowance per Worker/bucket. Other projects and prior/deleted data in the billing cycle also count. Infrequent Access has no free tier. Budget alerts notify after a spend threshold and do not stop usage. Source: https://developers.cloudflare.com/r2/pricing/ and https://developers.cloudflare.com/billing/manage/budget-alerts/ (verified 2026-10-21). Do not claim a guaranteed $0 invoice. Keep proof uploads unlaunched until the future upload implementation enforces the approved per-user limits and account-level capacity controls are reviewed; never delete held evidence or shorten approved retention just to lower storage. Current application code has no proof upload or serving endpoint.
 
 ### Overdue moderation cases
 
@@ -160,7 +175,7 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 |------|-----------|----------|----------------|
 | D1 | Continuous (D1 Time Travel, 30 days on paid, 7 on free) | Cloudflare | not yet |
 | D1 export | Weekly during the pilot (`wrangler d1 export`) | Owner's encrypted drive | not yet |
-| R2 proofs | Durability of the planned bucket once wired | Cloudflare (planned) | n/a — bucket not yet wired |
+| R2 proofs | Durability of the configured private buckets after remote provisioning | Cloudflare (remote provisioning pending); local R2 binding tested | not yet; local put/get/delete primitives pass, not a remote backup/restore test |
 
 ## 7. Production readiness gate
 
