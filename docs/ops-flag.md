@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.4
+doc_version: 2.5
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -31,7 +31,7 @@ Dev's live privacy/terms versions 2026-10-14 are verified; existing dev accounts
 
 Each environment has its own D1 database and per-env secrets (`wrangler secret put <NAME> --env dev` for preview). Pilot data never goes into preview. Issue #5 configures PROOFS at `web/wrangler.jsonc:30` (production flag-proofs) and `web/wrangler.jsonc:55` (dev flag-proofs-dev); local development uses emulated R2. `web/vitest.config.mts:13` binds local test storage. These are repository/local changes: remote buckets, privacy settings, and deployment have not been provisioned or verified in this task. Proof upload/streaming and retention workflows remain planned.
 
-2026-10-21 latest remote status supersedes the provisioning note above: owner enabled R2; both configured buckets now exist as Standard with 0 objects/0 B reported by Wrangler. Public r2.dev is disabled, custom domains absent, and Sippy disabled. The only lifecycle rule is Cloudflare's default seven-day abort of incomplete multipart uploads; no automatic completed-object deletion or Infrequent Access transition is configured. Active flag version 9b1fdc1d and flag-dev version b5cb183e still have no PROOFS binding and have the correct separate DB/auth bindings. Their deployed code has not changed in this follow-up. API evidence is summarized by `web/scripts/audit-r2.mjs:1`; it never exposes proof contents or secret values.
+2026-10-21 latest remote status supersedes the provisioning note above: owner enabled R2; both configured buckets now exist as Standard with 0 objects/0 B reported by Wrangler. Public r2.dev is disabled, custom domains absent, and Sippy disabled. The only lifecycle rule is Cloudflare's default seven-day abort of incomplete multipart uploads; no automatic completed-object deletion or Infrequent Access transition is configured. Superseded later on 2026-10-21: flag-dev now runs version 765e86dd (deployed 2026-10-20 17:01 UTC after PR #11 merged to dev) with PROOFS bound to flag-proofs-dev, and flag-db-dev has migration 0004 applied. Production flag version 9b1fdc1d still has no PROOFS binding, and flag-db still lacks migrations 0003 and 0004; apply both before any dev-to-main release. At that earlier observation, flag version 9b1fdc1d and flag-dev version b5cb183e had no PROOFS binding and correct separate DB/auth bindings. API evidence is summarized by `web/scripts/audit-r2.mjs:1`; it never exposes proof contents or secret values.
 
 Before releasing this foundation, provision the two named buckets with public r2.dev access and custom domains disabled, verify the target binding, and apply migration 0004_clever_arclight to the target D1 database before deploying code that needs it. The guarded deploy checks Worker, database, auth URL, and bucket selection (`web/scripts/check-resource-bindings.mjs:2`); it cannot prove a remote bucket's privacy settings. Remote release operations require their own owner instruction.
 

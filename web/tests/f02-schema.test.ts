@@ -95,6 +95,19 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
       .toEqual({ rating: 4, outcome: "positive" });
   });
 
+  it("keeps a log's freelancer and client equal to its engagement's parties", async () => {
+    const other = await seedLog();
+    const insert = (freelancerId: string, clientId: string) => env.DB.prepare(
+      "INSERT INTO engagement_log (id, ref, engagement_id, freelancer_id, client_id, anchor_kind, anchor_date) VALUES (?, ?, ?, ?, ?, 'completed', '2026-10-14')",
+    ).bind(crypto.randomUUID(), `FL-${crypto.randomUUID()}`, other.engagementId, freelancerId, clientId).run();
+    await env.DB.prepare("DELETE FROM engagement_log WHERE id = ?").bind(other.logId).run();
+    await expect(insert(other.freelancerId, fixture.clientId)).rejects.toThrow(/foreign key constraint/i);
+    await expect(insert(fixture.freelancerId, other.clientId)).rejects.toThrow(/foreign key constraint/i);
+    await expect(env.DB.prepare("UPDATE engagement_log SET client_id = ? WHERE id = ?").bind(other.clientId, fixture.logId).run())
+      .rejects.toThrow(/foreign key constraint/i);
+    await insert(other.freelancerId, other.clientId);
+  });
+
   it("rejects selecting another log's revision as the current publication", async () => {
     const revisionId = await insertRevision();
     const other = await seedLog();

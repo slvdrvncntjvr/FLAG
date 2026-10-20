@@ -7,7 +7,12 @@ export const OTP_PATHS = new Set([
   "/email-otp/verify-email", "/email-otp/request-password-reset", "/email-otp/reset-password",
   "/forget-password/email-otp", "/email-otp/request-email-change", "/email-otp/change-email",
 ]);
+export const OTP_SEND_PATHS = new Set([
+  "/email-otp/send-verification-otp", "/email-otp/request-password-reset", "/forget-password/email-otp", "/email-otp/request-email-change",
+]);
 export const OTP_LIMIT = { window: 15 * 60, max: 5 };
+// Code emails per trusted IP across all addresses. Tunable; shared NAT (campus, mobile CGNAT) needs headroom.
+export const OTP_IP_SEND_LIMIT = { window: 15 * 60, max: 20 };
 
 export function createAuthRateLimiter(db: Db, secret: string, now: () => number = Date.now) {
   const hmacKey = crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);

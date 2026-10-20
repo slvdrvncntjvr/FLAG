@@ -15,9 +15,9 @@ export function setup() {
     { sendOtp: async (email, otp) => void codes.set(email, otp) },
   );
 
-  // Each setup() is a distinct client IP so rate limits do not leak between tests.
+  // Each setup() is a distinct /64, because rate limits collapse IPv6 to /64, so limits do not leak between tests.
   const client = ++clientNumber;
-  const ip = `2001:db8::${client.toString(16)}`;
+  const ip = `2001:db8:${client.toString(16)}::1`;
 
   async function post(path: string, body: unknown, cookie?: string) {
     return auth.handler(

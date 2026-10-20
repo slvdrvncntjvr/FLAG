@@ -68,6 +68,27 @@ describe("PRD-F7 durable authentication limits", () => {
     expect((await post("/sign-in/email-otp", { email, otp: codes.get(email) })).status).toBe(400);
   });
 
+  it("caps code emails per trusted IP across different addresses", async () => {
+    const { post } = setup();
+    const statuses = [];
+    for (let index = 0; index < 21; index++) {
+      statuses.push((await post("/email-otp/send-verification-otp", { email: `spray-${index}@example.com`, type: "sign-in" })).status);
+    }
+    expect(statuses.slice(0, 20).every(status => status === 200)).toBe(true);
+    expect(statuses[20]).toBe(429);
+  });
+
+  it("treats every address in one IPv6 /64 as one client", async () => {
+    const { auth } = setup();
+    const send = (ip: string) => auth.handler(new Request(`${BASE}/api/auth/email-otp/send-verification-otp`, {
+      method: "POST", headers: { "content-type": "application/json", origin: BASE, "cf-connecting-ip": ip },
+      body: JSON.stringify({ email: "rotating-ipv6@example.com", type: "sign-in" }),
+    }));
+    for (let index = 1; index <= 5; index++) expect((await send(`2001:db8:ffff:1::${index.toString(16)}`)).status).toBe(200);
+    expect((await send("2001:db8:ffff:1:abcd::99")).status).toBe(429);
+    expect((await send("2001:db8:ffff:2::1")).status).toBe(200);
+  });
+
   it("rejects cross-origin OTP requests", async () => {
     const { auth } = setup();
     const response = await auth.handler(new Request(`${BASE}/api/auth/email-otp/send-verification-otp`, {

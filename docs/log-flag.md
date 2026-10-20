@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.10
+doc_version: 1.11
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,6 +19,7 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-21 | Owner approved fixing three review findings and updating stale docs on branch fix-otp-limit-log-parties from dev: (1) per-IP cap on code emails across addresses, 20 per 15 minutes; (2) IPv6 /64 normalization of the trusted IP before limiter keying; (3) composite foreign key tying ENGAGEMENT_LOG freelancer/client to its ENGAGEMENT, migration 0005_happy_vermin | Review found one IP could send codes to unlimited addresses and exhaust the 300/day Brevo quota, rotating IPv6 addresses bypassed the limiter, and a log could name a client outside its engagement. The cap value 20 is an agent default sized for shared NAT and tunable without schema change. Live read-only checks also showed the docs were stale: flag-db-dev already has 0004 and flag-dev 765e86dd binds flag-proofs-dev; production flag-db lacks 0003 and 0004. No remote migration or deployment performed | SDD, BUILD, OPS, QAD, LOG, INDEX |
 | 2026-10-21 | R2 follow-up validation passed: 17 Node checks, focused script lint, regenerated binding types, full OpenNext dev Worker build, and a dev deployment dry run with flag-db-dev/flag-proofs-dev | Live inspection confirms private Standard buckets with no objects; dev migration 0004 is still pending. Read-only audit reports no resource/isolation violations but remains incomplete for billing/alerts (403) and unclassified metadata operations. User directed CLI-only operation; no dashboard setting was changed | BUILD, OPS, QAD, LOG, INDEX |
 | 2026-10-21 | Owner enabled R2 and requested thorough cost isolation/protection for flag and flag-dev, then directed CLI operation instead of dashboard use. Provisioned flag-proofs and flag-proofs-dev through Wrangler (2026-10-20 15:56 UTC); both Standard, private, 0 objects/0 B, no domains/imports or billable lifecycle transitions | Account analytics initially showed eight bucket-list operations and no storage. Active flag 9b1fdc1d and flag-dev b5cb183e have isolated DB/auth bindings and no R2 binding. No application deployment, database migration, paid-plan change, object upload, or notification dispatch performed. Subscription/alert inspection returns 403 with the current OAuth token; no claim that invoices, Workers plan, or alerts are verified. Budget alerts are not a hard spending cap | BUILD, OPS, QAD, LOG, INDEX |
 | 2026-10-21 | Added account-ID deployment guard and read-only npm run audit:r2 with 17 passing Node checks | Audit validates remote privacy/storage class/import/lifecycle settings, active deployment bindings, and shared-account usage over a conservative rolling 31 days. Unknown operations reserve both classes; 80% is an operational warning only. It reports billing/alert access limitations and no charge guarantee. Runtime quotas and proof workflows remain planned | BUILD, OPS, QAD, LOG, INDEX |

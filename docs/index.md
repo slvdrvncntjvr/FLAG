@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.20
+doc_version: 0.21
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.4 | Review | 2026-10-21 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.3 | Review | 2026-10-21 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.4 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.10 | Draft | 2026-10-21 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.4 | Review | 2026-10-21 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.6 | Review | 2026-10-21 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.11 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -111,6 +111,8 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-21 latest status, supersedes the R2 note below: flag-db-dev has migration 0004 applied and flag-dev version 765e86dd binds flag-proofs-dev (deployed 2026-10-20 17:01 UTC after PR #11). Production flag-db lacks 0003 and 0004; main is six commits behind dev. Branch fix-otp-limit-log-parties adds a per-IP code-email cap, IPv6 /64 limiter keying, and the ENGAGEMENT_LOG parties foreign key (migration 0005, pending on flag-db-dev); 72 Workers tests pass. Issue #5 was delivered by PR #11 but is still open.
 
 - 2026-10-21 latest R2 status: owner enabled R2 and requested CLI provisioning/cost checks. Both configured buckets are provisioned empty in Standard storage, public r2.dev disabled, no custom domains or Sippy. Account-ID pinning and read-only npm run audit:r2 added; 17 Node checks pass. Current live Workers still have no proof binding; no deployment/migration performed. Billing/notification API access is 403, so invoices/Workers plan/alerts remain unverified; no hard $0 guarantee or runtime budget enforcement is claimed. This supersedes the older R2-disabled/provisioning-pending observations below.
 
