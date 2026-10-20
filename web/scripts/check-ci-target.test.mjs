@@ -64,3 +64,10 @@ test("preserves rejection of Worker, database, and auth URL drift", () => {
     assert.throws(() => checkResourceBindings({ ...config, ...changed }, "dev"), /do not match/);
   }
 });
+
+test("rejects an absent or different Cloudflare account", () => {
+  const config = unstable_readConfig({ config: "wrangler.jsonc", env: "dev" });
+  for (const account_id of [undefined, "another-account"]) {
+    assert.throws(() => checkResourceBindings({ ...config, account_id }, "dev"), /approved FLAG account/);
+  }
+});

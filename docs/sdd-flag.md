@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.2
+doc_version: 2.3
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-15
+updated: 2026-10-21
 reconciled: 2026-10-13
 ---
 
@@ -44,7 +44,7 @@ Cloudflare Worker  ---  OpenNext adapter  ---  Next.js (web/)
 
 ## 2. Components
 
-Issue #5 wires PROOFS to separate configured buckets at `web/wrangler.jsonc:29` and `web/wrangler.jsonc:54`, with local R2 emulation and generated binding types. The local Workers tests exercise storage primitives (`web/tests/f03-storage.test.ts:1`); remote bucket provisioning/privacy verification and proof workflows remain pending.
+Issue #5 wires PROOFS to separate configured buckets at `web/wrangler.jsonc:30` and `web/wrangler.jsonc:55`, with local R2 emulation and generated binding types. Both remote buckets were provisioned and verified empty, Standard, and private during the 2026-10-21 follow-up (OPS §1/§5). Active deployed Workers still lack PROOFS; no proof workflow is released. The local Workers tests exercise storage primitives (`web/tests/f03-storage.test.ts:1`). The account pin and read-only R2 audit are at `web/scripts/check-resource-bindings.mjs:2` and `web/scripts/audit-r2.mjs:1`; these do not enforce runtime spending quotas or guarantee a $0 invoice.
 
 Locations under `web/`. Built so far: Auth, Onboarding, Data access for the account tables, Mail. Each feature folder is owned by one developer (BUILD §4). `CLIENT_REPLY` and `CORROBORATION` from the prior design are removed: PRD-F5 and PRD-F10 are Retired, and no reply, same-experience, upvote, or agreement-count path is designed, stored, or rendered.
 

@@ -3,11 +3,11 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.4
+doc_version: 2.5
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-15
+updated: 2026-10-21
 reconciled: 2026-10-13
 ---
 
@@ -19,6 +19,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+2026-10-21 R2 follow-up: `web/scripts/check-ci-target.test.mjs:1` and `web/scripts/r2-audit.test.mjs:1` pass 17 Node tests, including account-ID pinning, account-wide operation totals, per-bucket peak aggregation including deleted buckets, conservative unknown-operation handling, invalid/truncated analytics, private Standard bucket settings, and lifecycle/import hazards. Live CLI resource inspection found both empty buckets private/Standard and active Worker DB/auth bindings isolated. The live audit explicitly returns warnings for current 403 billing/notification access and unclassified metadata operations; it does not claim a verified $0 invoice, configured email alert, or a hard/runtime spending cap. Historical counts below retain their observation dates.
 
 - **Automated, integration (implemented):** Vitest in the Cloudflare Workers pool with local D1 migrations applied per test file and local R2 PROOFS at `web/vitest.config.mts:13`. Auth/onboarding tests exist in web/tests/nt-10-onboarding-gate.test.ts and web/tests/auth-repairs.test.ts. The case tables below are the target plan, not a claim that every case is automated or passes. Pull-request automation is configured separately.
 - **Issue #5 schema foundation:** `web/tests/f02-schema.test.ts:1` tests direct D1 writes for PRD-F2, PRD-F3, and PRD-F14: integer ratings and derived outcome, canonical ordered dates, optional integer centavos, fixed tags, unique engagement/reference/revision/object key, restrictive foreign keys, same-log revision ownership, and proof metadata limits. This covers the database portions of S-03, S-25, H-16, and INV-5/NT-07; form errors, publication, UI, uploads, protected streaming, and the full end-to-end cases remain planned. All five migrations also apply to a fresh standalone local D1 database.
