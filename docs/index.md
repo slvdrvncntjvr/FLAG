@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.33
+doc_version: 0.34
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -30,8 +30,8 @@ Built on SPINE 0.3.0
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.12 | Review | 2026-10-21 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.11 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.24 | Draft | 2026-10-21 | 2026-09-14 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.12 | Review | 2026-10-21 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.25 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -112,6 +112,7 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Notes
 
+- 2026-10-21 latest build diagnosis supersedes the earlier request for error lines below: the owner supplied both failed build logs, showing failure during installation of Node 24.22.1 before application compilation, and reported removing the unnecessary runtime NODE_VERSION variable. The public node-build catalog currently lists 24.22.0 but lacks 24.22.1; installer-definition availability is the leading hypothesis, not a confirmed Cloudflare root cause. The owner accepted retaining the tested security pin and verified manual dev deployment, with the next automatic-build retry deferred until installer support is available or Cloudflare supplies a supported remedy. The latest GitHub check remains the old failed build fbe48ca5; no fresh retry or CI recovery is claimed. See OPS and LOG for evidence and retry acceptance.
 - 2026-10-21 dev integration and release complete: validated feature 9c0fef1 is on dev, published with authorization commit 318e0d8. Automatic Cloudflare build 397b4f17 failed; the guarded CLI fallback freshly built/deployed under Node 24.22.1 and active version 96de7bfa-e634-421c-9159-05b0385046d1 passed npm run verify:dev (bindings, seven routes, legal/noindex and invalid-code throttling). Production version 9b1fdc1d and main remain unchanged; no migration or compatibility change. The fully merged feature branch was deleted locally/remotely after successful verification. Automatic-build error logs and dashboard NODE_VERSION remain unverified because API access is HTTP 403 and the dashboard requires login; the owner was asked for the first error lines. See OPS/QAD/LOG; do not describe CI as passing.
 
 - 2026-10-21 owner authorized a feature-branch push and Node 24 migration after validation. Root/web .nvmrc now pin the checksum-verified security release 24.22.1; engine requirements and strict install checking match. A clean install, 85 Workers, 25 Node, three Python tests, typechecks, lint, Worker build and dev deployment dry run pass on that exact runtime; All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory. Both live Workers already use compatibility_date 2026-10-01 with the existing compatibility flags; authenticated Builds API inspection is HTTP 403, so dashboard NODE_VERSION overrides remain unverified. No merge or deployment is authorized by this feature-branch push.

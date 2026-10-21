@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.11
+doc_version: 2.12
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -16,6 +16,10 @@ reconciled: 2026-10-13
 **SDD:** [sdd-flag.md](sdd-flag.md)
 
 ---
+
+2026-10-21 latest automatic-build diagnosis supersedes the earlier unavailable-log statements below. The owner supplied logs for builds 397b4f17 and fbe48ca5: both detect nodejs@24.22.1 and fail during tool installation before the application build starts. The owner reported removing the unnecessary runtime NODE_VERSION entry. Both committed .nvmrc files contain the exact version followed by a normal LF; the display line breaks do not establish a parsing defect. A fresh public catalog check lists 24.22.0 but no 24.22.1 definition. The asdf Node installer requires a definition for every release ([installer documentation](https://github.com/asdf-vm/asdf-nodejs#manually-updating-node-build-definitions), [definition catalog](https://github.com/nodenv/node-build/tree/main/share/node-build)); missing definition availability is the leading hypothesis, not proof of Cloudflare's internal failure. Installer stderr is still unavailable and could instead reveal a download or network error.
+
+Owner-approved next step: retain Node 24.22.1 and verified dev version 96de7bfa-e634-421c-9159-05b0385046d1; keep Workers compatibility settings and production unchanged. Defer the next automatic-build retry until a 24.22.1 definition is published or Cloudflare confirms a supported installer remedy. Recheck the catalog before retrying, then require a fresh build ID with successful Node installation, dependency installation, dev build and guarded dev deployment, followed by npm run verify:dev against the newly active version. A repeat failure requires installer stderr or Cloudflare support evidence, not another unsupported version-variable change. The latest GitHub check still points to old failed build fbe48ca5 at 14:17 UTC; no new retry or successful CI is claimed. The existing guarded manual dev fallback remains available using the tested exact runtime and commands in BUILD.
 
 Accounts/onboarding are deployed in production and dev. Verification, engagement, proof, moderation, record, and retention workflows remain planned. cr-001 repairs deployed to dev on 2026-10-14 as version bd7b2957-e125-4dfe-a4ea-41c139510ca6 after migration 0003 applied to flag-db-dev. Production remains on the previous release. Commands come from BUILD §3 and web/package.json; SDD owns the fields and state.
 
