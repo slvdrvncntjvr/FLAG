@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.31
+doc_version: 0.32
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,7 +31,7 @@ Built on SPINE 0.3.0
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.11 | Review | 2026-10-21 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.10 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.22 | Draft | 2026-10-21 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.23 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -111,6 +111,8 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-21 owner now authorizes dev integration and release verification of the validated Node24/auth/E2E milestone, followed by deletion of f7-auth-reliability-e2e only after success. Local dev fast-forwards to the validated feature commit without conflicts; remote deployment verification is pending. Main/production remains held, and no new migration is needed.
 
 - 2026-10-21 owner authorized a feature-branch push and Node24 migration after validation. Root/web .nvmrc now pin the checksum-verified security release 24.22.1; engine requirements and strict install checking match. A clean install, 85 Workers, 25 Node, three Python tests, typechecks, lint, Worker build and dev deployment dry run pass on that exact runtime; All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory. Both live Workers already use compatibility_date 2026-10-01 with the existing compatibility flags; authenticated Builds API inspection is HTTP 403, so dashboard NODE_VERSION overrides remain unverified. No merge or deployment is authorized by this feature-branch push.
 
