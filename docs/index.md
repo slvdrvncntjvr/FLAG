@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.23
+doc_version: 0.24
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.6 | Review | 2026-10-21 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.4 | Review | 2026-10-21 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.6 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.13 | Draft | 2026-10-21 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.8 | Review | 2026-10-21 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.14 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -112,6 +112,10 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Notes
 
+- 2026-10-21 baseline repair: OTP provider failures now have a tested HTTP 503 path instead of false success, with per-call isolation and a ten-second Brevo timeout. No migration is needed. scripts/spine.py reads and checks the exact pinned SPINE 0.3.0 engine from its local tag without changing the shared checkout. temporary/ was inspected and emptied; no app or documentation command depends on it. README/technical docs now distinguish current implementation from later features. Current implementation scope and outstanding dependencies are summarized in §7; historical notes below retain their observation dates.
+
+- 2026-10-21 validation of that local repair: 76 Workers tests, 25 Node tests, 3 Python runner tests, lint/typechecks, full dev Worker build, and dev deployment dry run pass. Three ranged type declarations now exactly match existing locked versions; resolved dependencies are unchanged. Publication of this repair is separate from the already verified PR #12 deployment. Main/production remains held.
+
 - 2026-10-21 owner-authorized dev release preparation: migration 0005_happy_vermin.sql is now applied to flag-db-dev; no migrations remain, the parties foreign key is present, and foreign_key_check is clean. Owner authorized committing/pushing the local repairs and merging PR #12 into dev after that migration. Dev-to-main is explicitly on hold until the owner's later signal; production has not been migrated or deployed. The temporary handoff was deleted at the owner's request. Its durable implementation reminders are preserved here and in LOG: four missing schema entities already designed by SDD, missing log proof/freeze triggers, profile/name capture, pending-request versus completed-inspection workflow, and engagement-specific consent-receipt linkage. A separate moderator name-approval step was an unapproved agent recommendation, not a new requirement.
 
 - 2026-10-21 local continuation: repaired environment selection in deployment guards and required live DB/auth/PROOFS bindings in both the audit and dev verifier. Wrangler custom-build commands pass their actual selected environment explicitly; configuration checks pin database IDs as well as names. All 72 Workers tests, 25 Node checks, lint, app/test typechecks, full dev Worker build, and dev deployment dry run pass. No new schema, product workflow, or remote release operation is included. Remote state in older notes is historical and was not rechecked; temporary/HANDOFF.md reports issue #5 closed, superseding the open status below. Migration 0005 and PR #12 release sequencing remain pending.
@@ -143,3 +147,17 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 - 2026-10-13 final alignment complete (LOG §1 completion row; §3 latest-status rows): QAD 0.2 covers all Must-Haves with H/S/AB plus NT-01–NT-12; F5/F10 retired with old case IDs reserved; metrics M4/M7 retired and M6 descriptive with M10–M12 verified in §5.2. Q9 resolved by the approved qualitative proof rubric; Q7 caps and Q14 module owners stay Open; Q13 QR work deferred. As-built boundary holds at auth/onboarding only. Historical proposals and superseded wording remain in LOG; current docs govern.
 - Build order mapped to the course weeks: Week 1-2 PRD-F7, PRD-F8; Week 3-4 PRD-F1, PRD-F9; Week 4-5 PRD-F2, PRD-F3; Week 5-6 PRD-F4, PRD-F13, PRD-F6, PRD-F14; Week 7-8 pilot.
 - 2026-10-13 five-issue fix pass (LOG §1 completion row): PRD 0.5, SDD 0.4, QAD 0.3, OPS 0.3 — covered work period plus optional amount in centavos on LOG_REVISION with CHECKs; average-fallback wording aligned across PRD/SDD/QAD with no behavior change; withdrawn/abandoned-ask-changes/abandoned-update retention mapped from approved periods only; closure semantics with FK RESTRICT plus stub row and the as-built cascade marked needs-future-migration (docs only, no code change); expired-records wording fixed. All docs stay Draft; reconciled never advanced; no CR required.
+
+## 7. Current development baseline
+
+This section describes implementation status, not new requirements. IDEA and PRD remain Locked; the technical documents remain Review under the recorded audit-repair authorization. No reconciled date is advanced by the agent. A future feature task still needs its own scope/authorization; passing baseline checks does not authorize implementing the entire target design.
+
+| Area | Implemented status | Entry point / next dependency |
+|------|--------------------|-------------------------------|
+| Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, protected account home, role/policy acknowledgment, durable limits, deployment isolation; delivery-failure repair has regression coverage | `web/src/features/onboarding/actions.ts:9`, `web/src/server/auth/config.ts:27`; live successful mail delivery and full signed-in browser testing are separate human checks |
+| Log/proof/rating data foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema constraints, private R2 configuration, local storage primitives; dev migrations through 0005 applied | `web/src/server/db/schema.ts:261`, `web/tests/f03-storage.test.ts:1`; no submission, proof streaming, publication, or record UI exists yet |
+| Verification and engagement handshake (PRD-F1, PRD-F9) | Planned workflows with supporting tables; verified-freelancer guard intentionally rejects everyone | `web/src/server/auth/guards-core.ts:11`; implement name/profile capture, reconcile pending verification requests with completed inspection fields, and design engagement-specific consent-receipt linkage before schema changes |
+| Moderation, records, corrections, retention (PRD-F4, PRD-F6, PRD-F12, PRD-F13, PRD-F14) | Planned target behavior | SDD §3 designs MODERATION_CASE, AUDIT_EVENT, CORRECTION_REQUEST, DATA_REQUEST; these tables, log proof/freeze triggers, retention changes, and feature handlers remain to be built |
+| Automated verification | 76 Workers cases, 25 Node deployment/audit cases, and 3 pinned-engine runner tests; browser E2E remains planned | BUILD §3 lists exact commands; QAD §1 distinguishes implemented tests from the target case plan |
+
+Operational limits remain explicit: the production dependency audit is clean, but five known high development-tool dependency entries remain in the ESLint chain; billing/alert access is unverified; no hard zero-cost guarantee or runtime proof quota enforcement is claimed. SPINE normal validation has zero errors and six known warnings for historical/deferred markers and the four design-first entities. Strict validation is not clean and is not represented as a launch gate that has passed. Main/production promotion remains on hold until the owner's explicit signal.

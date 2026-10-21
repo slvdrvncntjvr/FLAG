@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.6
+doc_version: 2.7
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -18,6 +18,8 @@ reconciled: 2026-10-13
 ---
 
 Accounts/onboarding are deployed in production and dev. Verification, engagement, proof, moderation, record, and retention workflows remain planned. cr-001 repairs deployed to dev on 2026-10-14 as version bd7b2957-e125-4dfe-a4ea-41c139510ca6 after migration 0003 applied to flag-db-dev. Production remains on the previous release. Commands come from BUILD §3 and web/package.json; SDD owns the fields and state.
+
+Latest verified dev release: PR #12 merged as 923ba24; Workers Builds succeeded and active dev Worker 05b2c2d6-1fe1-4adf-9b64-d4f4acc1e06f passed binding, anonymous route, policy/noindex, and invalid-code throttle checks. Dev migrations through 0005 are applied, with no pending migrations and clean foreign-key integrity. This supersedes older dev observations below. The subsequent email-delivery repair is a local code change until explicitly published; it requires no migration. Production remains unchanged and promotion is held for the owner's signal.
 
 Dev's live privacy/terms versions 2026-10-14 are verified; existing dev accounts must accept again. Policy text labels planned workflows explicitly and does not claim retention automation already exists. Production policy release remains pending.
 
@@ -159,7 +161,7 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 
 **Symptom:** users report missing invite, code, or decision mail.
 **Likely cause:** Brevo key missing or quota hit; fallback Resend key missing; sender address misconfigured.
-**Diagnose:** missing both per-env mail keys produces HTTP 503 at code requests after cr-001 is released. Otherwise inspect the selected Brevo/Resend dashboard, sender, quota, and per-env secrets. Better Auth may handle delivery errors in a background callback, so an accepted request alone does not prove delivered mail.
+**Diagnose:** missing both per-env mail keys produces HTTP 503 at code requests. The delivery repair also returns HTTP 503 with EMAIL_DELIVERY_FAILED for a provider rejection, network failure, or timeout; its safe log message is Sign-in email delivery failed, with no contact/code/provider body. Brevo requests time out after ten seconds. Inspect the selected provider's sender, quota, and per-env key configuration. HTTP success means the provider accepted the request; it does not prove inbox delivery. Full successful delivery and browser sign-in remain human release checks, because automated smoke checks send no email.
 **Fix:** rotate or set the per-env mail key; correct `MAIL_FROM`; resend the affected notification. Never paste a key into a doc or chat log.
 **Escalate to:** slvdrvncntjvr.
 

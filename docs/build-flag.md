@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.6
+doc_version: 2.7
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -57,6 +57,7 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Layer | Technology | Version | Verified | Source |
 |-------|-----------|---------|----------|--------|
 | Language | TypeScript | 5.9.3 | 2026-10-12 | https://www.npmjs.com/package/typescript |
+| Type definitions | @types/node, @types/react, @types/react-dom | 20.19.43, 19.3.0, 19.3.0 | 2026-10-21 | https://www.npmjs.com/package/@types/node/v/20.19.43 , https://www.npmjs.com/package/@types/react/v/19.3.0 , https://www.npmjs.com/package/@types/react-dom/v/19.3.0 |
 | Runtime (local) | Node.js | 22.21.1 | 2026-10-12 | https://nodejs.org/en/docs |
 | Runtime (deployed) | Cloudflare Workers, `nodejs_compat` | compatibility_date 2026-10-01 | 2026-10-12 | https://developers.cloudflare.com/workers/configuration/compatibility-dates/ |
 | Framework | Next.js App Router | 16.3.8 | 2026-10-12 | https://github.com/vercel/next.js/releases/tag/v16.3.8 |
@@ -86,6 +87,7 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/local | @fontsource-variable/source-serif-4 5.3.1, @fontsource-variable/inter 5.3.0, @fontsource/ibm-plex-mono 5.3.0 | 2026-10-14 | https://www.npmjs.com/package/@fontsource-variable/source-serif-4/v/5.3.1 , https://www.npmjs.com/package/@fontsource-variable/inter/v/5.3.0 , https://www.npmjs.com/package/@fontsource/ibm-plex-mono/v/5.3.0 |
 
 Version notes:
+- 2026-10-21 baseline cleanup replaces the three @types ranges with the exact versions already resolved in the lockfile; npm registry verification matches them. No installed/resolved package version changes.
 - Fonts retain the same faces and Latin subsets but are pinned npm assets, loaded locally because Google Fonts requests failed during Worker build verification. No Google Fonts network fetch is needed at build time. OFL licenses are distributed under web/public/font-licenses/.
 - Next 16.4.0 is out, but OpenNext's support PR for it was still open on 2026-10-12. 16.3.8 is the lowest 16.x the adapter accepts and includes the image-optimizer SSRF fix.
 - better-auth below 1.7.7 has a critical magic-link account takeover (GHSA-965c-763c-88jm). Never downgrade.
@@ -114,7 +116,7 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 ## 3. Commands
 
-Script block in `web/package.json`, confirmed against the manifest on 2026-10-12. Run from `web/`. `e2e` is planned and lands with Playwright.
+Script block in `web/package.json`, confirmed against the manifest on 2026-10-21. Run from `web/` unless marked repo root. End-to-end browser automation is planned; no e2e script exists yet.
 
 | Task | Command |
 |------|---------|
@@ -131,14 +133,20 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-12
 | Test | `npm test` (`vitest run`) |
 | Deployment boundary and R2 audit tests | `npm run test:deploy` (25 Node tests for branch/environment/account checks, live binding validation, and conservative R2 audit policy) |
 | Inspect R2 resources and usage | `npm run audit:r2` (read-only API inspection; exit 1 unsafe/incomplete resource inspection, exit 2 warnings/incomplete billing access; never a spending cap) |
-| End-to-end | `npm run e2e` (`playwright test`) |
+| End-to-end | Planned; no e2e script or Playwright suite exists yet |
 | Lint | `npm run lint` (`eslint`) |
 | Typecheck | `npm run typecheck` (`tsc --noEmit` for the app, then for `tests/`) |
 | Generate migration | `npm run db:generate` (`drizzle-kit generate`) |
 | Apply migrations locally | `npm run db:migrate:local` (`wrangler d1 migrations apply flag-db --local`) |
 | Apply migrations remote | `npm run db:migrate:remote` (production), `npm run db:migrate:dev` (dev); no environment named preview exists |
 | Cloudflare binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv --strict-vars false`) |
-| Docs validator | `python $SPINE_HOME/scripts/check.py docs/` (from repo root) |
+| Read pinned engine | `python scripts/spine.py engine` (repo root) |
+| Read pinned template | `python scripts/spine.py template CODE` (repo root) |
+| Docs validator | `python scripts/spine.py check docs/` (repo root) |
+| Checkpoint verification | `python scripts/spine.py checkpoint verify` (repo root) |
+| Pinned engine runner tests | `python -m unittest discover -s scripts -p 'test_spine.py'` (repo root) |
+
+`scripts/spine.py:1` reads this repository's 0.3.0 pin from AGENTS.md and resolves the same local engine sources in order. It extracts the local v0.3.0 tag into an automatically cleaned OS temporary snapshot without switching or upgrading the shared clone. If no tag is available, only an already matching 0.3.0 engine is accepted; a different version is an error. No command depends on the repo's temporary/ directory. Its tests cover a shared 0.4.0 checkout with a 0.3.0 tag, exit-code/argument forwarding, Unicode output, cleanup, and refusing an unavailable pin. Other agents should use this runner rather than executing a different shared engine's validators.
 
 Long-running commands (dev servers, watchers) must be run by the owner in their own terminal, not by an agent in a blocking shell call.
 
@@ -182,7 +190,7 @@ Failure mode if skipped: the deploy succeeds but the live page throws a database
 
 | Area | Convention |
 |------|-----------|
-| Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with one review from another developer. `foverhaul` holds this rewrite until it merges to `dev` |
+| Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with one review from another developer. Production promotion waits for the owner's explicit signal |
 | Commit format | Short imperative subject naming the feature ID when there is one: `PRD-F8 add policy acceptance gate` |
 | Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright. The retired `prototype/` static mock was deleted on 2026-10-14 |
 | Module ownership | One developer owns each `src/features/<module>` folder and reviews every change to it. Assignments (owner 2026-10-13, LOG Q14): Dev A owns `verification`; Dev B owns `engagements` and `logs` (`src/features` log intake/proof); Dev C owns `moderation` and retention/maintenance. Shared `server/{auth,db,mail}` and `components` changes need the owning dev of the consuming module plus one reviewer |

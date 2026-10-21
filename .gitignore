@@ -7,3 +7,6 @@ group_context/
 
 # Local agent handoffs; never commit
 temporary/
+
+# Python helper bytecode
+scripts/__pycache__/

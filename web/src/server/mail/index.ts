@@ -23,6 +23,7 @@ export async function sendMail(env: MailEnv, mail: Mail): Promise<{ sent: boolea
   if (env.BREVO_API_KEY) {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
+      signal: AbortSignal.timeout(10_000),
       headers: {
         "api-key": env.BREVO_API_KEY,
         "content-type": "application/json",
