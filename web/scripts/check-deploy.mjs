@@ -1,15 +1,12 @@
 import { unstable_readConfig } from "wrangler";
-import { checkCiTarget } from "./check-ci-target.mjs";
+import { checkCiTarget, getCliEnvironment } from "./check-ci-target.mjs";
 import { checkResourceBindings } from "./check-resource-bindings.mjs";
 
-const environment = process.argv[2];
-if (environment !== undefined && environment !== "dev") throw new Error("Unsupported deployment environment");
+// Preserve the npm scripts' positional `dev` while accepting Wrangler flags.
+const args = process.argv.slice(2);
+if (args[0] && !args[0].startsWith("-")) args.splice(0, 1, "--env", args[0]);
+const environment = getCliEnvironment(args);
 checkCiTarget(environment);
 const config = unstable_readConfig({ config: "wrangler.jsonc", env: environment });
-const expectedName = environment === "dev" ? "flag-dev" : "flag";
-const expectedDatabase = environment === "dev" ? "flag-db-dev" : "flag-db";
-if (process.env.WRANGLER_CI_OVERRIDE_NAME && process.env.WRANGLER_CI_OVERRIDE_NAME !== expectedName) {
-  throw new Error(`CI targets ${process.env.WRANGLER_CI_OVERRIDE_NAME}; command targets ${expectedName}. Select the correct deploy script.`);
-}
 checkResourceBindings(config, environment);
-console.log(`Deployment configuration checked: ${expectedName} / ${expectedDatabase} / ${config.r2_buckets.find(binding => binding.binding === "PROOFS").bucket_name}`);
+console.log(`Deployment configuration checked: ${config.name} / ${config.d1_databases.find(binding => binding.binding === "DB").database_name} / ${config.r2_buckets.find(binding => binding.binding === "PROOFS").bucket_name}`);

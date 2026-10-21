@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.6
+doc_version: 2.7
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -19,6 +19,10 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+2026-10-21 deployment follow-up: 25 Node checks pass across `web/scripts/check-ci-target.test.mjs:1` and `web/scripts/r2-audit.test.mjs:1`. Eight added regressions run the actual guard scripts, exercise each Wrangler config's custom-build command with conflicting inherited environments, cover positional/flag/environment precedence and malformed values, and test live DB/auth/PROOFS metadata. Missing/swapped/incorrectly typed proof bindings, missing DB/auth values, duplicate names, and unavailable metadata all fail. Both Cloudflare D1 ID metadata forms are accepted. The shared live validator is used by the R2 audit and dev release verifier. These are local checks; no fresh live resource or billing observation is claimed.
+
+Final local verification for that follow-up: all 72 Workers-pool application tests, lint, app/test typechecks, the full OpenNext dev Worker build, and an actual Wrangler dev deployment dry run pass. The dry run invokes the dev custom-build command and reports flag-db-dev, flag-proofs-dev, and the dev authentication URL, then exits without upload. The existing configuration-drift regression also rejects a missing database ID or the production ID paired with the dev database name. Initial build/dry-run attempts hit sandbox parent-directory/log-path permissions; approved reruns outside the sandbox passed. Live metadata/route/billing checks were not rerun.
 
 2026-10-21 R2 follow-up: `web/scripts/check-ci-target.test.mjs:1` and `web/scripts/r2-audit.test.mjs:1` pass 17 Node tests, including account-ID pinning, account-wide operation totals, per-bucket peak aggregation including deleted buckets, conservative unknown-operation handling, invalid/truncated analytics, private Standard bucket settings, and lifecycle/import hazards. Live CLI resource inspection found both empty buckets private/Standard and active Worker DB/auth bindings isolated. The live audit explicitly returns warnings for current 403 billing/notification access and unclassified metadata operations; it does not claim a verified $0 invoice, configured email alert, or a hard/runtime spending cap. Historical counts below retain their observation dates.
 

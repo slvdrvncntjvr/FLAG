@@ -13,7 +13,7 @@
 	},
 	"observability": { "enabled": true },
 	"build": {
-		"command": "node scripts/check-wrangler-build.mjs"
+		"command": "node scripts/check-wrangler-build.mjs --env="
 	},
 
 	// ---- Production (default): deployed from `main` ----
@@ -40,6 +40,9 @@
 	// Secrets are per-environment: set with `wrangler secret put <NAME> --env dev`.
 	"env": {
 		"dev": {
+			"build": {
+				"command": "node scripts/check-wrangler-build.mjs --env=dev"
+			},
 			"name": "flag-dev",
 			"workers_dev": true,
 			"preview_urls": false,

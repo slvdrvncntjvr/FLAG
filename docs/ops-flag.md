@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.5
+doc_version: 2.6
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -49,7 +49,7 @@ Scripts copied from `web/package.json` (run from `web/`). Migration order: previ
 | Manual deploy (dev) | `npm run deploy:dev` | Builds then runs the guarded dev deploy |
 | Smoke check (current release) | Sign in, accept current policies, open /home; verify signed-out /home and /onboarding redirect to /sign-in | Client records and moderation queue are future release checks, not current routes |
 | Binding types | `npm run cf-typegen` | After binding changes; --strict-vars false permits both deployed and local URLs |
-| Verify dev release | `npm run verify:dev` | Active version's DB/auth bindings, seven anonymous routes, legal versions/noindex, and five-then-429 invalid-code limit; sends no mail or signup |
+| Verify dev release | `npm run verify:dev` | Active version's DB/auth/PROOFS bindings, seven anonymous routes, legal versions/noindex, and five-then-429 invalid-code limit; sends no mail or signup |
 
 web/drizzle/0003_melted_the_twelve.sql applied to remote dev on 2026-10-14; no pending dev migrations remained. Apply it to production before production release, with separate owner authorization. Deployment does not apply migrations. Dev migration and deployment were explicitly authorized after the original local-only CR approval.
 
@@ -104,6 +104,8 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 ## 5. Runbooks
 
 ### R2 cost and privacy checks
+
+2026-10-21 local verification repair: `web/scripts/audit-r2.mjs:58` checks every active version against the shared DB/auth/PROOFS validator at `web/scripts/check-resource-bindings.mjs:35`; `web/scripts/verify-dev-release.mjs:36` applies the same check before probing routes. Missing PROOFS now produces an error, including for an older production release that predates R2. Duplicate bindings and wrong resource types also fail. This reports release readiness; it does not deploy or retrofit a live Worker. The audit explicitly reads both default and dev configs even if CLOUDFLARE_ENV is set. Deployment preflight and environment-specific Wrangler custom-build commands also use the selected environment consistently (BUILD §3.1).
 
 Run `npm run audit:r2` from web/ with the approved account. It checks Standard storage, disabled public access/custom domains/imports, lifecycle safety, live Worker environment isolation, and account-wide analytics. A rolling 31-day lookback avoids undercounting caused by a calendar-month reset when the subscription anniversary is unknown; per-bucket storage peaks are summed conservatively, including deleted buckets and metadata. Unknown operation types remain warnings and count against both operation allowances for the warning calculation. Samples can lag; this is an inspection, not runtime enforcement or an invoice.
 

@@ -1,5 +1,6 @@
-import { checkCiTarget } from "./check-ci-target.mjs";
+import { checkCiTarget, getCliEnvironment } from "./check-ci-target.mjs";
 
 // Plain `wrangler deploy` bypasses OpenNext config. Run before Wrangler uploads.
-// Supported adapter commands propagate their selected environment to this child.
-checkCiTarget(process.env.CLOUDFLARE_ENV);
+// Wrangler does not forward its argv to this child: each environment's build
+// command must pass its own explicit --env value, including empty for production.
+checkCiTarget(getCliEnvironment());

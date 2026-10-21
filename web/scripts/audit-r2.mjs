@@ -1,13 +1,13 @@
 import { spawnSync } from "node:child_process";
 import { unstable_readConfig } from "wrangler";
-import { CLOUDFLARE_ACCOUNT_ID, checkResourceBindings } from "./check-resource-bindings.mjs";
+import { CLOUDFLARE_ACCOUNT_ID, checkDeployedBindings, checkResourceBindings } from "./check-resource-bindings.mjs";
 import { R2_INCLUDED, checkBucketSafety, summarizeR2Usage } from "./r2-audit-policy.mjs";
 
 // Read-only: no object listing/reads, uploads, deletion, subscription changes, or deployment.
 // Exit 1: unsafe/unreadable resources. Exit 2: incomplete billing verification/warnings.
 // Exit 0 is a clean snapshot, NEVER a spending cap or a guarantee about future billing.
 async function main() {
-  const configs = [undefined, "dev"].map(environment => {
+  const configs = ["", "dev"].map(environment => {
     const config = unstable_readConfig({ config: "wrangler.jsonc", env: environment });
     checkResourceBindings(config, environment);
     return config;
@@ -54,15 +54,8 @@ async function main() {
       const metadata = await required(`workers/scripts/${config.name}/versions/${version.version_id}`);
       const bindings = metadata.resources?.bindings;
       if (!Array.isArray(bindings)) throw new Error(`No binding metadata: ${config.name}`);
-      const db = bindings.find(binding => binding.name === "DB");
       const proofs = bindings.find(binding => binding.name === "PROOFS");
-      const url = bindings.find(binding => binding.name === "BETTER_AUTH_URL");
-      if ((db?.database_id ?? db?.id) !== config.d1_databases.find(binding => binding.binding === "DB").database_id || url?.text !== config.vars.BETTER_AUTH_URL) {
-        errors.push(`${config.name}: deployed database/authentication binding mismatch`);
-      }
-      if (proofs && (proofs.type !== "r2_bucket" || proofs.bucket_name !== config.r2_buckets.find(binding => binding.binding === "PROOFS").bucket_name)) {
-        errors.push(`${config.name}: deployed proof bucket mismatch`);
-      }
+      errors.push(...checkDeployedBindings(config, bindings).map(problem => `${config.name} (${version.version_id}): ${problem}`));
       workers.push({ name: config.name, version: version.version_id, trafficPercent: version.percentage, proofBucket: proofs?.bucket_name ?? null });
     }
   }

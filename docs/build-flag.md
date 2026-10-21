@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.5
+doc_version: 2.6
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -129,7 +129,7 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-12
 | Manual build and deploy | `npm run deploy` (production), `npm run deploy:dev` (dev) |
 | Verify dev release | `npm run verify:dev` (read-only binding metadata plus anonymous route and invalid-code checks; no mail/signup) |
 | Test | `npm test` (`vitest run`) |
-| Deployment boundary and R2 audit tests | `npm run test:deploy` (17 Node tests for branch/environment/account checks and conservative R2 audit policy) |
+| Deployment boundary and R2 audit tests | `npm run test:deploy` (25 Node tests for branch/environment/account checks, live binding validation, and conservative R2 audit policy) |
 | Inspect R2 resources and usage | `npm run audit:r2` (read-only API inspection; exit 1 unsafe/incomplete resource inspection, exit 2 warnings/incomplete billing access; never a spending cap) |
 | End-to-end | `npm run e2e` (`playwright test`) |
 | Lint | `npm run lint` (`eslint`) |
@@ -151,6 +151,8 @@ Evidence from the 2026-10-14 audit: supplied build log ran a deployment during t
 Reference, checked 2026-10-14: https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/#wrangler-environments and https://opennext.js.org/cloudflare/howtos/dev-deploy . Dashboard settings remain external configuration and must be verified separately from the repository scripts.
 
 Push protection: web/open-next.config.ts:2 loads the CI check before adapter operations and propagates the selected environment to child commands. Plain Wrangler can bypass adapter config, so web/wrangler.jsonc:12 also invokes web/scripts/check-wrangler-build.mjs:1 before Wrangler uploads. web/scripts/check-ci-target.mjs:16 rejects a CI Worker-name/environment mismatch and rejects flag operations outside main or flag-dev operations outside dev. This prevents the old commands from promoting a dev commit to production or overriding only the dev Worker name while selecting production bindings. Correct dashboard commands are still required; incorrect commands deliberately fail. Cloudflare exposes WORKERS_CI_BRANCH per https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#default-variables .
+
+2026-10-21 local guard follow-up: `web/scripts/check-ci-target.mjs:5` resolves explicit `--env`/`-e` before CLOUDFLARE_ENV and rejects missing flag values; `web/scripts/check-deploy.mjs:6` uses the same resolver while preserving the npm scripts' positional dev argument. Wrangler does not forward its CLI arguments to a custom-build child, so `web/wrangler.jsonc:16` passes `--env=` in the default build command and the dev override passes `--env=dev`. These commands validate the environment Wrangler actually selected even when an inherited variable differs. Deployment target mapping and live DB/auth/PROOFS checks share `web/scripts/check-resource-bindings.mjs:4`; local configuration checks pin both the database name and ID, rejecting a production ID hidden behind a dev name. The audit and dev release verifier now reject missing, duplicate, incorrectly typed, or mismatched bindings; an older Worker with no PROOFS is a release-readiness error. References: [Wrangler custom builds](https://developers.cloudflare.com/workers/wrangler/custom-builds/) and [environment selection](https://developers.cloudflare.com/workers/wrangler/system-environment-variables/). This is local audit repair under cr-001; no remote release is implied.
 
 **Database migrations are NOT automatic, and this is deliberate.** Auto-deploy ships code only. D1 migrations are forward-only with no automatic rollback, so they are applied by hand, preview before production. The trigger is mechanical: any change that adds or edits a file under `web/drizzle/` — i.e. any structural change to `web/src/server/db/schema.ts` (new table, new/renamed/removed column, index, constraint, CHECK, type, or default change) — needs a migration. Pure code, copy, styling, routing, or logic changes that use existing tables do NOT.
 

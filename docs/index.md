@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.21
+doc_version: 0.23
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.6 | Review | 2026-10-21 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.4 | Review | 2026-10-21 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.6 | Review | 2026-10-21 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.11 | Draft | 2026-10-21 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.6 | Review | 2026-10-21 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.13 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -111,6 +111,10 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-21 owner-authorized dev release preparation: migration 0005_happy_vermin.sql is now applied to flag-db-dev; no migrations remain, the parties foreign key is present, and foreign_key_check is clean. Owner authorized committing/pushing the local repairs and merging PR #12 into dev after that migration. Dev-to-main is explicitly on hold until the owner's later signal; production has not been migrated or deployed. The temporary handoff was deleted at the owner's request. Its durable implementation reminders are preserved here and in LOG: four missing schema entities already designed by SDD, missing log proof/freeze triggers, profile/name capture, pending-request versus completed-inspection workflow, and engagement-specific consent-receipt linkage. A separate moderator name-approval step was an unapproved agent recommendation, not a new requirement.
+
+- 2026-10-21 local continuation: repaired environment selection in deployment guards and required live DB/auth/PROOFS bindings in both the audit and dev verifier. Wrangler custom-build commands pass their actual selected environment explicitly; configuration checks pin database IDs as well as names. All 72 Workers tests, 25 Node checks, lint, app/test typechecks, full dev Worker build, and dev deployment dry run pass. No new schema, product workflow, or remote release operation is included. Remote state in older notes is historical and was not rechecked; temporary/HANDOFF.md reports issue #5 closed, superseding the open status below. Migration 0005 and PR #12 release sequencing remain pending.
 
 - 2026-10-21 latest status, supersedes the R2 note below: flag-db-dev has migration 0004 applied and flag-dev version 765e86dd binds flag-proofs-dev (deployed 2026-10-20 17:01 UTC after PR #11). Production flag-db lacks 0003 and 0004; main is six commits behind dev. Branch fix-otp-limit-log-parties adds a per-IP code-email cap, IPv6 /64 limiter keying, and the ENGAGEMENT_LOG parties foreign key (migration 0005, pending on flag-db-dev); 72 Workers tests pass. Issue #5 was delivered by PR #11 but is still open.
 
