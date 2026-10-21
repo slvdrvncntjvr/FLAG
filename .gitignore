@@ -4,3 +4,6 @@ cockpit.html
 
 # Course files with member names; never commit (BUILD §5)
 group_context/
+
+# Local agent handoffs; never commit
+temporary/

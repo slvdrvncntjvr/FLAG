@@ -244,6 +244,8 @@ export const engagement = sqliteTable(
   (t) => [
     index("engagement_freelancer_idx").on(t.freelancerId),
     index("engagement_client_idx").on(t.clientId),
+    // Target of the log's composite key, so a log always names its engagement's own parties.
+    uniqueIndex("engagement_id_parties_idx").on(t.id, t.freelancerId, t.clientId),
     check("engagement_status_check", sql`${t.status} IN ('invited','accepted','declined','expired','cancelled')`),
   ],
 );
@@ -280,6 +282,7 @@ export const engagementLog = sqliteTable(
   },
   (t) => [
     index("engagement_log_client_status_published_idx").on(t.clientId, t.status, t.publishedAt),
+    foreignKey({ name: "engagement_log_engagement_parties_fk", columns: [t.engagementId, t.freelancerId, t.clientId], foreignColumns: [engagement.id, engagement.freelancerId, engagement.clientId] }).onDelete("restrict"),
     foreignKey({ name: "engagement_log_current_revision_owner_fk", columns: [t.currentRevisionId, t.id], foreignColumns: [logRevision.id, logRevision.logId] }).onDelete("restrict"),
     check("engagement_log_status_check", sql`${t.status} IN ('draft','pending','ask_changes','published','hidden','withdrawn','rejected','expired')`),
     check("engagement_log_anchor_kind_check", sql`${t.anchorKind} IN ('completed','terminated','missed_milestone')`),

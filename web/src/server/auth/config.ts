@@ -3,11 +3,12 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins/email-otp";
+import { normalizeIP } from "@better-auth/core/utils/ip";
 import { eq } from "drizzle-orm";
 import type { Db } from "@/server/db";
 import * as schema from "@/server/db/schema";
 import { sendMail } from "@/server/mail";
-import { createAuthRateLimiter, OTP_LIMIT, OTP_PATHS } from "./rate-limit";
+import { createAuthRateLimiter, OTP_IP_SEND_LIMIT, OTP_LIMIT, OTP_PATHS, OTP_SEND_PATHS } from "./rate-limit";
 
 export type AuthEnv = {
   BETTER_AUTH_SECRET: string;
@@ -64,16 +65,20 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
         if (!ctx.path || !OTP_PATHS.has(ctx.path)) return;
         // Better Auth logs and absorbs errors in background delivery callbacks.
         // Reject missing configuration synchronously, before it stores/sends a code.
-        if (["/email-otp/send-verification-otp", "/email-otp/request-password-reset", "/email-otp/request-email-change"].includes(ctx.path) &&
-            !options.sendOtp && !env.BREVO_API_KEY && !env.RESEND_API_KEY && !localConsole) {
+        const sends = OTP_SEND_PATHS.has(ctx.path);
+        if (sends && !options.sendOtp && !env.BREVO_API_KEY && !env.RESEND_API_KEY && !localConsole) {
           throw new APIError("SERVICE_UNAVAILABLE", { message: "Sign-in email is unavailable. Try again later." });
         }
         const email = typeof ctx.body?.email === "string" ? ctx.body.email.trim().toLowerCase() : "";
-        const ip = ctx.headers?.get("cf-connecting-ip") ?? "no-trusted-ip";
+        // One IPv6 /64 is one client, as in Better Auth's own limiter; otherwise each address gets a fresh bucket.
+        const trusted = ctx.headers?.get("cf-connecting-ip");
+        const ip = trusted ? normalizeIP(trusted, { ipv6Subnet: 64 }) : "no-trusted-ip";
         const result = await limiter.consume(JSON.stringify(["otp", ip, ctx.path, email]), OTP_LIMIT);
-        if (!result.allowed) throw new APIError("TOO_MANY_REQUESTS", {
+        // Per-email buckets alone let one client mail any number of addresses and drain the provider quota.
+        const perIp = result.allowed && sends ? await limiter.consume(JSON.stringify(["otp-send-ip", ip]), OTP_IP_SEND_LIMIT) : result;
+        if (!perIp.allowed) throw new APIError("TOO_MANY_REQUESTS", {
           message: "Too many attempts. Try again after fifteen minutes.",
-        }, { "Retry-After": String(result.retryAfter), "X-Retry-After": String(result.retryAfter) });
+        }, { "Retry-After": String(perIp.retryAfter), "X-Retry-After": String(perIp.retryAfter) });
       }),
     },
     // Cloudflare sets cf-connecting-ip; x-forwarded-for can be supplied by the client.

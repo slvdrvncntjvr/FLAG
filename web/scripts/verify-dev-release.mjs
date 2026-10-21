@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { unstable_readConfig } from "wrangler";
+import { CLOUDFLARE_ACCOUNT_ID, checkDeployedBindings, checkResourceBindings } from "./check-resource-bindings.mjs";
 
 // Read-only deployment metadata and anonymous route checks. No sign-in mail is sent.
 const config = unstable_readConfig({ config: "wrangler.jsonc", env: "dev" });
+checkResourceBindings(config, "dev");
 const base = config.vars.BETTER_AUTH_URL;
 assert.equal(config.name, "flag-dev");
 assert.equal(base, "https://flag-dev.factsfirst.workers.dev");
@@ -16,9 +18,8 @@ const auth = spawnSync(process.execPath, ["node_modules/wrangler/bin/wrangler.js
 assert.equal(auth.status, 0, "Wrangler authentication lookup failed");
 const credential = JSON.parse(auth.stdout);
 assert.ok(credential.token, "A Wrangler OAuth/API token is required for metadata checks");
-const account = "1af65da586efd62d6f6d429240395f28";
 async function api(path) {
-  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/${path}`, {
+  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/${path}`, {
     headers: { authorization: `Bearer ${credential.token}` }, signal: AbortSignal.timeout(20000),
   });
   const body = await response.json();
@@ -32,9 +33,9 @@ assert.equal(active.versions[0].percentage, 100);
 const versionId = active.versions[0].version_id;
 const version = await api(`workers/scripts/flag-dev/versions/${versionId}`);
 const bindings = version.resources.bindings;
-assert.equal(bindings.find(binding => binding.name === "DB")?.id, expectedDatabase.database_id, "Deployed database does not match dev");
-assert.equal(bindings.find(binding => binding.name === "BETTER_AUTH_URL")?.text, base, "Deployed authentication URL does not match dev");
-console.log(JSON.stringify({ versionId, database: expectedDatabase.database_name, authUrl: base, bindingsVerified: true }));
+assert.deepEqual(checkDeployedBindings(config, bindings), [], "Deployed DB/auth/PROOFS bindings do not match dev");
+console.log(JSON.stringify({ versionId, database: expectedDatabase.database_name, authUrl: base,
+  proofBucket: config.r2_buckets.find(binding => binding.binding === "PROOFS").bucket_name, bindingsVerified: true }));
 
 const routes = await Promise.all(["/", "/home", "/onboarding", "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"].map(async path => {
   const response = await fetch(`${base}${path}`, { redirect: "manual", signal: AbortSignal.timeout(20000) });
