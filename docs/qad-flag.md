@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.7
+doc_version: 2.8
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -19,6 +19,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+Current baseline maintenance: `web/tests/auth-repairs.test.ts:12` adds four email-delivery regressions: failed callback returns HTTP 503 with a generic code, concurrent success/failure and retry stay isolated, Brevo quota/server rejection is reported without exposing its body, and a network timeout is reported through a bounded request. No real mail is sent. This brings the Workers suite to 76 cases; earlier counts below describe their dated milestones. Deployment/audit coverage stays at 25 Node tests. `scripts/test_spine.py:1` separately checks the pinned 0.3.0 engine runner, exit-code propagation, Unicode output, snapshot cleanup, and refusal to run an unavailable version. Run pinned documentation checks with `python scripts/spine.py check docs/` and `python scripts/spine.py checkpoint verify` from the repo root. These changes repair PRD-F7 reliability and reproducibility, without claiming new product workflows or browser E2E coverage.
 
 2026-10-21 deployment follow-up: 25 Node checks pass across `web/scripts/check-ci-target.test.mjs:1` and `web/scripts/r2-audit.test.mjs:1`. Eight added regressions run the actual guard scripts, exercise each Wrangler config's custom-build command with conflicting inherited environments, cover positional/flag/environment precedence and malformed values, and test live DB/auth/PROOFS metadata. Missing/swapped/incorrectly typed proof bindings, missing DB/auth values, duplicate names, and unavailable metadata all fail. Both Cloudflare D1 ID metadata forms are accepted. The shared live validator is used by the R2 audit and dev release verifier. These are local checks; no fresh live resource or billing observation is claimed.
 

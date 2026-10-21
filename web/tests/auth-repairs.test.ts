@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { acceptOnboarding } from "@/features/onboarding/accept";
 import { createAuth } from "@/server/auth/config";
@@ -9,6 +9,89 @@ import { setup, BASE } from "./helpers";
 
 const CLIENT = { role: "client", privacy: "on", terms: "on" };
 const SECRET = "audit-test-secret-should-never-be-used-in-production";
+
+describe("PRD-F7 email delivery failures", () => {
+  const base = "https://auth-review.example.invalid";
+  const request = (email: string, ip: string) => new Request(`${base}/api/auth/email-otp/send-verification-otp`, {
+    method: "POST", headers: { "content-type": "application/json", origin: base, "cf-connecting-ip": ip },
+    body: JSON.stringify({ email, type: "sign-in" }),
+  });
+  const config = { BETTER_AUTH_SECRET: SECRET, BETTER_AUTH_URL: base, MAIL_FROM: "test@example.invalid" };
+
+  it("returns 503 instead of success when delivery fails, without leaking the provider error", async () => {
+    const { db, ip } = setup();
+    const email = "delivery-failure@example.invalid";
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const auth = createAuth(config, db, { sendOtp: async (_, otp) => { throw new Error(`private-provider-detail ${email} ${otp}`); } });
+      const response = await auth.handler(request(email, ip));
+      expect(response.status).toBe(503);
+      const body = await response.json();
+      expect(body).toMatchObject({ code: "EMAIL_DELIVERY_FAILED" });
+      expect(JSON.stringify(body)).not.toMatch(/private-provider-detail|delivery-failure@|success/);
+      expect(errorLog.mock.calls).toEqual([["Sign-in email delivery failed"]]);
+    } finally {
+      errorLog.mockRestore();
+    }
+  });
+
+  it("isolates concurrent success/failure and permits a successful retry on the same auth instance", async () => {
+    const { db, ip } = setup();
+    let unavailable = true;
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const auth = createAuth(config, db, { sendOtp: async email => {
+        await Promise.resolve();
+        if (unavailable && email.startsWith("fails")) throw new Error("simulated unavailable provider");
+      } });
+      const responses = await Promise.all([
+        auth.handler(request("fails@example.invalid", ip)),
+        auth.handler(request("succeeds@example.invalid", ip)),
+      ]);
+      expect(responses.map(response => response.status)).toEqual([503, 200]);
+      expect(await responses[1].json()).toEqual({ success: true });
+      unavailable = false;
+      expect((await auth.handler(request("fails@example.invalid", ip))).status).toBe(200);
+    } finally {
+      errorLog.mockRestore();
+    }
+  });
+
+  it("reports Brevo quota/server rejection as unavailable without exposing provider response contents", async () => {
+    const { db, ip } = setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const auth = createAuth({ ...config, BREVO_API_KEY: "synthetic-test-key" }, db);
+      for (const status of [429, 500]) {
+        fetchMock.mockResolvedValueOnce(new Response("private-provider-response", { status }));
+        const response = await auth.handler(request(`provider-${status}@example.invalid`, ip));
+        expect(response.status).toBe(503);
+        expect(await response.json()).toMatchObject({ code: "EMAIL_DELIVERY_FAILED" });
+      }
+      expect(errorLog.mock.calls.flat().join(" ")).not.toContain("private-provider-response");
+    } finally {
+      fetchMock.mockRestore();
+      errorLog.mockRestore();
+    }
+  });
+
+  it("handles a provider network timeout with a bounded request and a retryable response", async () => {
+    const { db, ip } = setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new DOMException("timeout", "TimeoutError"));
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const auth = createAuth({ ...config, BREVO_API_KEY: "synthetic-test-key" }, db);
+      const response = await auth.handler(request("timeout@example.invalid", ip));
+      expect(response.status).toBe(503);
+      expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+      expect(await response.json()).toMatchObject({ code: "EMAIL_DELIVERY_FAILED" });
+    } finally {
+      fetchMock.mockRestore();
+      errorLog.mockRestore();
+    }
+  });
+});
 
 describe("PRD-F8 atomic onboarding", () => {
   it("rolls back the role if a policy insert fails", async () => {

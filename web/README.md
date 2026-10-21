@@ -1,7 +1,26 @@
 # FLAG — web
 
 Next.js (App Router) on OpenNext + Cloudflare Workers, D1 (Drizzle), Better Auth.
-Runs entirely on free tiers: Cloudflare Workers Free plan + Brevo free email.
+Pilot target: Cloudflare Workers Free plan and Brevo's free email allowance.
+See `../docs/index.md` for the current scope, release status, and limitations.
+
+## Agent and contributor starting point
+
+Read `../AGENTS.md`, then `../docs/index.md` and the upstream documents for the
+feature. This repo stays on **SPINE 0.3.0**. From the repo root, use:
+
+```bash
+python scripts/spine.py engine
+python scripts/spine.py check docs/
+python scripts/spine.py checkpoint verify
+```
+
+The runner uses the local engine's `v0.3.0` tag without changing the shared
+checkout, even if that checkout has been upgraded. `SPINE_HOME` can point at a
+local clone containing that tag. No application or documentation command needs
+the repo's disposable `temporary/` folder. Other features require their own
+scope/authorization; passing the baseline checks does not make the full product
+implemented. Production promotion remains on hold until the owner's signal.
 
 ## Local development
 
@@ -29,8 +48,8 @@ are included in public/font-licenses/.
 ## Checks
 
 ```bash
-npm run test        # Vitest in the Workers pool (21 tests)
-npm run test:deploy # CI branch/environment boundaries (6 Node tests)
+npm run test        # Vitest in the Workers pool (76 tests)
+npm run test:deploy # Deployment isolation and R2 audit policy (25 Node tests)
 npm run typecheck   # tsc for app + tests
 npm run lint        # eslint (ignores .open-next and .wrangler build output)
 ```
@@ -46,6 +65,12 @@ and verification each allow five attempts per fifteen minutes per trusted IP
 and normalized email. Keys are hashed; raw IP/email is not stored in the
 rate-limit table.
 
+Provider rejection, timeout, or network failure returns HTTP 503 with a generic
+retry message; it never reports successful delivery. Brevo requests time out
+after ten seconds. HTTP success means the provider accepted the request, not a
+guarantee that the recipient's inbox received it. Tests simulate provider errors
+without sending email.
+
 Set up once:
 
 1. Create a free account at brevo.com.
@@ -60,7 +85,7 @@ Set up once:
 | Production | `main` | `flag` | https://flag.factsfirst.workers.dev | `flag-db` |
 | Preview | `dev` | `flag-dev` | https://flag-dev.factsfirst.workers.dev | `flag-db-dev` |
 
-Both run on the Cloudflare Workers Free plan. The preview environment has its own
+The pilot targets Cloudflare Workers Free-plan limits. The preview environment has its own
 database so testing never touches production data. Secrets are **per
 environment** — setting a secret on prod does not set it on preview.
 
@@ -88,7 +113,7 @@ dashboard → Workers & Pages → each Worker → Settings → Builds:
    a preview/upload command for that Worker. Do not put `npm run deploy` or
    `npm run deploy:dev` in the build field: those scripts deploy as well as
    build, and a subsequent default deploy can overwrite the dev bindings.
-4. Set runtime variables/secrets **in the dashboard**, per environment:
+4. Set runtime variables/secrets through Wrangler, per environment:
    `BETTER_AUTH_SECRET`, `BREVO_API_KEY`. (`BETTER_AUTH_URL` and `MAIL_FROM`
    come from `wrangler.jsonc`.)
 
@@ -106,10 +131,11 @@ npx wrangler secret put BREVO_API_KEY --env dev
 
 ### Database migrations
 
-Apply migrations before code that needs them. The audit repair adds
-`drizzle/0003_melted_the_twelve.sql` for durable authentication limits; apply
-it to dev before releasing there, then production before production release.
-The CI deployment commands do not migrate databases automatically.
+Apply migrations before code that needs them. Dev has migrations through
+`0005_happy_vermin.sql` applied, including authentication limits, log/proof tables,
+and the constraint tying a log's parties to its engagement. Production still
+needs its pending migrations before promotion. The CI deployment commands do not
+migrate databases automatically. The email-delivery repair adds no migration.
 
 ```bash
 npm run db:migrate:remote   # production flag-db
@@ -123,10 +149,10 @@ npm run deploy       # production
 npm run deploy:dev   # preview
 ```
 
-After every deployment, verify the deployed version's actual `DB` binding and
-`BETTER_AUTH_URL`, not only the build result or Worker name. Dev must use
-`flag-db-dev` and `https://flag-dev.factsfirst.workers.dev`; production uses
-`flag-db` and `https://flag.factsfirst.workers.dev`. The deploy scripts reject a
+After every deployment, verify the deployed version's actual `DB`, `PROOFS`, and
+`BETTER_AUTH_URL` bindings. Dev must use
+`flag-db-dev`, `flag-proofs-dev`, and `https://flag-dev.factsfirst.workers.dev`; production uses
+`flag-db`, `flag-proofs`, and `https://flag.factsfirst.workers.dev`. The deploy scripts reject a
 CI Worker-name override that disagrees with the selected environment.
 
 The OpenNext configuration also rejects CI operations for `flag` outside

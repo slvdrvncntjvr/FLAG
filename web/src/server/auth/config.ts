@@ -27,6 +27,9 @@ type AuthOptions = {
 
 export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
   const limiter = createAuthRateLimiter(db, env.BETTER_AUTH_SECRET);
+  // Better Auth catches delivery callback errors. Track failures by its per-call
+  // context so an after hook can return 503 without mixing concurrent requests.
+  const failedDeliveries = new WeakSet<object>();
   const baseUrl = new URL(env.BETTER_AUTH_URL);
   const localConsole = baseUrl.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(baseUrl.hostname);
   const google =
@@ -80,6 +83,13 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
           message: "Too many attempts. Try again after fifteen minutes.",
         }, { "Retry-After": String(perIp.retryAfter), "X-Retry-After": String(perIp.retryAfter) });
       }),
+      after: createAuthMiddleware(async (ctx) => {
+        if (!failedDeliveries.delete(ctx.context)) return;
+        throw new APIError("SERVICE_UNAVAILABLE", {
+          code: "EMAIL_DELIVERY_FAILED",
+          message: "Could not send the sign-in code. Try again later.",
+        });
+      }),
     },
     // Cloudflare sets cf-connecting-ip; x-forwarded-for can be supplied by the client.
     advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
@@ -103,20 +113,28 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
         expiresIn: 10 * 60,
         allowedAttempts: 3,
         storeOTP: "hashed",
-        async sendVerificationOTP({ email, otp }) {
-          if (options.sendOtp) return options.sendOtp(email, otp);
-          const result = await sendMail(env, {
-            to: email,
-            subject: `${otp} is your FLAG sign-in code`,
-            text: `Your FLAG sign-in code is ${otp}. It expires in 10 minutes. If you did not ask for it, ignore this email.`,
-          });
-          // Local development only: no mail key, so print the code to the dev server console.
-          if (!result.sent) {
-            if (localConsole) {
-              console.info(`[dev] sign-in code for ${email}: ${otp}`);
-            } else {
-              throw new APIError("SERVICE_UNAVAILABLE", { message: "Sign-in email is unavailable. Try again later." });
+        async sendVerificationOTP({ email, otp }, ctx) {
+          try {
+            if (options.sendOtp) return await options.sendOtp(email, otp);
+            const result = await sendMail(env, {
+              to: email,
+              subject: `${otp} is your FLAG sign-in code`,
+              text: `Your FLAG sign-in code is ${otp}. It expires in 10 minutes. If you did not ask for it, ignore this email.`,
+            });
+            // Local development only: no mail key, so print the code to the dev server console.
+            if (!result.sent) {
+              if (localConsole) {
+                console.info(`[dev] sign-in code for ${email}: ${otp}`);
+              } else {
+                throw new Error("mail_unavailable");
+              }
             }
+          } catch {
+            // Do not pass provider errors, email addresses, or OTPs to the
+            // library logger. The callback and after hook share this context.
+            if (ctx) failedDeliveries.add(ctx.context);
+            else throw new APIError("SERVICE_UNAVAILABLE", { message: "Sign-in email is unavailable. Try again later." });
+            console.error("Sign-in email delivery failed");
           }
         },
       }),
