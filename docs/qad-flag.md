@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.11
+doc_version: 2.12
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -19,6 +19,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+2026-10-21 dev release verification: `npm run verify:dev` passed against active version 96de7bfa-e634-421c-9159-05b0385046d1 after the Node 24.22.1 guarded CLI fallback deployed the unchanged validated app from dev commit 318e0d8. It checked actual flag-db-dev, flag-proofs-dev and dev auth URL bindings; seven anonymous routes, protected redirects, policy versions 2026-10-14 and noindex headers; and invalid-code statuses 400, 400, 400, 400, 400, 429 with retry delay. No sign-in mail or account was created. Separate read-only inspection verified this version at 100 percent and confirmed production remains 9b1fdc1d-c4cb-495c-a343-fb042cbaae68 with runtime compatibility unchanged. The automatic Cloudflare build failed; its inaccessible error logs and dashboard Node override remain an operational limitation, not passing evidence. This does not add real email/OAuth or physical-device coverage.
 
 2026-10-21 five-repair milestone (PRD-F7/PRD-F8): `web/tests/mail-provider.test.ts:1` passes nine focused Workers cases: Resend acceptance and unchanged sender/message, status-only errors without reading/logging private synthetic response bodies, native AbortSignal timeout cancellation for both providers with the test delay shortened to zero, Brevo priority and sender parsing, no fallback after Brevo rejection, and no-provider sent:false. All 85 Workers cases across five files, 25 Node checks, and three Python runner tests pass. Full lint, app/test/E2E typechecks, and the OpenNext dev Worker build pass. The first milestone used Node 24.8.0. The owner-approved follow-up pins 24.22.1; its clean install, all 85 Workers cases, 25 Node checks, three Python runner tests, app/test/E2E typechecks, lint, Worker build and dev deployment dry run also pass. All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory.
 

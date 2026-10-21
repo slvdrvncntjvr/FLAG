@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.10
+doc_version: 2.11
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -18,6 +18,8 @@ reconciled: 2026-10-13
 ---
 
 Accounts/onboarding are deployed in production and dev. Verification, engagement, proof, moderation, record, and retention workflows remain planned. cr-001 repairs deployed to dev on 2026-10-14 as version bd7b2957-e125-4dfe-a4ea-41c139510ca6 after migration 0003 applied to flag-db-dev. Production remains on the previous release. Commands come from BUILD §3 and web/package.json; SDD owns the fields and state.
+
+2026-10-21 current dev release: validated feature commit 9c0fef1 is integrated into dev, published with authorization record 318e0d8, and deployed to flag-dev as 96de7bfa-e634-421c-9159-05b0385046d1 at 100 percent. The automatic Workers Builds check failed ([build 397b4f17](https://dash.cloudflare.com/1af65da586efd62d6f6d429240395f28/workers/services/view/flag-dev/production/builds/397b4f17-961a-4792-a7ff-077f0db4a9df)); its error cause and dashboard NODE_VERSION override remain unverified because Builds API access returns HTTP 403 and the dashboard requires login. The documented guarded CLI fallback was freshly built and deployed under checksum-verified Node 24.22.1, with no migration. npm run verify:dev passed actual DB/auth/PROOFS bindings, seven anonymous routes, current policy/noindex responses and five HTTP 400 responses followed by HTTP 429 invalid-code throttling, without mail or account creation. Production remains at 9b1fdc1d-c4cb-495c-a343-fb042cbaae68. Both Workers retain compatibility_date 2026-10-01 and existing flags. The merged feature branch was deleted locally/remotely after verification; automatic-build diagnosis remains an open operational issue, not a claim of successful CI.
 
 Verified dev release before the email-delivery repair: PR #12 merged as 923ba24; Workers Builds succeeded and Worker 05b2c2d6-1fe1-4adf-9b64-d4f4acc1e06f passed binding, anonymous route, policy/noindex, and invalid-code throttle checks. Dev migrations through 0005 are applied, with no pending migrations and clean foreign-key integrity. This supersedes older dev observations below. The email-delivery repair is released through owner-directed PR #13 and requires no migration; inspect its deployment result on the PR and run npm run verify:dev for current live metadata. Production remains unchanged and promotion is held for the owner's signal.
 

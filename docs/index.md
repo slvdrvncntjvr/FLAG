@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.32
+doc_version: 0.33
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -29,9 +29,9 @@ Built on SPINE 0.3.0
 | BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.10 | Review | 2026-10-21 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.11 | Review | 2026-10-21 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.10 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.23 | Draft | 2026-10-21 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.12 | Review | 2026-10-21 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.11 | Review | 2026-10-21 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.24 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -112,9 +112,9 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Notes
 
-- 2026-10-21 owner now authorizes dev integration and release verification of the validated Node24/auth/E2E milestone, followed by deletion of f7-auth-reliability-e2e only after success. Local dev fast-forwards to the validated feature commit without conflicts; remote deployment verification is pending. Main/production remains held, and no new migration is needed.
+- 2026-10-21 dev integration and release complete: validated feature 9c0fef1 is on dev, published with authorization commit 318e0d8. Automatic Cloudflare build 397b4f17 failed; the guarded CLI fallback freshly built/deployed under Node 24.22.1 and active version 96de7bfa-e634-421c-9159-05b0385046d1 passed npm run verify:dev (bindings, seven routes, legal/noindex and invalid-code throttling). Production version 9b1fdc1d and main remain unchanged; no migration or compatibility change. The fully merged feature branch was deleted locally/remotely after successful verification. Automatic-build error logs and dashboard NODE_VERSION remain unverified because API access is HTTP 403 and the dashboard requires login; the owner was asked for the first error lines. See OPS/QAD/LOG; do not describe CI as passing.
 
-- 2026-10-21 owner authorized a feature-branch push and Node24 migration after validation. Root/web .nvmrc now pin the checksum-verified security release 24.22.1; engine requirements and strict install checking match. A clean install, 85 Workers, 25 Node, three Python tests, typechecks, lint, Worker build and dev deployment dry run pass on that exact runtime; All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory. Both live Workers already use compatibility_date 2026-10-01 with the existing compatibility flags; authenticated Builds API inspection is HTTP 403, so dashboard NODE_VERSION overrides remain unverified. No merge or deployment is authorized by this feature-branch push.
+- 2026-10-21 owner authorized a feature-branch push and Node 24 migration after validation. Root/web .nvmrc now pin the checksum-verified security release 24.22.1; engine requirements and strict install checking match. A clean install, 85 Workers, 25 Node, three Python tests, typechecks, lint, Worker build and dev deployment dry run pass on that exact runtime; All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory. Both live Workers already use compatibility_date 2026-10-01 with the existing compatibility flags; authenticated Builds API inspection is HTTP 403, so dashboard NODE_VERSION overrides remain unverified. No merge or deployment is authorized by this feature-branch push.
 
 - 2026-10-21 current local milestone on f7-auth-reliability-e2e: the five repairs are implemented for PRD-F7/PRD-F8. Test typechecking now includes actual tests and the exposed metadata typing error is fixed; network failures restore UI controls; failed sign-out retains the session; both mail providers use bounded direct fetch without provider-body logging; local setup creates a localhost URL and fresh secret without overwriting developer settings. All 85 Workers, 25 Node, three Python tests, full app/test/E2E typechecks, lint, and OpenNext dev Worker build pass. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. Mobile sign-out error overflow is fixed with assertions retained. The owner accepted the later development sequence; this first milestone covers auth repairs and E2E, with no remote operation included.
 
