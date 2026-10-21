@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.7
+doc_version: 2.10
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -39,6 +39,8 @@ Before releasing this foundation, provision the two named buckets with public r2
 
 ## 2. Deploy
 
+2026-10-21 Node build migration: root and web/.nvmrc pin 24.22.1, and package engines with engine-strict reject older runtimes. Workers Builds can read web/.nvmrc because its configured build root is web; any dashboard NODE_VERSION override must be absent or match. A read-only authenticated API check confirmed BOTH live Workers retain compatibility_date 2026-10-01 with nodejs_compat and global_fetch_strictly_public. Builds trigger inspection returned HTTP 403/code10000 for both Workers, so dashboard build overrides remain unverified and no remote setting was changed. Build Node and the deployed workerd compatibility settings are independent. The exact Node24.22.1 clean install, 85 Workers tests, 25 Node checks, typechecks, lint, dev Worker build and dev deployment dry run passed locally; All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory. The dry run exited without uploading and selected flag-db-dev, flag-proofs-dev and the dev auth URL.
+
 Scripts copied from `web/package.json` (run from `web/`). Migration order: preview before production; migrations are forward-only and backward compatible.
 
 | Step | Command | Notes |
@@ -63,7 +65,7 @@ Before the requested dev push, cr-001 adds a CI branch/environment check at adap
 
 ## 3. Configuration and secrets
 
-Current runtime code (web/src/server/auth/config.ts, web/src/server/mail/index.ts) reads the names below. Brevo is selected when configured, otherwise Resend. Missing both keys returns HTTP 503 before OTP generation outside actual HTTP localhost development; no prefix match treats localhost.attacker.example as local. Local development may print a code; provider failure logs carry a status/error name, never response bodies. Values are never recorded in docs; local secrets live in gitignored web/.dev.vars.
+Current runtime code (web/src/server/auth/config.ts, web/src/server/mail/index.ts) reads the names below. Brevo is selected when configured, otherwise Resend. Missing both keys returns HTTP 503 before OTP generation outside actual HTTP localhost development; no prefix match treats localhost.attacker.example as local. Local development may print a code; mail HTTP errors carry provider/status only, and auth failure logs carry the generic Sign-in email delivery failed message, never response bodies. Values are never recorded in docs; local secrets live in gitignored web/.dev.vars. For a new local setup, run `node scripts/setup-local.mjs` from web/; it creates that file with loopback configuration and a fresh random secret, refusing to overwrite existing credentials (`web/scripts/setup-local.mjs:1`).
 
 | Name | Purpose | Store | Required |
 |------|---------|-------|----------|
@@ -79,6 +81,8 @@ Current runtime code (web/src/server/auth/config.ts, web/src/server/mail/index.t
 Planned: PROOFS R2 binding, upload/search burst bindings, TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY, and retention Cron wiring. cr-001 authentication limits use D1 AUTH_RATE_LIMIT and the existing BETTER_AUTH_SECRET for hashed keys. No SMS or ID-vendor key is required; pilot verification is manual live inspection per PRD-F1 and RFC 001 automatic checking remains deferred.
 
 PROOFS status clarification (2026-10-21): configured and provisioned on the feature branch; not bound to the active deployed Workers. Upload endpoints and runtime quota enforcement remain planned. A native R2 binding is not a spend cap, and `remote: false` selects local emulation only; it does not disable the remote binding after deployment.
+
+Local reliability verification (PRD-F7/PRD-F8): `npm run test:e2e` invokes `web/scripts/e2e.mjs:1` with an isolated temporary app and fresh local D1/R2; synthetic credentials and no mail keys; occupied port 3000 is refused. State/OTP capture live outside the watched app, and only its temporary next.config copy receives local persistence options. `web/local-config.example:1` documents the matching loopback auth URL; `node scripts/setup-local.mjs` creates a random secret exclusively and refuses to overwrite existing settings. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. Post-run checks found no port-3000 listener, owned E2E/server process, or flag-e2e temporary directory. In the managed sandbox, Wrangler registry access returned EPERM; the successful rerun used approved local access. This is local Next development-mode verification, not a deploy or successful real-provider delivery check.
 
 ## 4. Monitoring
 
@@ -161,7 +165,7 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 
 **Symptom:** users report missing invite, code, or decision mail.
 **Likely cause:** Brevo key missing or quota hit; fallback Resend key missing; sender address misconfigured.
-**Diagnose:** missing both per-env mail keys produces HTTP 503 at code requests. The delivery repair also returns HTTP 503 with EMAIL_DELIVERY_FAILED for a provider rejection, network failure, or timeout; its safe log message is Sign-in email delivery failed, with no contact/code/provider body. Brevo requests time out after ten seconds. Inspect the selected provider's sender, quota, and per-env key configuration. HTTP success means the provider accepted the request; it does not prove inbox delivery. Full successful delivery and browser sign-in remain human release checks, because automated smoke checks send no email.
+**Diagnose:** missing both per-env mail keys produces HTTP 503 at code requests. The delivery repair also returns HTTP 503 with EMAIL_DELIVERY_FAILED for a provider rejection, network failure, or timeout; its safe log message is Sign-in email delivery failed, with no contact/code/provider body. Both Brevo and Resend use direct fetch bounded by AbortSignal.timeout(10_000) (`web/src/server/mail/index.ts:22`, `web/src/server/mail/index.ts:45`); the installed Resend SDK is unused by this helper. Inspect the selected provider's sender, quota, and per-env key configuration. HTTP success means the provider accepted the request; it does not prove inbox delivery. Successful real-provider delivery remains a human release check. Local browser auth/onboarding files and the test:e2e runner now exist with synthetic data (BUILD §3, QAD §1); Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. Anonymous remote smoke checks send no email.
 **Fix:** rotate or set the per-env mail key; correct `MAIL_FROM`; resend the affected notification. Never paste a key into a doc or chat log.
 **Escalate to:** slvdrvncntjvr.
 

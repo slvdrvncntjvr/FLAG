@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.27
+doc_version: 0.31
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.10 | Review | 2026-10-21 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.8 | Review | 2026-10-21 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.17 | Draft | 2026-10-21 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.11 | Review | 2026-10-21 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.10 | Review | 2026-10-21 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.22 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -112,13 +112,17 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Notes
 
+- 2026-10-21 owner authorized a feature-branch push and Node24 migration after validation. Root/web .nvmrc now pin the checksum-verified security release 24.22.1; engine requirements and strict install checking match. A clean install, 85 Workers, 25 Node, three Python tests, typechecks, lint, Worker build and dev deployment dry run pass on that exact runtime; All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory. Both live Workers already use compatibility_date 2026-10-01 with the existing compatibility flags; authenticated Builds API inspection is HTTP 403, so dashboard NODE_VERSION overrides remain unverified. No merge or deployment is authorized by this feature-branch push.
+
+- 2026-10-21 current local milestone on f7-auth-reliability-e2e: the five repairs are implemented for PRD-F7/PRD-F8. Test typechecking now includes actual tests and the exposed metadata typing error is fixed; network failures restore UI controls; failed sign-out retains the session; both mail providers use bounded direct fetch without provider-body logging; local setup creates a localhost URL and fresh secret without overwriting developer settings. All 85 Workers, 25 Node, three Python tests, full app/test/E2E typechecks, lint, and OpenNext dev Worker build pass. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. Mobile sign-out error overflow is fixed with assertions retained. The owner accepted the later development sequence; this first milestone covers auth repairs and E2E, with no remote operation included.
+
 - 2026-10-21 owner-approved checkpoint: local annotated tag spine-cp-2026-10-21-1 captures dev commit 6de828d after PR #13 and live verification. Pinned SPINE 0.3.0 normal validation passes with six known warnings; strict/deferred items remain as described in §7. This is a known-good development baseline, not a full-product launch sign-off or a document lock. The tag has not been pushed; main/production remains held.
 
 - 2026-10-21 baseline integration: the owner directed continuation after [PR #13](https://github.com/slvdrvncntjvr/FLAG/pull/13) was presented. The validated repair targets dev, requires no new migration, and must pass the live dev verifier after automatic deployment. Prior dev release PR #12 was verified at 923ba24. Actual deployment/merge results are recorded on the PR; use npm run verify:dev to inspect the currently active Worker. Main/production promotion still waits for the owner's signal.
 
 - 2026-10-21 baseline repair: OTP provider failures now have a tested HTTP 503 path instead of false success, with per-call isolation and a ten-second Brevo timeout. No migration is needed. scripts/spine.py reads and checks the exact pinned SPINE 0.3.0 engine from its local tag without changing the shared checkout. temporary/ was inspected and emptied; no app or documentation command depends on it. README/technical docs now distinguish current implementation from later features. Current implementation scope and outstanding dependencies are summarized in §7; historical notes below retain their observation dates.
 
-- 2026-10-21 validation of that local repair: 76 Workers tests, 25 Node tests, 3 Python runner tests, lint/typechecks, full dev Worker build, and dev deployment dry run pass. Three ranged type declarations now exactly match existing locked versions; resolved dependencies are unchanged. Publication of this repair is separate from the already verified PR #12 deployment. Main/production remains held.
+- 2026-10-21 earlier baseline validation of that local repair: 76 Workers tests, 25 Node tests, 3 Python runner tests, lint/typechecks, full dev Worker build, and dev deployment dry run pass. Three ranged type declarations now exactly match existing locked versions; resolved dependencies are unchanged. Publication of this repair is separate from the already verified PR #12 deployment. Main/production remains held.
 
 - 2026-10-21 owner-authorized dev release preparation: migration 0005_happy_vermin.sql is now applied to flag-db-dev; no migrations remain, the parties foreign key is present, and foreign_key_check is clean. Owner authorized committing/pushing the local repairs and merging PR #12 into dev after that migration. Dev-to-main is explicitly on hold until the owner's later signal; production has not been migrated or deployed. The temporary handoff was deleted at the owner's request. Its durable implementation reminders are preserved here and in LOG: four missing schema entities already designed by SDD, missing log proof/freeze triggers, profile/name capture, pending-request versus completed-inspection workflow, and engagement-specific consent-receipt linkage. A separate moderator name-approval step was an unapproved agent recommendation, not a new requirement.
 
@@ -154,14 +158,14 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 7. Current development baseline
 
-This section describes implementation status, not new requirements. IDEA and PRD remain Locked; the technical documents remain Review under the recorded audit-repair authorization. No reconciled date is advanced by the agent. A future feature task still needs its own scope/authorization; passing baseline checks does not authorize implementing the entire target design.
+This section describes implementation status, not new requirements. IDEA and PRD remain Locked; the technical documents remain Review under the recorded audit-repair authorization. No reconciled date is advanced by the agent. The owner accepted the development sequence recorded in LOG; this first milestone implements auth repairs and E2E for PRD-F7/PRD-F8. Later milestones follow that accepted sequence and their documented designs.
 
 | Area | Implemented status | Entry point / next dependency |
 |------|--------------------|-------------------------------|
-| Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, protected account home, role/policy acknowledgment, durable limits, deployment isolation; delivery-failure repair has regression coverage | `web/src/features/onboarding/actions.ts:9`, `web/src/server/auth/config.ts:27`; live successful mail delivery and full signed-in browser testing are separate human checks |
+| Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, protected account home, role/policy acknowledgment, durable limits, deployment isolation; delivery-failure repair has regression coverage | `web/src/features/onboarding/actions.ts:9`, `web/src/server/auth/config.ts:27`; local browser auth is covered below; real-provider delivery and physical-device testing remain human checks |
 | Log/proof/rating data foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema constraints, private R2 configuration, local storage primitives; dev migrations through 0005 applied | `web/src/server/db/schema.ts:261`, `web/tests/f03-storage.test.ts:1`; no submission, proof streaming, publication, or record UI exists yet |
 | Verification and engagement handshake (PRD-F1, PRD-F9) | Planned workflows with supporting tables; verified-freelancer guard intentionally rejects everyone | `web/src/server/auth/guards-core.ts:11`; implement name/profile capture, reconcile pending verification requests with completed inspection fields, and design engagement-specific consent-receipt linkage before schema changes |
 | Moderation, records, corrections, retention (PRD-F4, PRD-F6, PRD-F12, PRD-F13, PRD-F14) | Planned target behavior | SDD §3 designs MODERATION_CASE, AUDIT_EVENT, CORRECTION_REQUEST, DATA_REQUEST; these tables, log proof/freeze triggers, retention changes, and feature handlers remain to be built |
-| Automated verification | 76 Workers cases, 25 Node deployment/audit cases, and 3 pinned-engine runner tests; browser E2E remains planned | BUILD §3 lists exact commands; QAD §1 distinguishes implemented tests from the target case plan |
+| Automated verification | 85 Workers cases across five files, 25 Node deployment/audit cases, three Python runner tests, app/test/E2E typechecks, full lint, and the dev Worker build pass. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. | BUILD §3 lists exact commands; QAD §1 distinguishes implemented tests from the target case plan |
 
 Operational limits remain explicit: the production dependency audit is clean, but five known high development-tool dependency entries remain in the ESLint chain; billing/alert access is unverified; no hard zero-cost guarantee or runtime proof quota enforcement is claimed. SPINE normal validation has zero errors and six known warnings for historical/deferred markers and the four design-first entities. Strict validation is not clean and is not represented as a launch gate that has passed. Main/production promotion remains on hold until the owner's explicit signal.

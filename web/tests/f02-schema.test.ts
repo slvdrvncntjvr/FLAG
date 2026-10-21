@@ -159,7 +159,8 @@ describe("PRD-F3 proof metadata foundation", () => {
   it.each([
     { owner_kind: "stranger" }, { kind: "government_id" }, { mime: "text/html" }, { status: "public" },
   ])("rejects unsupported proof metadata %j", async (overrides) => {
-    await expect(insertProof(overrides)).rejects.toThrow(/check constraint/i);
+    const metadata: Partial<Record<"owner_kind" | "kind" | "mime" | "status", string>> = overrides;
+    await expect(insertProof(metadata)).rejects.toThrow(/check constraint/i);
   });
 
   it("requires unique object keys and existing log, revision, and uploader", async () => {

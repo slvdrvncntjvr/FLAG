@@ -24,9 +24,15 @@ implemented. Production promotion remains on hold until the owner's signal.
 
 ## Local development
 
+Use Node **24.22.1**, pinned in the repository and `web/` `.nvmrc` files. With
+nvm (including nvm-windows), run `nvm install 24.22.1` and `nvm use 24.22.1`
+before installing dependencies. `web/.npmrc` enforces the Node 24 requirement in
+`package.json`; it rejects older runtimes during installation.
+
 ```bash
 cd web
 npm ci
+node scripts/setup-local.mjs # create .dev.vars only if absent; fresh random secret
 npm run db:migrate:local   # apply drizzle migrations to the local D1
 npm run dev                # http://localhost:3000
 ```
@@ -34,6 +40,41 @@ npm run dev                # http://localhost:3000
 Sign-in uses a 6-digit email code. With no email key set, the code is printed to
 the dev-server console (look for `[dev] sign-in code for ...`). `.dev.vars` holds
 local secrets; `BETTER_AUTH_SECRET` is required, email keys are optional.
+
+The setup script reads `local-config.example` and sets
+`BETTER_AUTH_URL=http://localhost:3000`. This override is required: the Wrangler
+default URL targets production and intentionally disables console OTPs. The
+script refuses to overwrite an existing `.dev.vars`; edit that file locally if
+needed, keep its existing secret, and remove mail keys only if console OTP is
+desired. Never commit `.dev.vars` or copy credentials into the example.
+
+## Local browser E2E
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Playwright is pinned to 1.64.1 (verified with `npm view @playwright/test version`
+on 2026-10-21). The runner creates an OS temporary app copy, links installed
+dependencies, generates a synthetic secret, and applies migrations to a fresh
+local D1 with isolated local R2. It never reads developer `.dev.vars`, `.env`
+files, or existing `.wrangler` data; mail/Google credentials are absent. Port
+3000 must be free. It starts the server automatically and stops its process tree
+and deletes temporary data after the finite suite, including failure.
+
+Six Chromium cases cover desktop and 360px: anonymous redirects/noindex,
+real localhost console OTP account creation and D1 sessions, both account roles,
+required policy/freelancer checkboxes, the onboarding gate, aborted send/verify
+recovery, failed sign-out retaining the session, and successful sign-out with
+replay of the revoked cookie. Transport errors and the unsuccessful sign-out
+response are injected; successful authentication/onboarding/logout use actual
+application handlers and local D1. This is Next development mode with OpenNext
+bindings, not a deployed Worker, real email, Google OAuth, or future workflows.
+
+OTPs stay in a restricted temporary file and are removed at teardown. Traces and
+screenshots are disabled to avoid retaining codes/cookies. Failure reports are
+ignored by Git and may contain synthetic account details; do not publish them.
 
 To exercise the real Workers runtime instead of the Next dev server:
 
@@ -48,9 +89,9 @@ are included in public/font-licenses/.
 ## Checks
 
 ```bash
-npm run test        # Vitest in the Workers pool (76 tests)
+npm run test        # Vitest in the Workers pool (85 tests)
 npm run test:deploy # Deployment isolation and R2 audit policy (25 Node tests)
-npm run typecheck   # tsc for app + tests
+npm run typecheck   # tsc for app + integration tests + browser tests
 npm run lint        # eslint (ignores .open-next and .wrangler build output)
 ```
 
@@ -66,7 +107,7 @@ and normalized email. Keys are hashed; raw IP/email is not stored in the
 rate-limit table.
 
 Provider rejection, timeout, or network failure returns HTTP 503 with a generic
-retry message; it never reports successful delivery. Brevo requests time out
+retry message; it never reports successful delivery. Brevo and Resend requests time out
 after ten seconds. HTTP success means the provider accepted the request, not a
 guarantee that the recipient's inbox received it. Tests simulate provider errors
 without sending email.
@@ -116,6 +157,15 @@ dashboard → Workers & Pages → each Worker → Settings → Builds:
 4. Set runtime variables/secrets through Wrangler, per environment:
    `BETTER_AUTH_SECRET`, `BREVO_API_KEY`. (`BETTER_AUTH_URL` and `MAIL_FROM`
    come from `wrangler.jsonc`.)
+
+Workers Builds reads `web/.nvmrc` because its configured root is `web/`. Keep any
+dashboard `NODE_VERSION` build override absent or set to `24.22.1`. This is a
+build setting; do not put it in Wrangler runtime `vars`.
+
+The deployed application runs in Cloudflare's `workerd` runtime. Its existing
+`compatibility_date: "2026-10-01"` and `nodejs_compat` flag control Worker API
+behavior independently of the build Node version. Updating Node does not
+require changing either setting.
 
 ### Per-environment secrets (if deploying by CLI)
 

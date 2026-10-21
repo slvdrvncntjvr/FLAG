@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.7
+doc_version: 2.10
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -52,13 +52,13 @@ cr-001 aligns privacy/terms with the approved scope and bumps both versions to 2
 
 Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges. No versions bumped in this alignment (2026-10-13).
 
-QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pilot verification is manual live inspection, and no paid-SMS or QR-scan dependency is required for v1. They are not in `web/package.json` as installed deps. Brevo is preferred at runtime via fetch (no npm dep); `resend` stays as the fallback.
+QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pilot verification is manual live inspection, and no paid-SMS or QR-scan dependency is required for v1. They are not in `web/package.json` as installed deps. Brevo is preferred at runtime via fetch (no npm dep); Resend is the fallback provider via direct fetch too (`web/src/server/mail/index.ts:45`). The resend SDK remains installed but unused by the mail helper.
 
 | Layer | Technology | Version | Verified | Source |
 |-------|-----------|---------|----------|--------|
 | Language | TypeScript | 5.9.3 | 2026-10-12 | https://www.npmjs.com/package/typescript |
 | Type definitions | @types/node, @types/react, @types/react-dom | 20.19.43, 19.3.0, 19.3.0 | 2026-10-21 | https://www.npmjs.com/package/@types/node/v/20.19.43 , https://www.npmjs.com/package/@types/react/v/19.3.0 , https://www.npmjs.com/package/@types/react-dom/v/19.3.0 |
-| Runtime (local) | Node.js | 22.21.1 | 2026-10-12 | https://nodejs.org/en/docs |
+| Runtime (local/build) | Node.js | 24.22.1 | 2026-10-21 | https://github.com/nodejs/node/releases/tag/v24.22.1 |
 | Runtime (deployed) | Cloudflare Workers, `nodejs_compat` | compatibility_date 2026-10-01 | 2026-10-12 | https://developers.cloudflare.com/workers/configuration/compatibility-dates/ |
 | Framework | Next.js App Router | 16.3.8 | 2026-10-12 | https://github.com/vercel/next.js/releases/tag/v16.3.8 |
 | UI runtime | React, React DOM | 19.2.8 | 2026-10-12 | https://react.dev/ |
@@ -69,7 +69,7 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Files | Cloudflare R2 | managed | 2026-10-12 | https://developers.cloudflare.com/r2/ |
 | Auth | better-auth, @better-auth/drizzle-adapter | 1.7.7 | 2026-10-12 | https://www.better-auth.com/docs |
 | Bot check | Cloudflare Turnstile | managed | 2026-10-12 | https://developers.cloudflare.com/turnstile/ |
-| Email | resend | 6.32.1 | 2026-10-12 | https://resend.com/docs |
+| Email SDK (installed, unused by mail helper) | resend | 6.32.1 | 2026-10-12 | https://resend.com/docs |
 | Styling | tailwindcss, @tailwindcss/postcss | 4.3.3 | 2026-10-12 | https://tailwindcss.com/docs |
 | Components | shadcn CLI (Base UI base) | 4.21.4 | 2026-10-12 | https://ui.shadcn.com/docs/changelog |
 | Primitives | @base-ui/react | 1.9.0 | 2026-10-12 | https://base-ui.com/ |
@@ -82,11 +82,13 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | QR decode (browser) | jsqr | 1.4.0 | 2026-10-12 | https://www.npmjs.com/package/jsqr |
 | CBOR (ID check) | cbor-x | 1.6.6 | 2026-10-12 | https://www.npmjs.com/package/cbor-x |
 | Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.11, 1.4.2 | 2026-10-14 | https://www.npmjs.com/package/@cloudflare/vitest-plugin/v/1.4.2 |
-| End-to-end tests | @playwright/test | 1.64.0 | 2026-10-12 | https://playwright.dev/ |
+| End-to-end tests (local auth/onboarding harness) | @playwright/test | 1.64.1 | 2026-10-21 | https://www.npmjs.com/package/@playwright/test/v/1.64.1 |
 | Lint | eslint, eslint-config-next | 9.39.5, 16.3.8 | 2026-10-12 | https://nextjs.org/docs/app/api-reference/config/eslint |
 | Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/local | @fontsource-variable/source-serif-4 5.3.1, @fontsource-variable/inter 5.3.0, @fontsource/ibm-plex-mono 5.3.0 | 2026-10-14 | https://www.npmjs.com/package/@fontsource-variable/source-serif-4/v/5.3.1 , https://www.npmjs.com/package/@fontsource-variable/inter/v/5.3.0 , https://www.npmjs.com/package/@fontsource/ibm-plex-mono/v/5.3.0 |
 
 Version notes:
+- 2026-10-21 owner-approved Node 24 migration: `.nvmrc` at the repository root and `web/.nvmrc` pin 24.22.1; `web/package.json` requires >=24.22.1 <25 and `web/.npmrc` enables engine-strict. The exact pin selects the reproducible local/build version; the engine range admits later Node 24 security patches. This is a security release, qualifying for the seven-day wait exception below. The official Windows archive was SHA-256 verified before execution. Clean installation under this exact version passes, together with all 85 Workers cases, 25 Node checks, three Python runner tests, app/test/E2E typechecks, lint, dev Worker build and deployment dry run. The copied strict-engine settings reject 24.8.0 in an isolated offline probe; the full-project offline probe first stopped on an uncached optional archive. All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory.
+- Cloudflare Workers Builds supports `.nvmrc` in its configured build root (`web/`). A dashboard NODE_VERSION override must be absent or match 24.22.1; adding NODE_VERSION to Wrangler runtime vars does not select the build tool. The deployed app runs in workerd with nodejs_compat, separately controlled by compatibility_date 2026-10-01 and existing flags. This Node migration does not change that date or flags. Sources: https://developers.cloudflare.com/workers/ci-cd/builds/build-image/ and https://developers.cloudflare.com/workers/runtime-apis/nodejs/ .
 - 2026-10-21 baseline cleanup replaces the three @types ranges with the exact versions already resolved in the lockfile; npm registry verification matches them. No installed/resolved package version changes.
 - Fonts retain the same faces and Latin subsets but are pinned npm assets, loaded locally because Google Fonts requests failed during Worker build verification. No Google Fonts network fetch is needed at build time. OFL licenses are distributed under web/public/font-licenses/.
 - Next 16.4.0 is out, but OpenNext's support PR for it was still open on 2026-10-12. 16.3.8 is the lowest 16.x the adapter accepts and includes the image-optimizer SSRF fix.
@@ -116,7 +118,7 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 ## 3. Commands
 
-Script block in `web/package.json`, confirmed against the manifest on 2026-10-21. Run from `web/` unless marked repo root. End-to-end browser automation is planned; no e2e script exists yet.
+Script block in `web/package.json`, confirmed against the manifest on 2026-10-21. The local auth/onboarding browser harness is available through test:e2e. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero.
 
 | Task | Command |
 |------|---------|
@@ -133,9 +135,9 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-21
 | Test | `npm test` (`vitest run`) |
 | Deployment boundary and R2 audit tests | `npm run test:deploy` (25 Node tests for branch/environment/account checks, live binding validation, and conservative R2 audit policy) |
 | Inspect R2 resources and usage | `npm run audit:r2` (read-only API inspection; exit 1 unsafe/incomplete resource inspection, exit 2 warnings/incomplete billing access; never a spending cap) |
-| End-to-end | Planned; no e2e script or Playwright suite exists yet |
+| End-to-end | `npm run test:e2e` (`node scripts/e2e.mjs`); desktop and 360px Chromium |
 | Lint | `npm run lint` (`eslint`) |
-| Typecheck | `npm run typecheck` (`tsc --noEmit` for the app, then for `tests/`) |
+| Typecheck | `npm run typecheck` (`tsc --noEmit && tsc --noEmit -p tests/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json`) |
 | Generate migration | `npm run db:generate` (`drizzle-kit generate`) |
 | Apply migrations locally | `npm run db:migrate:local` (`wrangler d1 migrations apply flag-db --local`) |
 | Apply migrations remote | `npm run db:migrate:remote` (production), `npm run db:migrate:dev` (dev); no environment named preview exists |
@@ -146,9 +148,15 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-21
 | Checkpoint verification | `python scripts/spine.py checkpoint verify` (repo root) |
 | Pinned engine runner tests | `python -m unittest discover -s scripts -p 'test_spine.py'` (repo root) |
 
+2026-10-21 typecheck correction: `web/tests/tsconfig.json:7` overrides the app exclusion so the test project includes all five test files. Earlier successful commands skipped them. The corrected check exposed TS2345 at `web/tests/f02-schema.test.ts:162`; its unsupported-proof-metadata regression now uses a precise partial type, retaining the negative runtime assertions. App, integration-test, and E2E TypeScript checks pass through the full manifest command above. All 85 Workers tests, 25 Node deployment/audit checks, three Python runner tests, full lint, and the OpenNext dev Worker build pass. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. That first milestone was verified on Node 24.8.0. The owner-approved 24.22.1 pin and its later verification are recorded in the version notes above.
+
+Local setup: from web/, `node scripts/setup-local.mjs` creates `.dev.vars` exclusively with a fresh random secret and refuses to overwrite an existing file (`web/scripts/setup-local.mjs:1`). `web/local-config.example:1` provides BETTER_AUTH_URL=http://localhost:3000 and a synthetic sender; set the matching origin in the existing gitignored local configuration and generate a private BETTER_AUTH_SECRET if absent. Do not overwrite existing secrets/provider settings. Do not copy deployed BETTER_AUTH_URL values into a localhost session. The auth base URL must match the local origin including port, and `.dev.vars` must remain gitignored. Preserve existing developer credentials/data; do not clear provider keys or replace private settings to obtain a console code. Local console codes are allowed only for actual HTTP loopback URLs and absent provider keys (`web/src/server/auth/config.ts:33`, `web/src/server/auth/config.ts:124`).
+
+Browser infrastructure: `web/playwright.config.ts:1` defines Chromium desktop (1280x800) and mobile (360x800), one worker, and disabled traces/screenshots. `web/scripts/e2e.mjs:1` copies the app to OS temp, links installed dependencies, and generates synthetic credentials and a loopback auth URL. Fresh local D1/R2 state and the private console-OTP capture file live outside the watched app directory to avoid development reloads. Only the temporary next.config copy receives explicit local persistence options; repository configuration and developer secret/data files are untouched. Port 3000 must be free. The finite runner starts Next development mode with OpenNext local bindings, applies local migrations, runs Playwright, stops its owned process tree with a bounded taskkill call on Windows, unlinks the dependency junction, and removes its temporary tree. Install Chromium with `npx playwright install chromium` if absent. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. Post-run checks found no port-3000 listener, owned E2E/server process, or flag-e2e temporary directory. No provider mail, Google OAuth, deployed Worker, or later workflow is tested by this harness.
+
 `scripts/spine.py:1` reads this repository's 0.3.0 pin from AGENTS.md and resolves the same local engine sources in order. It extracts the local v0.3.0 tag into an automatically cleaned OS temporary snapshot without switching or upgrading the shared clone. If no tag is available, only an already matching 0.3.0 engine is accepted; a different version is an error. No command depends on the repo's temporary/ directory. Its tests cover a shared 0.4.0 checkout with a 0.3.0 tag, exit-code/argument forwarding, Unicode output, cleanup, and refusing an unavailable pin. Other agents should use this runner rather than executing a different shared engine's validators.
 
-Long-running commands (dev servers, watchers) must be run by the owner in their own terminal, not by an agent in a blocking shell call.
+Long-running commands (dev servers, watchers) must be run by the owner in their own terminal. The owner explicitly authorized the finite browser E2E runner for this milestone; it owns and tears down its test server automatically.
 
 ### 3.1 Deploy and migrations (read before any schema change)
 
