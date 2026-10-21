@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.14
+doc_version: 1.15
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,6 +19,7 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-21 | Baseline repairs committed as 66d167a and pushed on f7-auth-delivery-baseline; draft PR #13 targets dev for review. No new dev deployment or migration performed for that PR; main/production remains held | BUILD §4 requires pull-request review before integration. The existing dev release stays at PR #12 merge 923ba24 until this repair is approved/merged. The inspected temporary/ directory is empty; both the application and pinned SPINE runner work independently of it. Review link: https://github.com/slvdrvncntjvr/FLAG/pull/13 | LOG, INDEX |
 | 2026-10-21 | Baseline repair verification complete locally: 76 Workers cases, 25 Node deployment/audit cases, 3 pinned-engine runner tests, lint, app/test typechecks, full OpenNext dev Worker build, and an actual Wrangler dev deployment dry run pass | Dry run selects flag-db-dev, flag-proofs-dev, and the dev authentication URL and exits without upload. Resolved dependency entries are unchanged by the exact type pins. temporary/ remains empty, normal pinned docs validation has zero errors/six known warnings, checkpoint verification is clean, and diff whitespace checks pass. Strict docs still report preserved historical LOG markers, deferred QR markers, and the existing unchecked health item; no strict-clean or full-product readiness claim. Main remains 3582f7e; no new remote deployment or migration was performed for this repair | BUILD, SDD, QAD, OPS, LOG, INDEX |
 | 2026-10-21 | Aligned the three ranged @types declarations with BUILD's exact-pin convention: @types/node 20.19.43 and @types/react/@types/react-dom 19.3.0 in both manifest and root lock metadata | These are the already installed/locked versions, verified through npm registry reads; no resolved dependency version or runtime package changed | BUILD, LOG, INDEX |
 | 2026-10-21 | Owner requested repairing the current dev baseline, aligning it with docs for possible future agent/developer work, and clearing temporary/. Kept SPINE 0.3.0. Fixed actual OTP delivery errors returning false success using per-call failure tracking plus an after hook returning 503; bounded Brevo network requests to ten seconds and added four integration regressions | No new product workflow, invariant, legal text, or schema was introduced. Callback errors remain generic in responses/logs; concurrent success/failure and retries are isolated. Existing cr-001 repair authorization and the current owner request govern this baseline work; future features still need their own authorized scope. Main/production promotion remains held for the owner's signal | BUILD, SDD, QAD, OPS, LOG, INDEX |
