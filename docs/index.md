@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.25
+doc_version: 0.26
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,7 +31,7 @@ Built on SPINE 0.3.0
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.8 | Review | 2026-10-21 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.15 | Draft | 2026-10-21 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.16 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -112,7 +112,7 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Notes
 
-- 2026-10-21 current review status: the baseline repair is committed on f7-auth-delivery-baseline and available as [draft PR #13](https://github.com/slvdrvncntjvr/FLAG/pull/13) into dev. It is validated but not merged/deployed; the current dev release remains PR #12 merge 923ba24 until review is complete. No new migration is required. Main/production promotion still waits for the owner's signal.
+- 2026-10-21 baseline integration: the owner directed continuation after [PR #13](https://github.com/slvdrvncntjvr/FLAG/pull/13) was presented. The validated repair targets dev, requires no new migration, and must pass the live dev verifier after automatic deployment. Prior dev release PR #12 was verified at 923ba24. Actual deployment/merge results are recorded on the PR; use npm run verify:dev to inspect the currently active Worker. Main/production promotion still waits for the owner's signal.
 
 - 2026-10-21 baseline repair: OTP provider failures now have a tested HTTP 503 path instead of false success, with per-call isolation and a ten-second Brevo timeout. No migration is needed. scripts/spine.py reads and checks the exact pinned SPINE 0.3.0 engine from its local tag without changing the shared checkout. temporary/ was inspected and emptied; no app or documentation command depends on it. README/technical docs now distinguish current implementation from later features. Current implementation scope and outstanding dependencies are summarized in §7; historical notes below retain their observation dates.
 

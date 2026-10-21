@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.15
+doc_version: 1.16
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,6 +19,7 @@ reconciled: 2026-09-14
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-10-21 | Owner directed continue after the baseline fixes and draft PR #13 were presented. Proceed with integrating this reviewed repair into dev and verifying the automatic deployment; main/production remains on hold | This is the owner's continuation of the current dev-baseline repair task, not an independent peer-review claim or authorization for other product features. Final inspection confirms PR #13 targets dev, its base is 923ba24, the tree is clean, all prior checks passed, and no migration is needed | LOG, INDEX, OPS |
 | 2026-10-21 | Baseline repairs committed as 66d167a and pushed on f7-auth-delivery-baseline; draft PR #13 targets dev for review. No new dev deployment or migration performed for that PR; main/production remains held | BUILD §4 requires pull-request review before integration. The existing dev release stays at PR #12 merge 923ba24 until this repair is approved/merged. The inspected temporary/ directory is empty; both the application and pinned SPINE runner work independently of it. Review link: https://github.com/slvdrvncntjvr/FLAG/pull/13 | LOG, INDEX |
 | 2026-10-21 | Baseline repair verification complete locally: 76 Workers cases, 25 Node deployment/audit cases, 3 pinned-engine runner tests, lint, app/test typechecks, full OpenNext dev Worker build, and an actual Wrangler dev deployment dry run pass | Dry run selects flag-db-dev, flag-proofs-dev, and the dev authentication URL and exits without upload. Resolved dependency entries are unchanged by the exact type pins. temporary/ remains empty, normal pinned docs validation has zero errors/six known warnings, checkpoint verification is clean, and diff whitespace checks pass. Strict docs still report preserved historical LOG markers, deferred QR markers, and the existing unchecked health item; no strict-clean or full-product readiness claim. Main remains 3582f7e; no new remote deployment or migration was performed for this repair | BUILD, SDD, QAD, OPS, LOG, INDEX |
 | 2026-10-21 | Aligned the three ranged @types declarations with BUILD's exact-pin convention: @types/node 20.19.43 and @types/react/@types/react-dom 19.3.0 in both manifest and root lock metadata | These are the already installed/locked versions, verified through npm registry reads; no resolved dependency version or runtime package changed | BUILD, LOG, INDEX |
