@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.26
+doc_version: 0.27
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,7 +31,7 @@ Built on SPINE 0.3.0
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.5 | Review | 2026-10-21 | 2026-10-13 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.8 | Review | 2026-10-21 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.7 | Review | 2026-10-21 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.16 | Draft | 2026-10-21 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.17 | Draft | 2026-10-21 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -111,6 +111,8 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 ---
 
 ## 6. Notes
+
+- 2026-10-21 owner-approved checkpoint: local annotated tag spine-cp-2026-10-21-1 captures dev commit 6de828d after PR #13 and live verification. Pinned SPINE 0.3.0 normal validation passes with six known warnings; strict/deferred items remain as described in §7. This is a known-good development baseline, not a full-product launch sign-off or a document lock. The tag has not been pushed; main/production remains held.
 
 - 2026-10-21 baseline integration: the owner directed continuation after [PR #13](https://github.com/slvdrvncntjvr/FLAG/pull/13) was presented. The validated repair targets dev, requires no new migration, and must pass the live dev verifier after automatic deployment. Prior dev release PR #12 was verified at 923ba24. Actual deployment/merge results are recorded on the PR; use npm run verify:dev to inspect the currently active Worker. Main/production promotion still waits for the owner's signal.
 
