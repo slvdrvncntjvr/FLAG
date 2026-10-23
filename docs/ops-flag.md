@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.12
+doc_version: 2.13
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-21
+updated: 2026-10-23
 reconciled: 2026-10-13
 ---
 
@@ -16,6 +16,8 @@ reconciled: 2026-10-13
 **SDD:** [sdd-flag.md](sdd-flag.md)
 
 ---
+
+2026-10-23 automatic-build recovery verified: the owner requested a retry after the [Node 24.22.1 installer definition was published](https://github.com/nodenv/node-build/commit/dcc01056ffb46f40e67dec4d8b3595161d0adfb5) at 2026-10-21 21:30 UTC. Pushing existing documentation-only commit 21ceb0c to dev started [build 2dec3f50-42ef-4159-8ecf-5f7d40fb261b](https://dash.cloudflare.com/1af65da586efd62d6f6d429240395f28/workers/services/view/flag-dev/production/builds/2dec3f50-42ef-4159-8ecf-5f7d40fb261b) at 11:22:40 UTC; GitHub check 120388129436 reports completed/success at 11:24:16 UTC. Dev version 5836dad6-6dc0-41de-8bad-5e672659281e serves 100 percent. npm run verify:dev passes DB/auth/PROOFS bindings, seven route statuses, current policy/noindex checks and invalid-code throttling (five HTTP 400 responses followed by HTTP 429), without mail or account creation. Automatic installation/build/deployment now succeeds with the unchanged Node pin; this recovery does not prove the historical internal installer cause. Query the commit's check-runs list for current status: the initial check ID 120387509820 remained in progress even after the replacement successful check appeared. Direct Builds API access still returns HTTP 403 with the Wrangler login; GitHub rerequest returned HTTP 404, and embedded-browser login was unavailable. Before retry, the verifier passed version 2c7d3326 (the October 21 runtime NODE_VERSION removal). The owner subsequently authorized publishing these reviewed recovery records to dev; another automatic dev build may run for the documentation-only push. No application code, Node pin, migration, compatibility setting, or main/production action changed.
 
 2026-10-21 latest automatic-build diagnosis supersedes the earlier unavailable-log statements below. The owner supplied logs for builds 397b4f17 and fbe48ca5: both detect nodejs@24.22.1 and fail during tool installation before the application build starts. The owner reported removing the unnecessary runtime NODE_VERSION entry. Both committed .nvmrc files contain the exact version followed by a normal LF; the display line breaks do not establish a parsing defect. A fresh public catalog check lists 24.22.0 but no 24.22.1 definition. The asdf Node installer requires a definition for every release ([installer documentation](https://github.com/asdf-vm/asdf-nodejs#manually-updating-node-build-definitions), [definition catalog](https://github.com/nodenv/node-build/tree/main/share/node-build)); missing definition availability is the leading hypothesis, not proof of Cloudflare's internal failure. Installer stderr is still unavailable and could instead reveal a download or network error.
 
