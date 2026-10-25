@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.7
+doc_version: 2.8
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-21
+updated: 2026-10-25
 reconciled: 2026-10-13
 ---
 
@@ -416,6 +416,7 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 | Concern | Approach | Serves |
 |---------|----------|--------|
 | Authentication | Better Auth sessions in an HTTP-only, Secure, SameSite=Lax cookie. Email one-time code is the launch method; Google sign-in activates only when keys are configured. No phone OTP and no SMS provider anywhere | PRD-F7, PRD-F1 |
+| Durable sign-out (2026-10-25 repair) | Better Auth 1.7.7 catches session lookup/deletion errors and would otherwise clear the cookie and return success. `web/src/server/auth/config.ts:67` handles sign-out after router origin/CSRF checks, leaves malformed bodies to the original exported endpoint schema, verifies the signed session cookie and awaits a direct D1 deletion of that token before normal library cookie cleanup. D1 failure returns generic SESSION_REVOCATION_FAILED / HTTP 503 without clearing the retry cookie; logs contain no token, user or database error body. `web/tests/auth-logout.test.ts:8` reproduces the previous false success with a real D1 abort trigger, then tests retry, concurrent/idempotent logout, copied-cookie revocation and rejected-request nonmutation. This integration assumes the current D1-only sessions, no session-delete hooks and no configured provider end-session URL (email OTP and optional Google); adding secondary session storage, delete hooks or another provider requires revisiting this boundary | PRD-F7 |
 | Sign-in mail failures (implemented repair) | `web/src/server/auth/config.ts:30` tracks failed delivery by Better Auth's per-call context; its after hook returns HTTP 503 with a generic EMAIL_DELIVERY_FAILED code. Concurrent requests cannot share failure state. Missing configuration is rejected before code generation outside localhost. `web/src/server/mail/index.ts:22` and `web/src/server/mail/index.ts:45` use direct fetch with AbortSignal.timeout(10_000) for Brevo and Resend; callback/provider errors never expose email, OTP, keys, or provider response bodies. HTTP success means provider acceptance, not confirmed inbox delivery | PRD-F7 |
 | Authorization | `requireViewer()` returns user, role, profile status, ban state, and acknowledgment state. Route groups: `(public)`, `(onboarding)`, `(app)`, `(moderation)`. Each data-access function takes the viewer and applies the relationship rule itself. Proof reads additionally require a moderator permission or persona, so a bare admin role never bypasses INV-4 | PRD-F7, PRD-F4, PRD-F6 |
 | Validation | Zod schemas shared by the form and the server action; the server result is authoritative. File type by magic bytes. Covered work period and optional amount validated server-side (ordered period, non-negative centavos, no conversion). Anchor dates and the 15-day window are validated server-side against engagement evidence; future anchors are rejected | PRD-F2, PRD-F3 |

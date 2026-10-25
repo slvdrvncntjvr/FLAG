@@ -27,12 +27,36 @@ implemented. Production promotion remains on hold until the owner's signal.
 Use Node **24.22.1**, pinned in the repository and `web/` `.nvmrc` files. With
 nvm (including nvm-windows), run `nvm install 24.22.1` and `nvm use 24.22.1`
 before installing dependencies. `web/.npmrc` enforces the Node 24 requirement in
-`package.json`; it rejects older runtimes during installation.
+`package.json`; it rejects older runtimes during installation. `nvm use` changes
+the shared Windows symlink: wait for other workers to finish before switching.
+Until then, select the verified portable runtime for this PowerShell session:
+
+```powershell
+$flagNodeDir = Join-Path $env:TEMP 'flag-review-node-v24.22.1/node-v24.22.1-win-x64'
+$env:Path = "$flagNodeDir;$env:Path"
+node --version # must print v24.22.1
+npm --version
+$env:CLOUDFLARE_ACCOUNT_ID = '1af65da586efd62d6f6d429240395f28'
+```
+
+The portable directory is an existing local review runtime, not a permanent
+installation. For durable setup, install with `nvm install 24.22.1`, then run
+`nvm use 24.22.1` once shared workers finish; verify in a fresh terminal.
+Set the approved account explicitly in each development shell (Bash:
+`export CLOUDFLARE_ACCOUNT_ID=1af65da586efd62d6f6d429240395f28`). Remove a
+conflicting legacy `CF_ACCOUNT_ID` from that shell. Account IDs are identifiers,
+not API credentials; keep tokens in the existing Wrangler login/secret store.
+Wrangler D1 commands can require account selection even for `--local`; multiple
+memberships cannot be selected interactively in unattended runs. The existing
+Wrangler configuration pins this same approved account; do not change production
+settings or choose a different account to bypass an error.
 
 ```bash
 cd web
 npm ci
-node scripts/setup-local.mjs # create .dev.vars only if absent; fresh random secret
+node scripts/setup-local.mjs # create if absent; otherwise preserve the file
+node scripts/setup-local.mjs --repair-url # existing file: change only auth URL
+node scripts/check-local.mjs # fail early on runtime, URL, secret or account errors
 npm run db:migrate:local   # apply drizzle migrations to the local D1
 npm run dev                # http://localhost:3000
 ```
@@ -44,9 +68,19 @@ local secrets; `BETTER_AUTH_SECRET` is required, email keys are optional.
 The setup script reads `local-config.example` and sets
 `BETTER_AUTH_URL=http://localhost:3000`. This override is required: the Wrangler
 default URL targets production and intentionally disables console OTPs. The
-script refuses to overwrite an existing `.dev.vars`; edit that file locally if
-needed, keep its existing secret, and remove mail keys only if console OTP is
-desired. Never commit `.dev.vars` or copy credentials into the example.
+script leaves an existing `.dev.vars` unchanged by default. Explicit
+`--repair-url` changes/adds only the URL assignment and preserves every other
+byte, including existing secrets and provider keys; repeated runs do not rotate
+the secret. Both local scripts support single-line dotenv assignments with
+single, double, or backtick quotes and trailing comments; hashes inside quotes
+remain part of the value. Duplicate assignments, malformed quoting, and multiline
+values fail for manual resolution before any repair writes. Preserve mail
+keys: when present, OTP uses real email rather than the console. Console OTP is
+available only on HTTP localhost with both provider keys absent. Never commit
+`.dev.vars` or copy credentials into the example. The readiness check reads only
+local settings and prints no secret values; it does not prove provider delivery,
+Cloudflare permissions, or migration state. Run its focused regression checks with
+`node --test scripts/setup-local.test.mjs` under Node 24.22.1.
 
 ## Local browser E2E
 
@@ -89,7 +123,7 @@ are included in public/font-licenses/.
 ## Checks
 
 ```bash
-npm run test        # Vitest in the Workers pool (85 tests)
+npm run test        # Vitest in the Workers pool (89 tests)
 npm run test:deploy # Deployment isolation and R2 audit policy (25 Node tests)
 npm run typecheck   # tsc for app + integration tests + browser tests
 npm run lint        # eslint (ignores .open-next and .wrangler build output)
