@@ -1,0 +1,95 @@
+name: Baseline verification
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baseline-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+  WRANGLER_SEND_METRICS: 'false'
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Checkpoint verification needs annotated checkpoint tags/history.
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bootstrap canonical SPINE 0.3.0
+        working-directory: .
+        shell: bash
+        run: |
+          git clone --depth 1 --branch v0.3.0 https://github.com/slvdrvncntjvr/spine.git "$RUNNER_TEMP/spine-0.3.0"
+          test "$(git -C "$RUNNER_TEMP/spine-0.3.0" rev-parse HEAD)" = 2e52521569f6484a8580130e7e4a747f138ea427
+          echo "SPINE_HOME=$RUNNER_TEMP/spine-0.3.0" >> "$GITHUB_ENV"
+      - name: Pinned runner tests and documentation checks
+        working-directory: .
+        run: |
+          python -m unittest discover -s scripts -p 'test_spine.py'
+          # Normal mode retains six historical warnings; strict mode is not a clean baseline.
+          python scripts/spine.py check docs/
+          python scripts/spine.py checkpoint verify
+      - name: Install exact lockfile
+        run: npm ci
+      - name: Check application, integration-test, and E2E TypeScript
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Workers integration tests
+        run: npm test
+      - name: Deployment boundary and R2 policy unit tests
+        run: npm run test:deploy
+      - name: Local setup safety regression tests
+        run: node --test scripts/setup-local.test.mjs
+      - name: Build dev Worker
+        run: npm run build:worker:dev
+      - name: Validate dev bindings and package Worker without uploading
+        run: |
+          node scripts/check-deploy.mjs dev
+          npx --no-install wrangler deploy --env dev --dry-run --outdir "$RUNNER_TEMP/flag-worker-dry-run"
+      - name: Install Chromium and Linux browser dependencies
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Local auth and onboarding browser tests
+        run: npm run test:e2e
+
+  dependency-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+      # Audit the complete locked graph, including build/test dependencies.
+      # High/critical findings fail this job; lower findings remain visible in its log.
+      # No audit fix, omission, severity suppression, or continue-on-error exception.
+      - name: Reject high or critical dependency advisories
+        run: npm audit --audit-level=high

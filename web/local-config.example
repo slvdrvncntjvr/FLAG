@@ -1,4 +1,6 @@
 BETTER_AUTH_URL=http://localhost:3000
-# Generate BETTER_AUTH_SECRET with the README command; do not use a shared value.
+# setup-local.mjs generates BETTER_AUTH_SECRET only for a new file.
 MAIL_FROM=FLAG <local@example.invalid>
 # Leave mail and Google keys absent for console-only local OTP.
+# Existing provider keys are preserved; when present OTP uses real email.
+# Select CLOUDFLARE_ACCOUNT_ID in your shell as documented in README, not here.

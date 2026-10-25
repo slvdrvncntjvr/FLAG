@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.13
+doc_version: 2.14
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-23
+updated: 2026-10-25
 reconciled: 2026-10-13
 ---
 
@@ -194,6 +194,25 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 | R2 proofs | Durability of the configured private buckets after remote provisioning | Cloudflare (remote provisioning pending); local R2 binding tested | not yet; local put/get/delete primitives pass, not a remote backup/restore test |
 
 ## 7. Production readiness gate
+
+### 2026-10-25 baseline promotion preparation
+
+Fresh read-only inspection of the existing release: dev runs version `0530461e-9992-4f4c-8b28-68fbfd1d61b2` at 100 percent, with correct dev DB/auth/PROOFS bindings, seven anonymous-route checks, current policy/noindex responses and invalid-code throttling passing. GitHub reports the automatic dev build for `6f85584` successful (build `8bd2e40f-403d-4a2c-afe5-03e0cb82da6f`). These observations describe the pre-repair release, not the new uncommitted candidate. Direct Builds API access remains HTTP 403, and version metadata has no source-SHA annotation; time/check correlation is evidence, not exact artifact provenance.
+
+Dev has no pending migrations. Production remains version `9b1fdc1d-c4cb-495c-a343-fb042cbaae68`, lacks PROOFS, and has migrations `0003_melted_the_twelve.sql`, `0004_clever_arclight.sql`, `0005_happy_vermin.sql` pending. Read-only foreign-key checks are clean in both databases. Both Workers retain compatibility date 2026-10-01, the existing two flags and observability. Both have BETTER_AUTH_SECRET and BREVO_API_KEY secret names; optional Google credentials are absent. Secret-name presence does not prove validity or inbox delivery.
+
+Both R2 buckets are private Standard storage with no custom domains/imports. Shared-account usage is low in the observed rolling window; billing/subscription and notification-policy reads return HTTP 403. The R2 audit exits 1 for held production's missing binding and reports billing/unknown-operation warnings; this is not a dev isolation failure or a verified invoice/spending cap. A production Time Travel bookmark is available, but no restore or rollback drill has been performed.
+
+The following are ordered release prerequisites, not actions executed or authorized by this baseline pass:
+
+1. Freeze the reviewed auth/onboarding candidate and require its clean local/hosted CI gates plus a verified dev deployment. Preserve the previous main SHA and production Worker version. The remaining full-product milestones in BUILD §8 are separate.
+2. Confirm the actual Workers build root, selected Node, branch/environment-specific commands and source-to-version correlation for the candidate. GitHub dev is currently unprotected; adding workflow jobs does not make their checks required. Before enforcing branch rules, select the observed job contexts and account for path-filtered workflows; no repository policy was changed by this inspection.
+3. Obtain an owner-controlled encrypted backup destination and write-pause plan; capture fresh production migration/schema/FK state and Time Travel bookmark. Rehearse backup restore and migrations 0003–0005 in an explicitly isolated environment with sanitized/existing-like data. A bookmark or local primitive test alone does not satisfy restore evidence. Record a recent authorized dev rollback/recovery drill before promotion.
+4. Confirm free-tier/billing and alert recipients/thresholds in an authenticated dashboard, and verify real mail delivery and physical Android/Messenger behavior. Owner authorized one dev code to the configured inbox; report actual acceptance/receipt separately and never record the code. Unavailable permissions remain explicit blockers to claiming these settings verified.
+5. Only after the owner's production signal, apply pending production migrations in order using BUILD §3, verify pending/FK/schema state, then promote the reviewed candidate through a dev-to-main PR. Main's automatic deployment makes the merge itself a release. The production release must bind flag-db, the production auth URL and flag-proofs; never select dev bindings.
+6. Inspect the deployed production version/traffic/bindings and anonymous policy/access behavior; complete the separately authorized real-user checks and monitor errors/usage. A Worker rollback does not undo D1 migrations. Any database restore needs explicit incident approval and an accepted data-loss window; never improvise down migrations or erase migration history.
+
+No production migration, deployment, backup export, restore, rollback, paid change or branch-protection change was performed by the read-only preparation.
 
 - [ ] Rollback tested within the last 14 days
 - [ ] Every alert in §4 has a runbook in §5

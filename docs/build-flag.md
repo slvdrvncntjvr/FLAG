@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.10
+doc_version: 2.11
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-21
+updated: 2026-10-25
 reconciled: 2026-10-13
 ---
 
@@ -20,6 +20,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. How to build from these docs
+
+2026-10-25 owner authorization (LOG): stabilize the current PRD-F7/PRD-F8 baseline, including security dependencies, local configuration, CI and demonstrated authentication defects; plan the remaining workflows. This does not authorize implementing that feature backlog or promoting main/production. All eight invariants, policy versions, SPINE 0.3.0 and reconciled dates remain unchanged.
 
 Read in this order before writing code:
 
@@ -60,7 +62,7 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Type definitions | @types/node, @types/react, @types/react-dom | 20.19.43, 19.3.0, 19.3.0 | 2026-10-21 | https://www.npmjs.com/package/@types/node/v/20.19.43 , https://www.npmjs.com/package/@types/react/v/19.3.0 , https://www.npmjs.com/package/@types/react-dom/v/19.3.0 |
 | Runtime (local/build) | Node.js | 24.22.1 | 2026-10-21 | https://github.com/nodejs/node/releases/tag/v24.22.1 |
 | Runtime (deployed) | Cloudflare Workers, `nodejs_compat` | compatibility_date 2026-10-01 | 2026-10-12 | https://developers.cloudflare.com/workers/configuration/compatibility-dates/ |
-| Framework | Next.js App Router | 16.3.8 | 2026-10-12 | https://github.com/vercel/next.js/releases/tag/v16.3.8 |
+| Framework | Next.js App Router | 16.4.3 | 2026-10-25 | https://github.com/vercel/next.js/releases/tag/v16.4.3 |
 | UI runtime | React, React DOM | 19.2.8 | 2026-10-12 | https://react.dev/ |
 | Adapter | @opennextjs/cloudflare | 1.20.10 | 2026-10-12 | https://github.com/opennextjs/opennextjs-cloudflare/releases |
 | CLI | wrangler | 4.149.0 | 2026-10-12 | https://www.npmjs.com/package/wrangler |
@@ -81,17 +83,19 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Icons | lucide-react | 1.55.0 | 2026-10-12 | https://lucide.dev/ |
 | QR decode (browser) | jsqr | 1.4.0 | 2026-10-12 | https://www.npmjs.com/package/jsqr |
 | CBOR (ID check) | cbor-x | 1.6.6 | 2026-10-12 | https://www.npmjs.com/package/cbor-x |
-| Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.11, 1.4.2 | 2026-10-14 | https://www.npmjs.com/package/@cloudflare/vitest-plugin/v/1.4.2 |
+| Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.12, 1.4.2 | 2026-10-25 | https://registry.npmjs.org/vitest/4.1.12 , https://www.npmjs.com/package/@cloudflare/vitest-plugin/v/1.4.2 |
 | End-to-end tests (local auth/onboarding harness) | @playwright/test | 1.64.1 | 2026-10-21 | https://www.npmjs.com/package/@playwright/test/v/1.64.1 |
-| Lint | eslint, eslint-config-next | 9.39.5, 16.3.8 | 2026-10-12 | https://nextjs.org/docs/app/api-reference/config/eslint |
+| Lint | eslint, eslint-config-next | 9.39.5, 16.4.3 | 2026-10-25 | https://registry.npmjs.org/eslint-config-next/16.4.3 , https://nextjs.org/docs/app/api-reference/config/eslint |
 | Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/local | @fontsource-variable/source-serif-4 5.3.1, @fontsource-variable/inter 5.3.0, @fontsource/ibm-plex-mono 5.3.0 | 2026-10-14 | https://www.npmjs.com/package/@fontsource-variable/source-serif-4/v/5.3.1 , https://www.npmjs.com/package/@fontsource-variable/inter/v/5.3.0 , https://www.npmjs.com/package/@fontsource/ibm-plex-mono/v/5.3.0 |
 
 Version notes:
+- 2026-10-25 authorized security refresh: Next and its ESLint configuration move together to 16.4.3; Vitest moves to 4.1.12. OpenNext 1.20.10 and the Cloudflare test plugin 1.4.2 remain pinned; their declared peers admit the selected versions. The Next Server Actions denial-of-service advisory applies to the onboarding Server Action; separate cache/image RCE advisory conditions were not established as reachable on this Worker. Sources: https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r , https://github.com/vitest-dev/vitest/security/advisories/GHSA-xp26-3454-mjgp . This security repair qualifies for the seven-day pin-update exception. Clean installation and fresh full/omit-dev audits pass with zero findings; combined app/build/browser evidence is recorded in QAD after the logout repair settles.
+- The same refresh uses version-scoped Undici overrides 6.29.1 and 7.30.1, Express-scoped body-parser 2.4.0 and test-plugin-scoped Zod 4.6.6. Existing major APIs and direct application Zod remain unchanged. These repair affected build/test dependency copies rather than accepting audit-suggested incompatible downgrades. Verified registry sources: https://registry.npmjs.org/undici/6.29.1 , https://registry.npmjs.org/undici/7.30.1 , https://registry.npmjs.org/body-parser/2.4.0 , https://registry.npmjs.org/zod/4.6.6 . The lock retains unrelated Vite/Rolldown/PostCSS versions; npm populated optional Tailwind WASI metadata during regeneration. A package in the production dependency graph is not by itself proof of an exposed deployed runtime path.
 - 2026-10-21 owner-approved Node 24 migration: `.nvmrc` at the repository root and `web/.nvmrc` pin 24.22.1; `web/package.json` requires >=24.22.1 <25 and `web/.npmrc` enables engine-strict. The exact pin selects the reproducible local/build version; the engine range admits later Node 24 security patches. This is a security release, qualifying for the seven-day wait exception below. The official Windows archive was SHA-256 verified before execution. Clean installation under this exact version passes, together with all 85 Workers cases, 25 Node checks, three Python runner tests, app/test/E2E typechecks, lint, dev Worker build and deployment dry run. The copied strict-engine settings reject 24.8.0 in an isolated offline probe; the full-project offline probe first stopped on an uncached optional archive. All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory.
 - Cloudflare Workers Builds supports `.nvmrc` in its configured build root (`web/`). A dashboard NODE_VERSION override must be absent or match 24.22.1; adding NODE_VERSION to Wrangler runtime vars does not select the build tool. The deployed app runs in workerd with nodejs_compat, separately controlled by compatibility_date 2026-10-01 and existing flags. This Node migration does not change that date or flags. Sources: https://developers.cloudflare.com/workers/ci-cd/builds/build-image/ and https://developers.cloudflare.com/workers/runtime-apis/nodejs/ .
 - 2026-10-21 baseline cleanup replaces the three @types ranges with the exact versions already resolved in the lockfile; npm registry verification matches them. No installed/resolved package version changes.
 - Fonts retain the same faces and Latin subsets but are pinned npm assets, loaded locally because Google Fonts requests failed during Worker build verification. No Google Fonts network fetch is needed at build time. OFL licenses are distributed under web/public/font-licenses/.
-- Next 16.4.0 is out, but OpenNext's support PR for it was still open on 2026-10-12. 16.3.8 is the lowest 16.x the adapter accepts and includes the image-optimizer SSRF fix.
+- Historical 2026-10-12 compatibility evidence used Next 16.3.8 while the adapter's 16.4 support work was open. The current security pin above supersedes that historical selection; declared peer compatibility is checked separately from the actual Worker build.
 - better-auth below 1.7.7 has a critical magic-link account takeover (GHSA-965c-763c-88jm). Never downgrade.
 - `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin`. cr-001 updates the plugin to 1.4.2 for security fixes; npm verified 2026-10-14, peer vitest ^4.1.0 or ^5.0.0. Existing Vitest stays 4.1.11.
 - cr-001 pins compatible transitive tool overrides: @node-minify/core's glob 10.5.0 and @esbuild-kit/core-utils' esbuild 0.25.12. Verified through installation/audit on 2026-10-14; sources https://www.npmjs.com/package/glob/v/10.5.0 and https://www.npmjs.com/package/esbuild/v/0.25.12 . The audit falls from 17 entries to five high entries from the same braces advisory through ESLint. braces 3.0.3 remains npm's latest on 2026-10-14; no compatible patched release exists. Do not run audit fix --force to downgrade the Next 16 lint configuration.
@@ -118,7 +122,9 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 ## 3. Commands
 
-Script block in `web/package.json`, confirmed against the manifest on 2026-10-21. The local auth/onboarding browser harness is available through test:e2e. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero.
+Script block in `web/package.json`, confirmed against the manifest on 2026-10-25. The local auth/onboarding browser harness is available through test:e2e. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero.
+
+`.github/workflows/baseline.yml` runs on every PR to dev/main and every dev push, plus manual dispatch. It bootstraps canonical SPINE 0.3.0 at its verified commit, uses the exact Node pin, runs the real local gates and full-graph high/critical audit, and packages the dev Worker without upload; it needs no service credentials or production data. Hosted success is separate from local YAML/actionlint validation and from required-check branch protection. From `web/`, `node scripts/setup-local.mjs --repair-url` repairs only a supported single-line dotenv URL while preserving other values, `node scripts/check-local.mjs` checks runtime/config/account readiness, and `node --test scripts/setup-local.test.mjs` runs five helper safety cases alongside the 25 deployment/R2 cases. Malformed, duplicate or actual multiline configuration is rejected before repair writes. The nvm default now selects 24.22.1; approved Cloudflare account selection remains explicit per shell as documented in README.
 
 | Task | Command |
 |------|---------|
@@ -279,3 +285,28 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 - [ ] No unapproved score, rank, leaderboard, endorsement badge, or ordering by outcome share; only the approved 1-5 rating and client average appear
 - [ ] Copy follows §5 copy rules
 - [ ] Outcome never conveyed by color alone
+
+## 8. Baseline boundary and next development milestones
+
+Owner-confirmed on 2026-10-25: finish the current auth/onboarding baseline first and plan the remaining product. A successful baseline gate is not completion of the full PRD or QAD release gate. `web/src/app/(app)/home/page.tsx:15` labels verification as future work; `web/src/server/auth/guards-core.ts:11` deliberately refuses every verification-dependent operation until the real workflow exists.
+
+The sequence below organizes the existing Locked requirements; it introduces no new requirements or schema authorization. Read SDD §3 before every migration. Each implementation milestone needs its named scope and the relevant QAD happy, sad, abuse and invariant tests.
+
+| Milestone | Existing scope | Required dependency / release gate |
+|-----------|----------------|------------------------------------|
+| Current baseline | PRD-F7, PRD-F8: patched dependencies, reliable sign-in/sign-out, acknowledgment, reproducible local setup and CI | Clean install, audits, actual app/test/E2E typechecks, lint, Workers/Node/Python tests, browser cases, dev Worker build/dry run, independent review and verified dev release; real mail and physical-device evidence remain distinct |
+| Verification and shared review foundation | PRD-F1 and verification part of PRD-F4 | Design request/pending/claimed/inspected/decided lifecycle before migration; capture the existing required name/profile/portfolio information and manual inspection evidence without raw ID storage; role/conflict/reason/audit enforcement before replacing the fail-closed guard |
+| Consented engagement handshake | PRD-F9 | Verified/current-policy freelancer gate; atomic single-use invite consumption, client account/profile association and engagement-specific consent receipt; decline creates no reputation signal |
+| Private log and proof intake | PRD-F2, PRD-F3 and per-log PRD-F14 | Accepted relationship, correct parties, approved filing clock, proof authorization/validation, submission/freeze constraints, quotas and draft/upload cleanup before accepting real material; intake never publishes |
+| Correction and lifecycle prerequisites | PRD-F13, PRD-F12 | Build private correction/filer-update review, assessed closure, visibility expiry, finite holds and idempotent purge alongside intake/publication development; required correction and retention behavior must exist before the first real publication |
+| Publication, records and averages | Remaining PRD-F4, PRD-F6, aggregate PRD-F14 | Human approval and immutable review history; signed-in relationship-scoped reads; approved eligibility/average rules; correction and lifecycle prerequisites above; no publication without those boundaries |
+
+Design work required before the next migrations:
+
+- `web/src/server/db/schema.ts:154` requires reviewer, ID kind, result and inspection fields on a verification case; a pending request cannot invent completed inspection evidence. Reconcile the request/review lifecycle in SDD before extending storage. Do not add a separate name-approval requirement or automatic ID scanning.
+- `POLICY_ACCEPTANCE` stores user/policy/version/time, while `ENGAGEMENT` currently stores acceptance time without a receipt relationship. Design explicit per-engagement consent linkage and transactional acceptance before building the handshake; onboarding is not consent to every engagement.
+- SDD's MODERATION_CASE, AUDIT_EVENT, CORRECTION_REQUEST and DATA_REQUEST are design-first. Reconcile their relationships, outcomes, conflicts and open-case uniqueness before implementation. Preserve IDs and the approved product meaning.
+- Plan the existing design-first closure/retirement fields and preservation migration before account closure or retention work. Current account/profile cascades and append-only consent triggers are not an implemented retention system; do not delete accounts to simulate assessed closure.
+- Add the SDD submission/proof/freeze/maintenance constraints with their workflows. D1/R2 foundation tests do not prove upload authorization, publication safety or cross-store atomicity.
+
+QR automation remains deferred; paid SMS, public replies, corroboration, refusal signals, ranks and marketplace/payment work are not introduced by this plan. PRD-F11 notifications remain Should-Have, separate from email authentication.

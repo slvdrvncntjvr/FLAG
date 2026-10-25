@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware, signOut } from "better-auth/api";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins/email-otp";
@@ -65,6 +65,29 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === "/sign-out") {
+          // Router origin/CSRF checks run first. Leave invalid bodies to the
+          // library's own validation, without changing the session.
+          if (!signOut.options.body.safeParse(ctx.body).success) return;
+          const token = await ctx.getSignedCookie(ctx.context.authCookies.sessionToken.name, ctx.context.secret);
+          if (token) {
+            try {
+              // Better Auth 1.7.7 absorbs deletion (and lookup) errors during
+              // sign-out. Revoke directly in D1 before it can clear the retry
+              // cookie and report success. No session delete hooks or secondary
+              // storage are configured; Google has no provider end-session URL.
+              await db.delete(schema.session).where(eq(schema.session.token, token));
+            } catch {
+              console.error("Sign-out session revocation failed");
+              throw new APIError("SERVICE_UNAVAILABLE", {
+                code: "SESSION_REVOCATION_FAILED",
+                message: "Could not sign out. Try again later.",
+              });
+            }
+          }
+          // Keep the library endpoint responsible for its normal cookie cleanup.
+          return;
+        }
         if (!ctx.path || !OTP_PATHS.has(ctx.path)) return;
         // Better Auth logs and absorbs errors in background delivery callbacks.
         // Reject missing configuration synchronously, before it stores/sends a code.

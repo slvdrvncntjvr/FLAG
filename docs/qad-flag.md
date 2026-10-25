@@ -3,11 +3,11 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.12
+doc_version: 2.13
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-21
+updated: 2026-10-25
 reconciled: 2026-10-13
 ---
 
@@ -19,6 +19,10 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+Final local integration on 2026-10-25: the candidate based on dev `6f85584` passes a clean exact-Node 24.22.1/npm 11.19.1 install; fresh complete and omit-dev dependency audits report zero findings. The coordinator observes all 89 Workers cases across six files, all 30 Node deployment/R2/setup cases, app/test/E2E TypeScript checks, lint, the six desktop/360px Chromium cases and complete browser-runner exit 0. The dependency worker's OpenNext dev build includes the settled logout patch and passes without an unsupported-version bypass; the coordinator's actual Wrangler dev dry run passes with flag-db-dev, flag-proofs-dev and the dev auth URL, gzip 1676.72 KiB, without uploading. The three Python runner cases pass; normal SPINE has zero errors/six known warnings, and checkpoint verification is clean against both the local October 21 checkpoint and published October 13 checkpoint. The isolated browser runner leaves no port-3000 listener or test temporary tree. A fresh-context Orca GPT-6.1-Sol low reviewer inspected source, library ordering and raw red/green evidence, found setup/parser/current-doc defects, and found no remaining blocking code finding after repairs; this is agent review, not human approval. Hosted Linux CI, the updated dev release and real inbox receipt are separate pending gates at this record.
+
+2026-10-25 current-baseline repair: `web/tests/auth-logout.test.ts:8` adds four Workers cases for PRD-F7 (H-23, S-31, AB-25). A real D1 BEFORE DELETE abort trigger reproduced the old behavior: one failure and three passing rejection cases against the unmodified auth configuration, with a surviving session and a real auth client reporting no error. The repaired configuration passes all four and the existing thirteen auth repairs (17 focused tests). It returns HTTP 503 with no Set-Cookie or redirect on failed durable revocation; retry/concurrent logout removes the row and copied-cookie access. Foreign/missing origins, foreign callbacks and malformed bodies leave the valid session intact; a forged signature cannot delete another session. The final local gate is recorded above; hosted CI and updated dev-release evidence remain separate. Existing historical test counts and release observations are retained as dated evidence, not the new final gate.
 
 2026-10-21 dev release verification: `npm run verify:dev` passed against active version 96de7bfa-e634-421c-9159-05b0385046d1 after the Node 24.22.1 guarded CLI fallback deployed the unchanged validated app from dev commit 318e0d8. It checked actual flag-db-dev, flag-proofs-dev and dev auth URL bindings; seven anonymous routes, protected redirects, policy versions 2026-10-14 and noindex headers; and invalid-code statuses 400, 400, 400, 400, 400, 429 with retry delay. No sign-in mail or account was created. Separate read-only inspection verified this version at 100 percent and confirmed production remains 9b1fdc1d-c4cb-495c-a343-fb042cbaae68 with runtime compatibility unchanged. The automatic Cloudflare build failed; its inaccessible error logs and dashboard Node override remain an operational limitation, not passing evidence. This does not add real email/OAuth or physical-device coverage.
 
@@ -80,6 +84,7 @@ Wrangler dry runs with WORKERS_CI=1 and WORKERS_CI_BRANCH=dev also confirmed act
 | H-20 | PRD-F14 | Older published contribution survives a newer rejected log | Pair has an older published log (rating 5); filer files a second log on a newer engagement that is rejected | Average still counts the older 5 with the contributor retained; the rejected log contributes nothing |
 | H-21 | PRD-F12 | Account close deactivates without cascade | User with a published log inside its 12-month term requests closure; admin closes after assessment | Account deactivated with access revoked and sessions gone; published log, proofs, and consent history retained to their deadlines; no USER cascade wipe |
 | H-22 | PRD-F12 | Maintenance purges expired eligible rows | Expired published log past its 12-month deadline with no hold; run the maintenance function | Eligible rows and their R2 objects purged through the ordered protocol; parents only after eligible children |
+| H-23 | PRD-F7 | Durable logout and replay rejection | Sign in, retain the original cookie, sign out successfully, then replay it; repeat logout and concurrent retries | Session row removed, cookie cleared, replay has no session; repeated/concurrent valid logout remains idempotent |
 
 ## 3. Sad path cases
 
@@ -115,6 +120,7 @@ Wrangler dry runs with WORKERS_CI=1 and WORKERS_CI_BRANCH=dev also confirmed act
 | S-28 | PRD-F12 | Erasure before expiry recalculates | Filer name must be erased while the published log is inside its 12-month term | Affected record hidden or withdrawn and the average recalculated; never an anonymous publication |
 | S-29 | PRD-F12 | Raw DELETE of unexpired content blocked | Direct SQL DELETE of an unexpired decided revision, tag, or proof row | Trigger rejects: DELETE allowed only to the maintenance path past the retention deadline with no hold |
 | S-30 | PRD-F12 | Hold blocks an eligible purge | Expired row under an active review or legal hold presented to the maintenance run | Physical purge refused while the hold applies; the row stays hidden from reads and rating regardless |
+| S-31 | PRD-F7 | Session revocation write fails | Real signed-in client signs out while D1 session DELETE aborts; restore writes and retry | HTTP 503 and generic SESSION_REVOCATION_FAILED, no false success/redirect/cookie clearing, existing session retryable; successful retry revokes copied-cookie access |
 
 ## 4. Abuse cases
 
@@ -144,6 +150,7 @@ Wrangler dry runs with WORKERS_CI=1 and WORKERS_CI_BRANCH=dev also confirmed act
 | AB-22 | PRD-F12 | Probe a purge endpoint | Unauthenticated request guessing a maintenance or purge URL | 404: no public purge endpoint exists; retention runs on the system Cron identity only |
 | AB-23 | PRD-F1 | ID image upload | Verification attempt attaches an ID photo or number file | Rejected; nothing stored, logged, or returned |
 | AB-24 | PRD-F12 | Cascade wipe through USER delete | Direct delete of a USER row that still owns unexpired logs, proofs, or unexpired minimal history | Refused by FK RESTRICT; closure deactivates instead and purges only per the assessed plan |
+| AB-25 | PRD-F7 | Forged or rejected logout request | Submit foreign/missing origin, foreign callback, malformed body or corrupted signature while a valid session exists | Existing router/body validation remains authoritative; no valid session is revoked by rejected requests or a forged signature |
 
 ### 4.1 Negative tests (invariants)
 
@@ -174,7 +181,7 @@ Every Must-Have has at least one case in each class. PRD-F5 and PRD-F10 are Reti
 | PRD-F4 | H-04, H-12 | S-07, S-08 | AB-07, AB-08 |
 | PRD-F5 | Retired (H-05, S-09, AB-09 reserved) | — | — |
 | PRD-F6 | H-06, H-11 | S-10, S-23, S-24 | AB-10, AB-11 |
-| PRD-F7 | H-07 | S-11 | AB-12 |
+| PRD-F7 | H-07, H-23 | S-11, S-31 | AB-12, AB-25 |
 | PRD-F8 | H-08 | S-12 | AB-13 |
 | PRD-F9 | H-09 | S-13, S-14 | AB-14, AB-15 |
 | PRD-F10 | Retired (H-10, S-15, AB-16 reserved) | — | — |
