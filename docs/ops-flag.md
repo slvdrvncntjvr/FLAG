@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.14
+doc_version: 2.15
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -196,6 +196,8 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 ## 7. Production readiness gate
 
 ### 2026-10-25 baseline promotion preparation
+
+PR #14's first hosted run `40169695258` passed dependency-audit and stopped verify at an unauthenticated clone of the private SPINE repository. Local canonical docs/checkpoint checks remain valid, but they were not run in that hosted job. Public hosted application CI is corrected to use no engine credentials/source copy and to state the local-only canonical validation boundary. All application checks and pinned-runner unit tests remain required workflow steps; hosted success and post-merge dev verification still need observation.
 
 Fresh read-only inspection of the existing release: dev runs version `0530461e-9992-4f4c-8b28-68fbfd1d61b2` at 100 percent, with correct dev DB/auth/PROOFS bindings, seven anonymous-route checks, current policy/noindex responses and invalid-code throttling passing. GitHub reports the automatic dev build for `6f85584` successful (build `8bd2e40f-403d-4a2c-afe5-03e0cb82da6f`). These observations describe the pre-repair release, not the new uncommitted candidate. Direct Builds API access remains HTTP 403, and version metadata has no source-SHA annotation; time/check correlation is evidence, not exact artifact provenance.
 

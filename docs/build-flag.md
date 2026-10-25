@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.11
+doc_version: 2.12
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -124,7 +124,7 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 Script block in `web/package.json`, confirmed against the manifest on 2026-10-25. The local auth/onboarding browser harness is available through test:e2e. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero.
 
-`.github/workflows/baseline.yml` runs on every PR to dev/main and every dev push, plus manual dispatch. It bootstraps canonical SPINE 0.3.0 at its verified commit, uses the exact Node pin, runs the real local gates and full-graph high/critical audit, and packages the dev Worker without upload; it needs no service credentials or production data. Hosted success is separate from local YAML/actionlint validation and from required-check branch protection. From `web/`, `node scripts/setup-local.mjs --repair-url` repairs only a supported single-line dotenv URL while preserving other values, `node scripts/check-local.mjs` checks runtime/config/account readiness, and `node --test scripts/setup-local.test.mjs` runs five helper safety cases alongside the 25 deployment/R2 cases. Malformed, duplicate or actual multiline configuration is rejected before repair writes. The nvm default now selects 24.22.1; approved Cloudflare account selection remains explicit per shell as documented in README.
+`.github/workflows/baseline.yml` runs on every PR to dev/main and every dev push, plus manual dispatch. It uses the exact Node pin, runs the application/type/lint/Workers/Node/browser gates and pinned-runner unit tests, performs the full-graph high/critical audit, and packages the dev Worker without upload; it needs no service credentials or production data. The canonical SPINE repository is private: public hosted CI does not clone it or claim canonical document/checkpoint validation. Those remain mandatory local release checks with the installed pinned 0.3.0 engine. PR #14's first run exposed the incorrect public-bootstrap assumption; its dependency-audit job passed while verify stopped before app checks. Hosted success is separate from local YAML/actionlint validation and required-check branch protection. From `web/`, `node scripts/setup-local.mjs --repair-url` repairs only a supported single-line dotenv URL while preserving other values, `node scripts/check-local.mjs` checks runtime/config/account readiness, and `node --test scripts/setup-local.test.mjs` runs five helper safety cases alongside the 25 deployment/R2 cases. Malformed, duplicate or actual multiline configuration is rejected before repair writes. The nvm default now selects 24.22.1; approved Cloudflare account selection remains explicit per shell as documented in README.
 
 | Task | Command |
 |------|---------|

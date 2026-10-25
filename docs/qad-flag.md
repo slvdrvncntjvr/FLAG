@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.13
+doc_version: 2.14
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -19,6 +19,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+Hosted CI boundary correction, 2026-10-25: PR #14 run `40169695258` passed dependency-audit but verify failed at the attempted canonical-engine clone, before application gates. The SPINE repository is private; a successful local clone with saved credentials did not establish public access. The corrected credential-free hosted workflow runs pinned-runner unit tests and actual application gates, and explicitly reports canonical docs/checkpoint validation as a local release gate using the installed SPINE 0.3.0 engine. No private engine source, credentials, visibility change or false hosted canonical-validation result is introduced. The next hosted application result must be observed separately.
 
 Final local integration on 2026-10-25: the candidate based on dev `6f85584` passes a clean exact-Node 24.22.1/npm 11.19.1 install; fresh complete and omit-dev dependency audits report zero findings. The coordinator observes all 89 Workers cases across six files, all 30 Node deployment/R2/setup cases, app/test/E2E TypeScript checks, lint, the six desktop/360px Chromium cases and complete browser-runner exit 0. The dependency worker's OpenNext dev build includes the settled logout patch and passes without an unsupported-version bypass; the coordinator's actual Wrangler dev dry run passes with flag-db-dev, flag-proofs-dev and the dev auth URL, gzip 1676.72 KiB, without uploading. The three Python runner cases pass; normal SPINE has zero errors/six known warnings, and checkpoint verification is clean against both the local October 21 checkpoint and published October 13 checkpoint. The isolated browser runner leaves no port-3000 listener or test temporary tree. A fresh-context Orca GPT-6.1-Sol low reviewer inspected source, library ordering and raw red/green evidence, found setup/parser/current-doc defects, and found no remaining blocking code finding after repairs; this is agent review, not human approval. Hosted Linux CI, the updated dev release and real inbox receipt are separate pending gates at this record.
 

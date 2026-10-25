@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.27
+doc_version: 1.28
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -207,6 +207,8 @@ Approaches tried and abandoned.
 
 | Date | Approach | Why it failed |
 |------|----------|---------------|
+| 2026-10-25 | Launching a follow-up Codex worker after selecting the newly installed nvm Node | npm global CLIs are version-local: the new Node selection lacked codex, so the agent command failed before task input or edits. The coordinator released the failed attempt, installed the existing @openai/codex 0.164.0 under Node 24.22.1 and verified CLI discovery/version before retrying the same Task. No model, project dependency or credentials changed |
+| 2026-10-25 | PR #14 hosted verification tried to clone SPINE v0.3.0 as a public credential-free bootstrap | Run 40169695258 passed dependency-audit but verify stopped with could not read Username for GitHub. Fresh repository metadata confirms SPINE is private; local clone success had used saved credentials and did not prove public accessibility. Preserve engine privacy, zero-footprint pointer and version 0.3.0. Correct hosted scope to app gates plus pinned-runner unit tests, with explicit local-only canonical docs/checkpoint release validation; do not copy private engine code or personal credentials into the public project. The earlier local evidence remains valid; no hosted canonical validation pass is claimed |
 | 2026-10-25 | Initial Orca worker launches used the provider model ID gpt-6.1 | Orca accepted the preference but the ChatGPT-backed Codex provider rejected that ID as unsupported. After confirming each attempt stopped, the coordinator recovered the same Tasks using gpt-6.1-sol at low effort; no application edits came from the rejected attempts. Some accepted task prompts remained in the terminal composer and needed their existing draft submitted; no duplicate editor was launched from an unverified timeout |
 | 2026-10-21 | Automatic Workers Builds release for 318e0d8 failed; GitHub exposes only the failed build link, authenticated Builds API inspection is HTTP 403, and the separate Orca dashboard tab redirects to login | Preserved the failed CI outcome and requested its first error lines rather than inventing a cause. Used the existing guarded dev-only CLI deployment under verified Node 24.22.1, then verified the exact active version and production isolation. CI diagnosis and any dashboard Node override remain unresolved |
 | 2026-10-21 | Initial browser waits used networkidle and kept D1/OTP writes inside the watched temporary app; the first full run later found two mobile sign-out error overflows. A coordinator retry in the managed sandbox hit Wrangler registry EPERM and cleanup EBUSY; a worker turn ended with an explicit model-capacity error | Replaced network-idle waits with UI assertions and moved mutable test state outside the watched app. Wrapped account-header content and gave the error its own row while retaining overflow assertions. Bounded Windows taskkill, safely removed verified orphan test roots after the processes exited, and reran with approved local registry/process access. Fenced the capacity-error attempt, retried the same requested model, and obtained six passing browser cases with clean teardown |

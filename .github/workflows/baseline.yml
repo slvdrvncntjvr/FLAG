@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Checkpoint verification needs annotated checkpoint tags/history.
+          fetch-depth: 0 # Retain full project history and tags.
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -38,20 +38,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Bootstrap canonical SPINE 0.3.0
-        working-directory: .
-        shell: bash
+      # The canonical engine is private; public CI must remain credential-free.
+      - name: Notice - canonical SPINE validation is a LOCAL release gate
         run: |
-          git clone --depth 1 --branch v0.3.0 https://github.com/slvdrvncntjvr/spine.git "$RUNNER_TEMP/spine-0.3.0"
-          test "$(git -C "$RUNNER_TEMP/spine-0.3.0" rev-parse HEAD)" = 2e52521569f6484a8580130e7e4a747f138ea427
-          echo "SPINE_HOME=$RUNNER_TEMP/spine-0.3.0" >> "$GITHUB_ENV"
-      - name: Pinned runner tests and documentation checks
+          echo '::notice::Canonical SPINE 0.3.0 documentation and checkpoint validation requires the owner-installed pinned engine and is a LOCAL release gate. Hosted CI does not run or claim these checks passed. Locally run: python scripts/spine.py check docs/ and python scripts/spine.py checkpoint verify.'
+      - name: Pinned-runner unit tests (self-contained fixtures)
         working-directory: .
-        run: |
-          python -m unittest discover -s scripts -p 'test_spine.py'
-          # Normal mode retains six historical warnings; strict mode is not a clean baseline.
-          python scripts/spine.py check docs/
-          python scripts/spine.py checkpoint verify
+        run: python -m unittest discover -s scripts -p 'test_spine.py'
       - name: Install exact lockfile
         run: npm ci
       - name: Check application, integration-test, and E2E TypeScript
