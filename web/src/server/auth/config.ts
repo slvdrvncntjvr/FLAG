@@ -9,6 +9,7 @@ import type { Db } from "@/server/db";
 import * as schema from "@/server/db/schema";
 import { sendMail } from "@/server/mail";
 import { createAuthRateLimiter, OTP_IP_SEND_LIMIT, OTP_LIMIT, OTP_PATHS, OTP_SEND_PATHS } from "./rate-limit";
+import { validateAuthUserProfile } from "./privacy";
 
 export type AuthEnv = {
   BETTER_AUTH_SECRET: string;
@@ -117,6 +118,10 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
     // Cloudflare sets cf-connecting-ip; x-forwarded-for can be supplied by the client.
     advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
     databaseHooks: {
+      user: {
+        create: { before: validateAuthUserProfile },
+        update: { before: validateAuthUserProfile },
+      },
       session: {
         create: {
           // A suspended account cannot start a session.

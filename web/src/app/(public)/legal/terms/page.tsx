@@ -19,6 +19,17 @@ export default function Terms() {
         a client; this cannot be changed later. Staff roles are assigned by FLAG, never chosen at sign-up.
       </p>
 
+      <h2 className="font-serif text-lg">Verification and feature availability</h2>
+      <p>
+        Accounts, onboarding, manual freelancer verification, and moderator review of verification requests are
+        available. To request verification, provide your account/profile name and portfolio links. A moderator
+        inspects a supported government ID live and records the inspection result and a reasoned approval or
+        rejection. Do not submit ID images, full ID numbers, recordings, or QR data. After rejection, you may submit
+        a corrected new request; the previous request and decision remain in the review history.
+        Verification means identity checked, not a guarantee of trustworthiness. Engagements, logs, client records,
+        and private correction workflows remain planned.
+      </p>
+
       <h2 className="font-serif text-lg">Filing a log</h2>
       <p>
         When logging launches, a log requires a registered client who accepted the engagement, a rating from 1 to 5,
@@ -29,14 +40,13 @@ export default function Terms() {
       </p>
       <p>
         Approved publications expire twelve months after original publication; later updates do not extend retention.
-        Verification means identity checked, not a guarantee of trustworthiness. Declining an engagement produces no
-        warning or negative rating. Verification, engagements, logs, records, and private correction workflows are
-        planned features and are not available in the current account and onboarding release.
+        Declining an engagement produces no warning or negative rating.
       </p>
 
       <h2 className="font-serif text-lg">Clients and reviews</h2>
       <p>
-        A client named in a published log may privately request a review or correction with supporting evidence. Published logs cannot be directly edited or deleted by the client,
+        When logging and private corrections launch, a client named in a published log may privately request a review
+        or correction with supporting evidence. Published logs cannot be directly edited or deleted by the client,
         and FLAG displays only the approved 1 to 5 rating and client average.
       </p>
 

@@ -84,6 +84,82 @@ test("verification routes enforce signed-in and freelancer/reviewer roles", asyn
   await noOverflow(page);
 });
 
+test("rejected requests keep their original profile and numeric portfolio after corrected resubmission", async ({ page, browser }, testInfo) => {
+  test.setTimeout(240_000);
+  const stamp = Date.now();
+  const originalName = "Alex Rivera";
+  const correctedName = testInfo.project.name === "mobile-360" ? "Sam Santos Mobile" : "Sam Santos Desktop";
+  const originalUrl = "https://example.invalid/projects/123456/brand-design";
+  const correctedUrl = "https://example.invalid/projects/654321/new-work";
+  await signIn(page, `verification-history-owner-${stamp}@example.invalid`, "freelancer");
+  await page.goto("/verification");
+  await page.getByLabel("Account/profile name", { exact: true }).fill(originalName);
+  await page.getByLabel("City (optional)").fill("Original city");
+  await page.getByLabel("Portfolio URL 1", { exact: true }).fill(originalUrl);
+  await page.getByLabel("Link label 1 (optional)").fill("Original portfolio");
+  await page.getByRole("button", { name: "Submit verification request", exact: true }).click();
+  await expect(page.getByText("Pending review", { exact: true })).toBeVisible();
+
+  const reviewerContext = await browser.newContext({ baseURL: "http://localhost:3000", viewport: page.viewportSize()! });
+  const reviewer = await reviewerContext.newPage();
+  await reviewer.route("**/*", route => {
+    if (new URL(route.request().url()).hostname !== "localhost") throw new Error("History E2E request escaped localhost");
+    return route.fallback();
+  });
+  try {
+    const email = `verification-history-reviewer-${stamp}@example.invalid`;
+    await signIn(reviewer, email, "client");
+    await setLocalTestRole(email, "moderator");
+    await reviewer.goto("/moderation/verification");
+    await reviewer.getByRole("link", { name: originalName, exact: true }).click();
+    await expect(reviewer).toHaveURL(/\/moderation\/verification\/[^/]+$/);
+    await expect(reviewer.getByRole("heading", { name: "Verification review", exact: true })).toBeVisible();
+    const originalReview = reviewer.url();
+    await reviewer.getByRole("button", { name: "Claim review", exact: true }).click();
+    await reviewer.getByLabel("ID kind inspected").selectOption("passport");
+    await reviewer.getByLabel("Inspection result").selectOption("pass");
+    await reviewer.getByRole("radio", { name: "Yes, matches", exact: true }).check();
+    await reviewer.getByRole("checkbox").check();
+    await reviewer.getByRole("button", { name: "Record live inspection", exact: true }).click();
+    await expect(reviewer.getByText(/^Pass; name matches/)).toBeVisible();
+    await reviewer.getByRole("combobox", { name: "Decision", exact: true }).selectOption("reject");
+    await reviewer.getByLabel("Reason (shared with the freelancer)").fill("Portfolio needs additional work samples.");
+    await reviewer.getByRole("button", { name: "Record decision", exact: true }).click();
+    await expect(reviewer.getByText("Rejected", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("Rejected", { exact: true })).toBeVisible();
+    await page.getByLabel("Account/profile name", { exact: true }).fill(correctedName);
+    await page.getByLabel("City (optional)").fill("Corrected city");
+    await page.getByLabel("Portfolio URL 1", { exact: true }).fill(correctedUrl);
+    await page.getByLabel("Link label 1 (optional)").fill("Corrected portfolio");
+    await page.getByRole("button", { name: "Submit verification request", exact: true }).click();
+    await expect(page.getByText("Pending review", { exact: true })).toBeVisible();
+    await expect(page.getByText(correctedName, { exact: true })).toBeVisible();
+
+    await reviewer.goto(originalReview);
+    await expect(reviewer.getByText(originalName, { exact: true })).toBeVisible();
+    await expect(reviewer.getByText("Original city", { exact: true })).toBeVisible();
+    await expect(reviewer.getByRole("link", { name: /^Original portfolio/ })).toHaveAttribute("href", originalUrl);
+    await expect(reviewer.getByText(/^Pass; name matches/)).toBeVisible();
+    await expect(reviewer.getByText("Rejected", { exact: true })).toBeVisible();
+    await expect(reviewer.getByText("Portfolio needs additional work samples.", { exact: true })).toBeVisible();
+    await expect(reviewer.getByText(correctedName, { exact: true })).toHaveCount(0);
+    await expect(reviewer.locator(`a[href="${correctedUrl}"]`)).toHaveCount(0);
+    await noOverflow(reviewer);
+
+    await reviewer.goto("/moderation/verification");
+    await reviewer.getByRole("link", { name: correctedName, exact: true }).click();
+    expect(reviewer.url()).not.toBe(originalReview);
+    await expect(reviewer.getByText(correctedName, { exact: true })).toBeVisible();
+    await expect(reviewer.getByRole("link", { name: /^Corrected portfolio/ })).toHaveAttribute("href", correctedUrl);
+    await expect(reviewer.getByText("Not recorded", { exact: true })).toBeVisible();
+    await noOverflow(page);
+  } finally {
+    await reviewerContext.close();
+  }
+});
+
 test("real owner request, recoverable error, claim, inspection and reasoned approval", async ({ page, browser }, testInfo) => {
   test.setTimeout(240_000);
   const stamp = Date.now();

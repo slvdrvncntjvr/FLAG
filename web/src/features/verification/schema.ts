@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { hasNoVerificationPayload } from "./privacy";
+import { hasNoVerificationPayload, hasNoVerificationUrlPayload } from "./privacy";
 
-const webUrl = z.string().trim().max(2048).refine(hasNoVerificationPayload).refine((value) => {
+const webUrl = z.string().trim().max(2048).refine(hasNoVerificationUrlPayload).refine((value) => {
   try { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password; }
   catch { return false; }
 });

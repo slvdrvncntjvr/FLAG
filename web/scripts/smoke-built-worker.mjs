@@ -6,13 +6,20 @@ import net from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { unstable_readConfig } from "wrangler";
+import { getCliEnvironment } from "./check-ci-target.mjs";
+import { checkResourceBindings } from "./check-resource-bindings.mjs";
+import { ANONYMOUS_ROUTES, checkAnonymousRoute } from "./release-routes.mjs";
 
 // Run the deployable artifact in workerd, never `next dev`. All mutable state,
 // config and credentials are synthetic and confined to an OS temporary folder.
 const root = resolve(import.meta.dirname, "..");
 const worker = join(root, ".open-next", "worker.js");
 await access(worker);
-const sourceConfig = unstable_readConfig({ config: join(root, "wrangler.jsonc"), env: "dev" });
+// Existing invocations select dev; --env= explicitly selects the production
+// compatibility settings while runtime bindings remain entirely synthetic.
+const environment = getCliEnvironment() ?? "dev";
+const sourceConfig = unstable_readConfig({ config: join(root, "wrangler.jsonc"), env: environment });
+checkResourceBindings(sourceConfig, environment);
 const temporary = await mkdtemp(join(tmpdir(), "flag-worker-smoke-"));
 const secret = randomBytes(48).toString("base64url");
 const children = new Set();
@@ -107,20 +114,13 @@ try {
     await new Promise(accept => setTimeout(accept, 250));
   }
   const failures = [];
-  const protectedPages = new Set(["/home", "/onboarding", "/verification", "/moderation/verification", "/moderation/verification/nonexistent"]);
-  const paths = ["/", ...protectedPages, "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"];
+  const paths = ANONYMOUS_ROUTES;
   for (const path of paths) {
     const response = await fetch(base + path, { redirect: "manual", signal: AbortSignal.timeout(20000) });
     const body = await response.text();
     console.log(JSON.stringify({ path, status: response.status }));
     try {
-      const protectedPage = protectedPages.has(path);
-      assert.equal(response.status, protectedPage ? 307 : 200, `${path}: unexpected status`);
-      if (protectedPage) assert.equal(new URL(response.headers.get("location"), base).pathname, "/sign-in");
-      if (path !== "/") assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow", `${path}: missing noindex`);
-      if (path.startsWith("/legal/")) assert.ok(body.includes("2026-10-14"), `${path}: missing policy version`);
-      if (path === "/legal/privacy") assert.ok(!body.includes("permanent record"), "Outdated privacy retention copy");
-      if (path === "/api/auth/get-session") assert.equal(body, "null");
+      checkAnonymousRoute({ path, response, body, base });
     } catch (error) { failures.push(error.message); }
   }
   assert.deepEqual(failures, [], "Packaged Worker anonymous route checks failed");

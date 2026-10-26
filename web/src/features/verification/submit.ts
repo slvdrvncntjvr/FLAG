@@ -24,7 +24,7 @@ export async function submitVerification(db: Db, actorId: string | null, input: 
       [actorId, form.name, form.city ?? null, eventId]),
       statement(db, `DELETE FROM portfolio_link WHERE freelancer_id = ? AND ${eventGate()}`, [actorId, eventId]),
       ...form.portfolioLinks.map((link) => statement(db, `INSERT INTO portfolio_link(id,freelancer_id,url,label) SELECT ?,?,?,? WHERE ${eventGate()}`, [crypto.randomUUID(), actorId, link.url, link.label ?? null, eventId])),
-      statement(db, `INSERT INTO verification_case(id,freelancer_id) SELECT ?,? WHERE ${eventGate()}`, [verificationCaseId, actorId, eventId]),
+      statement(db, `INSERT INTO verification_case(id,freelancer_id,submitted_profile) SELECT ?,?,? WHERE ${eventGate()}`, [verificationCaseId, actorId, JSON.stringify(form), eventId]),
       statement(db, `INSERT INTO moderation_case(id,kind,subject_id) SELECT ?,'verification',? WHERE ${eventGate()}`, [moderationCaseId, verificationCaseId, eventId]),
     ]);
     return results[0].meta.changes === 1 ? { ok: true, verificationCaseId, moderationCaseId } : failure("conflict");

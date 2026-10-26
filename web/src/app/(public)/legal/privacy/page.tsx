@@ -11,15 +11,22 @@ export default function Privacy() {
         This notice explains what FLAG collects, why, and the rights you have under the Philippine Data Privacy Act of
         2012 (RA 10173). It applies to everyone who creates a FLAG account.
       </p>
+      <p>
+        Accounts, onboarding, manual freelancer verification, and moderator review of verification requests are
+        available. Engagements, logs, client records, and private corrections remain planned.
+      </p>
 
       <h2 className="font-serif text-lg">What we collect</h2>
       <ul className="list-disc space-y-1 pl-5">
-        <li>Your email address and the account, sign-in, and session records needed to run your account.</li>
+        <li>Your email address, account name and role, and the sign-in and session records needed to run your account.</li>
         <li>Which policies you accepted, their versions, and when. You cannot directly alter acceptance history.</li>
         <li>
-          When verification becomes available: portfolio links and the moderator&apos;s inspection method, result,
-          name-match result, and time. A moderator views a supported government ID live; we do not record the inspection,
-          save an ID image or full ID number, or require an ID-derived hash or phone verification.
+          For verification: your account/profile name, optional city, portfolio URLs and optional link labels,
+          verification status, and request history. We record the reviewer, inspection method, ID type, result,
+          name-match result, inspection time, decision, reason, and decision time, together with case claims and
+          review history. Audit records contain account and case identifiers, actions, and times, without submitted
+          content. A moderator views a supported government ID live; we do not record the inspection, save an ID
+          image or full ID number, or require an ID-derived hash or phone verification.
         </li>
         <li>
           When engagements and logs become available: the accepted engagement, facts, rating, covered work period,
@@ -35,6 +42,10 @@ export default function Privacy() {
       </p>
 
       <h2 className="font-serif text-lg">Who can see it</h2>
+      <p>
+        Your verification request and its outcome are private to you and authorized moderators. Moderators can see
+        the profile and portfolio information needed to review it; the decision reason is shared with you.
+      </p>
       <p>
         Published client records and logs will be visible to signed-in freelancers; clients see their own record.
         Readers see the filer&apos;s name, but not contact or ID data. Proof files are restricted to the filer, named client,
