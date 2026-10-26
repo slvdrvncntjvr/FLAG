@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.49
+doc_version: 0.50
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.18 | Review | 2026-10-26 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.19 | Review | 2026-10-26 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.12 | Review | 2026-10-26 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.24 | Review | 2026-10-26 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.21 | Review | 2026-10-26 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.40 | Draft | 2026-10-26 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.25 | Review | 2026-10-26 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.22 | Review | 2026-10-26 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.41 | Draft | 2026-10-26 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -169,6 +169,10 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 - 2026-10-13 five-issue fix pass (LOG §1 completion row): PRD 0.5, SDD 0.4, QAD 0.3, OPS 0.3 — covered work period plus optional amount in centavos on LOG_REVISION with CHECKs; average-fallback wording aligned across PRD/SDD/QAD with no behavior change; withdrawn/abandoned-ask-changes/abandoned-update retention mapped from approved periods only; closure semantics with FK RESTRICT plus stub row and the as-built cascade marked needs-future-migration (docs only, no code change); expired-records wording fixed. All docs stay Draft; reconciled never advanced; no CR required.
 
 ## 7. Current development baseline
+
+Current owner-directed branch policy, 2026-10-26: dev now requires zero approving reviews and require_last_push_approval is false. This is the requested persistent change, not a temporary exception. Strict current-base verify/dependency-audit checks pinned to GitHub Actions app15368, administrator enforcement, stale-review dismissal and force-push/deletion prohibitions remain unchanged. Main retains one approving developer review and independent last-push approval; its complete protection configuration is unchanged. Agent code/scope review and required CI remain part of the development workflow.
+
+Baseline release completed, 2026-10-26: PR #15 merged reviewed head aa90465 into dev as 6fb4af41d5a25023bfa8d0db6a6bf040be906b0e at 05:36:51 UTC. Both post-merge jobs pass in [run 40275166135](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40275166135). Automatic Workers build 7bf13e4a-b6d6-4fd6-a7db-aaef8b1ade13 identifies version 6f67ac16-d9e5-4f23-ba6a-155684ee4a86; live metadata confirms that exact version at 100 percent. The exact-version verifier exits zero with correct dev DB/auth/PROOFS bindings, seven routes, policy/noindex checks, invalid-code statuses 400/400/400/400/400/429 and stable identity before/after probes. Production remains 9b1fdc1d-c4cb-495c-a343-fb042cbaae68; no migration or production action occurred. The single previously authorized sign-in email request to the configured owner inbox returned HTTP200/success after exact release verification; receipt is still human-unconfirmed, no code/cookie was recorded, and no sign-in or signup was attempted. F1 application code remains the tested 030fa63 candidate; its local branch incorporates dev history without application changes. F1 publication/release and dev0006 are separate gates. Earlier blocked-merge, temporary-exception and pending-baseline observations below are historical.
 
 Final local F1 integration review, 2026-10-26: parent accepts the bounded candidate for local commit with no new blocking finding. All 38 copied files match the previously independently reviewed original, baseline controls/published migrations remain unchanged, the smoke-only extension passes ten routes, and the merged docs exclude unrelated F9 receipt design while preserving both histories and all reconciled dates. All 234 Workers, 43 Node, ten Python and ten browser cases, full types/lint/build/smoke and actual guarded dev deployment dry run pass; owned harness cleanup is clean. CR-002 is approved and applied locally. Publication and live release remain separate; PR15 is still open because both normal/admin merge attempts were blocked, and the exact temporary dev-settings exception is awaiting owner response. No branch settings, main/production, remote migration or deployment changed. Earlier pending final-integration-review statements below are historical observations.
 

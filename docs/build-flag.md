@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.18
+doc_version: 2.19
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -20,6 +20,10 @@ reconciled: 2026-10-13
 ---
 
 ## 1. How to build from these docs
+
+Current owner-directed branch policy, 2026-10-26: dev now requires zero approving reviews and require_last_push_approval is false. This is the requested persistent change, not a temporary exception. Strict current-base verify/dependency-audit checks pinned to GitHub Actions app15368, administrator enforcement, stale-review dismissal and force-push/deletion prohibitions remain unchanged. Main retains one approving developer review and independent last-push approval; its complete protection configuration is unchanged. Agent code/scope review and required CI remain part of the development workflow.
+
+Baseline release completed, 2026-10-26: PR #15 merged reviewed head aa90465 into dev as 6fb4af41d5a25023bfa8d0db6a6bf040be906b0e at 05:36:51 UTC. Both post-merge jobs pass in [run 40275166135](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40275166135). Automatic Workers build 7bf13e4a-b6d6-4fd6-a7db-aaef8b1ade13 identifies version 6f67ac16-d9e5-4f23-ba6a-155684ee4a86; live metadata confirms that exact version at 100 percent. The exact-version verifier exits zero with correct dev DB/auth/PROOFS bindings, seven routes, policy/noindex checks, invalid-code statuses 400/400/400/400/400/429 and stable identity before/after probes. Production remains 9b1fdc1d-c4cb-495c-a343-fb042cbaae68; no migration or production action occurred. The single previously authorized sign-in email request to the configured owner inbox returned HTTP200/success after exact release verification; receipt is still human-unconfirmed, no code/cookie was recorded, and no sign-in or signup was attempted. F1 application code remains the tested 030fa63 candidate; its local branch incorporates dev history without application changes. F1 publication/release and dev0006 are separate gates. Earlier blocked-merge, temporary-exception and pending-baseline observations below are historical.
 
 Latest owner authorization, 2026-10-26 (coordinator relay): the owner directed, "lnzem would never review this can you just review this and merge if ok". Parent review of exact baseline aa90465 found no blocker and both required hosted checks pass. Both normal merge and the owner-authorized admin merge attempt were rejected; GraphQL requires approval from someone other than the last pusher. PR #15 remains OPEN with no merge commit, unchanged aa90465 head and both required checks SUCCESS. Parent requested permission for a temporary dev-only settings exception (zero required approvals and last-push approval disabled for this merge, then exact restoration); no answer or settings change is recorded. Repository branch protections and main remain unchanged. This supersedes the earlier requirement to wait for lnzem for this PR; it grants no general review bypass, F1 release or main/production authority. Earlier pending-review LOG rows remain history.
 
@@ -220,7 +224,7 @@ Failure mode if skipped: the deploy succeeds but the live page throws a database
 | Area | Convention |
 |------|-----------|
 | Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with one review from another developer. Production promotion waits for the owner's explicit signal |
-| Enforced branch controls (worker API readback, 2026-10-25) | Both dev and main require current-base `verify` and `dependency-audit` checks pinned to GitHub Actions app 15368, one approving developer review, stale-review dismissal and independent last-push approval. Administrators are included; force pushes and branch deletion are disabled. Agent review does not satisfy the developer approval. Branch protection gates merge; connected Workers Builds still deploys a merged push independently of the post-merge CI run and direct Wrangler deployments remain a separate authority boundary |
+| Enforced branch controls (API readback, 2026-10-26) | Dev: zero required approving reviews and no last-push approval, per explicit owner instruction. Main: one approving developer review and independent last-push approval. Both: strict current-base verify/dependency-audit pinned to Actions app15368, administrator enforcement, stale-review dismissal and no force pushes/deletion. Agent review and CI remain required working practice; main/production promotion still needs its separate owner signal |
 | Commit format | Short imperative subject naming the feature ID when there is one: `PRD-F8 add policy acceptance gate` |
 | Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright. The retired `prototype/` static mock was deleted on 2026-10-14 |
 | Module ownership | One developer owns each `src/features/<module>` folder and reviews every change to it. Assignments (owner 2026-10-13, LOG Q14): Dev A owns `verification`; Dev B owns `engagements` and `logs` (`src/features` log intake/proof); Dev C owns `moderation` and retention/maintenance. Shared `server/{auth,db,mail}` and `components` changes need the owning dev of the consuming module plus one reviewer |

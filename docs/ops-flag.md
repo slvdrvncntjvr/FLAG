@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.21
+doc_version: 2.22
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -196,6 +196,10 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 
 ## 7. Production readiness gate
 
+Current owner-directed branch policy, 2026-10-26: dev now requires zero approving reviews and require_last_push_approval is false. This is the requested persistent change, not a temporary exception. Strict current-base verify/dependency-audit checks pinned to GitHub Actions app15368, administrator enforcement, stale-review dismissal and force-push/deletion prohibitions remain unchanged. Main retains one approving developer review and independent last-push approval; its complete protection configuration is unchanged. Agent code/scope review and required CI remain part of the development workflow.
+
+Baseline release completed, 2026-10-26: PR #15 merged reviewed head aa90465 into dev as 6fb4af41d5a25023bfa8d0db6a6bf040be906b0e at 05:36:51 UTC. Both post-merge jobs pass in [run 40275166135](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40275166135). Automatic Workers build 7bf13e4a-b6d6-4fd6-a7db-aaef8b1ade13 identifies version 6f67ac16-d9e5-4f23-ba6a-155684ee4a86; live metadata confirms that exact version at 100 percent. The exact-version verifier exits zero with correct dev DB/auth/PROOFS bindings, seven routes, policy/noindex checks, invalid-code statuses 400/400/400/400/400/429 and stable identity before/after probes. Production remains 9b1fdc1d-c4cb-495c-a343-fb042cbaae68; no migration or production action occurred. The single previously authorized sign-in email request to the configured owner inbox returned HTTP200/success after exact release verification; receipt is still human-unconfirmed, no code/cookie was recorded, and no sign-in or signup was attempted. F1 application code remains the tested 030fa63 candidate; its local branch incorporates dev history without application changes. F1 publication/release and dev0006 are separate gates. Earlier blocked-merge, temporary-exception and pending-baseline observations below are historical.
+
 ### Planned dev-only 0006 release sequence (not executed)
 
 Latest owner authorization, 2026-10-26 (coordinator relay): the owner directed, "lnzem would never review this can you just review this and merge if ok". Parent review of exact baseline aa90465 found no blocker and both required hosted checks pass. Both normal merge and the owner-authorized admin merge attempt were rejected; GraphQL requires approval from someone other than the last pusher. PR #15 remains OPEN with no merge commit, unchanged aa90465 head and both required checks SUCCESS. Parent requested permission for a temporary dev-only settings exception (zero required approvals and last-push approval disabled for this merge, then exact restoration); no answer or settings change is recorded. Repository branch protections and main remain unchanged. This supersedes the earlier requirement to wait for lnzem for this PR; it grants no general review bypass, F1 release or main/production authority. Earlier pending-review LOG rows remain history.
@@ -236,7 +240,7 @@ The populated SQLite transaction compatibility probe must remain visible: migrat
 
 ### 2026-10-25 baseline promotion preparation
 
-Latest release-controls worker evidence: dev and main protection PUTs succeeded and fresh independent API readbacks confirm current-base verify/dependency-audit checks pinned to GitHub Actions app15368; one developer approval, stale-review dismissal and independent last-push approval; administrator enforcement; no force pushes or branch deletion. Branch SHAs stayed dev 561e917 and main 3582f7e. This supersedes the unprotected observation and unperformed-protection wording in the earlier dated snapshot below. No disruptive enforcement test was run. Merge protection does not make Cloudflare deployment wait for post-merge CI, or prevent separately authenticated Wrangler releases; production promotion remains held.
+Prior release-controls worker evidence (2026-10-25): dev and main protection PUTs succeeded and fresh independent API readbacks confirm current-base verify/dependency-audit checks pinned to GitHub Actions app15368; one developer approval, stale-review dismissal and independent last-push approval; administrator enforcement; no force pushes or branch deletion. Branch SHAs stayed dev 561e917 and main 3582f7e. This supersedes the unprotected observation and unperformed-protection wording in the earlier dated snapshot below. No disruptive enforcement test was run. Merge protection does not make Cloudflare deployment wait for post-merge CI, or prevent separately authenticated Wrangler releases; production promotion remains held.
 
 Q24 purpose is now established by deployment metadata and original Orca-indexed tool evidence: the intentional Wrangler recovery restored 0530461e after candidate 56f6236e failed `/legal/privacy` with HTTP500. This does not establish human authorization of that historical rollback, its internal deployed exception, or a safe return to the candidate. Coordinator runtime-worker evidence now reproduces seven local packaged-workerd HTTP500 routes and `Unexpected loadManifest(/.next/server/preview-props.json) call` in NextNodeServer.getPreviewProps. Repair and packaged-runtime success remain pending; preserve the active release until the coordinator establishes the repaired candidate's release disposition and exact-version live gate.
 
