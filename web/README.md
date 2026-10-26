@@ -20,7 +20,10 @@ checkout, even if that checkout has been upgraded. `SPINE_HOME` can point at a
 local clone containing that tag. No application or documentation command needs
 the repo's disposable `temporary/` folder. Other features require their own
 scope/authorization; passing the baseline checks does not make the full product
-implemented. Production promotion remains on hold until the owner's signal.
+implemented. Production promotion remains on hold until the owner's signal. The 2026-10-26
+owner authorization covers bounded repairs/audits and sequential milestones;
+this branch prepares the runtime/release-controls baseline for a dev PR. F1
+implementation and its schema/design changes are excluded from this candidate.
 
 ## Local development
 
@@ -124,7 +127,10 @@ are included in public/font-licenses/.
 
 ```bash
 npm run test        # Vitest in the Workers pool (89 tests)
-npm run test:deploy # Deployment isolation and R2 audit policy (25 Node tests)
+npm run test:deploy # Deployment isolation, release identity and R2 audit policy
+node --test scripts/setup-local.test.mjs # Local setup safety
+npm run build:worker:dev
+npm run test:worker:smoke # Built artifact in local workerd, synthetic D1/R2
 npm run typecheck   # tsc for app + integration tests + browser tests
 npm run lint        # eslint (ignores .open-next and .wrangler build output)
 ```
@@ -246,10 +252,25 @@ scripts. Incorrect dashboard commands produce a failed check until corrected.
 Wrangler's custom build also checks the target before upload, covering a
 plain default `wrangler deploy` that bypasses the adapter configuration.
 
-`npm run verify:dev` checks the active dev version's bindings, anonymous routes,
-legal-page versions, indexing headers, and the live OTP limit using invalid
-codes. It sends no sign-in mail and creates no account. It needs the existing
-Wrangler login for read-only deployment metadata.
+After a separately authorized dev deployment, capture its full Worker version
+UUID and verify that candidate explicitly:
+
+```bash
+npm run verify:dev -- --expected-version <full Worker UUID>
+# Explicit current-health inspection only; does not verify a candidate:
+npm run verify:dev -- --health-only
+```
+
+Missing/malformed/duplicate/unknown arguments fail before authentication or
+requests. A historical candidate, split traffic, ambiguous/missing metadata or
+wrong active version fails closed. The verifier checks actual bindings,
+anonymous routes, policy/noindex boundaries and invalid-code throttling without
+sending mail or creating an account. It rechecks the original active version
+before invalid-code probes and after the run; an observed deployment change
+fails without release-success output. Health-only mode always reports identity
+unverified. Metadata observations cannot lock deployment, prove every request's
+version or establish source-SHA provenance. Existing Wrangler login supplies
+read-only deployment metadata; this local candidate does not deploy.
 
 The privacy and terms versions are now `2026-10-14`; existing accounts must
 accept again after release. Legal pages label the future workflows explicitly.
@@ -265,10 +286,39 @@ Accounts/onboarding are the currently implemented product boundary.
   `requireVerifiedFreelancer()` refuses everyone, so no logs can be filed. This
   is deliberate.
 
-## Remaining dependency advisory
+## Dependency audit evidence
 
-The 2026-10-14 compatible security updates reduce npm audit from 17 affected
-dependency entries to five high entries, all from the braces advisory through
-ESLint. There is no compatible patched braces release available; npm's forced
-fix downgrades Next's lint configuration. Keep the current compatible tooling
-and recheck when a patch is published. The affected path is build/lint tooling.
+On 2026-10-26, this isolated candidate's clean `npm ci` passed under Node
+24.22.1/npm 11.19.1. Fresh `npm audit --json` and
+`npm audit --omit=dev --json` both returned zero findings. The manifest and lock
+select OpenNext Cloudflare 1.20.12 with AWS adapter 4.1.11 and retain Next 16.4.3;
+no unsupported-version bypass, forced downgrade or advisory suppression is used.
+This supersedes the historical October 14 braces finding for the current lock;
+CI rechecks the graph as advisories change. Other local/hosted/release evidence
+and remaining limitations are recorded separately in QAD/OPS.
+
+## Offline recovery preparation
+
+From the repository root:
+
+```bash
+python -m unittest discover -s scripts -p 'test_*.py'
+python scripts/recovery_rehearsal.py
+```
+
+The rehearsal reads only hash-reviewed migrations through 0005, allocates fresh
+synthetic native SQLite databases, compares original rows/schema, exercises
+binary snapshots and pre/post SQL export/import, checks integrity/FKs and fourteen
+constraint rejections, then removes all owned databases/exports. Its only report
+is ignored `temporary/recovery-rehearsal-report.md`. It refuses existing database
+paths, arbitrary CLI targets and redirected report paths. No developer database,
+credential, remote service, real account or proof content is read.
+
+Native SQLite success does not prove D1 migration or recovery safety. The
+populated transaction probe exposes migration 0005's existing foreign-key
+hazard and preserves rollback; published migration SQL is unchanged. Real D1
+export/import, Time Travel, R2 recovery, Worker rollback, encrypted backup/access,
+write-pause/data-loss acceptance and production promotion remain separate owner
+gates in OPS. Canonical SPINE validation remains a local release gate because
+the pinned engine repository is private; hosted CI runs application and
+self-contained runner/recovery tests without copying private engine source.

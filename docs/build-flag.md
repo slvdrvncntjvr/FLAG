@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.12
+doc_version: 2.14
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-25
+updated: 2026-10-26
 reconciled: 2026-10-13
 ---
 
@@ -64,7 +64,7 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Runtime (deployed) | Cloudflare Workers, `nodejs_compat` | compatibility_date 2026-10-01 | 2026-10-12 | https://developers.cloudflare.com/workers/configuration/compatibility-dates/ |
 | Framework | Next.js App Router | 16.4.3 | 2026-10-25 | https://github.com/vercel/next.js/releases/tag/v16.4.3 |
 | UI runtime | React, React DOM | 19.2.8 | 2026-10-12 | https://react.dev/ |
-| Adapter | @opennextjs/cloudflare | 1.20.10 | 2026-10-12 | https://github.com/opennextjs/opennextjs-cloudflare/releases |
+| Adapter | @opennextjs/cloudflare (locked @opennextjs/aws) | 1.20.12 (4.1.11) | 2026-10-26 | https://registry.npmjs.org/@opennextjs/cloudflare/1.20.12 , https://registry.npmjs.org/@opennextjs/aws/4.1.11 |
 | CLI | wrangler | 4.149.0 | 2026-10-12 | https://www.npmjs.com/package/wrangler |
 | Database | Cloudflare D1 | managed | 2026-10-12 | https://developers.cloudflare.com/d1/ |
 | ORM | drizzle-orm / drizzle-kit | 0.45.4 / 0.31.11 | 2026-10-12 | https://orm.drizzle.team/docs/get-started/d1-new |
@@ -89,6 +89,7 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/local | @fontsource-variable/source-serif-4 5.3.1, @fontsource-variable/inter 5.3.0, @fontsource/ibm-plex-mono 5.3.0 | 2026-10-14 | https://www.npmjs.com/package/@fontsource-variable/source-serif-4/v/5.3.1 , https://www.npmjs.com/package/@fontsource-variable/inter/v/5.3.0 , https://www.npmjs.com/package/@fontsource/ibm-plex-mono/v/5.3.0 |
 
 Version notes:
+- 2026-10-26 authorized baseline runtime repair: OpenNext Cloudflare 1.20.12 and its exact AWS 4.1.11 dependency replace 1.20.10/4.1.9 in the manifest/lock only. Both registry peer ranges are >=15.5.28 <16 or >=16.4.1, admitting pinned Next 16.4.3; no unsupported-version bypass is used. Registry metadata was read on this date. No product route, schema, policy, Worker compatibility setting or F1 design changes are included. Local gates are recorded separately in QAD.
 - 2026-10-25 authorized security refresh: Next and its ESLint configuration move together to 16.4.3; Vitest moves to 4.1.12. OpenNext 1.20.10 and the Cloudflare test plugin 1.4.2 remain pinned; their declared peers admit the selected versions. The Next Server Actions denial-of-service advisory applies to the onboarding Server Action; separate cache/image RCE advisory conditions were not established as reachable on this Worker. Sources: https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r , https://github.com/vitest-dev/vitest/security/advisories/GHSA-xp26-3454-mjgp . This security repair qualifies for the seven-day pin-update exception. Clean installation and fresh full/omit-dev audits pass with zero findings; combined app/build/browser evidence is recorded in QAD after the logout repair settles.
 - The same refresh uses version-scoped Undici overrides 6.29.1 and 7.30.1, Express-scoped body-parser 2.4.0 and test-plugin-scoped Zod 4.6.6. Existing major APIs and direct application Zod remain unchanged. These repair affected build/test dependency copies rather than accepting audit-suggested incompatible downgrades. Verified registry sources: https://registry.npmjs.org/undici/6.29.1 , https://registry.npmjs.org/undici/7.30.1 , https://registry.npmjs.org/body-parser/2.4.0 , https://registry.npmjs.org/zod/4.6.6 . The lock retains unrelated Vite/Rolldown/PostCSS versions; npm populated optional Tailwind WASI metadata during regeneration. A package in the production dependency graph is not by itself proof of an exposed deployed runtime path.
 - 2026-10-21 owner-approved Node 24 migration: `.nvmrc` at the repository root and `web/.nvmrc` pin 24.22.1; `web/package.json` requires >=24.22.1 <25 and `web/.npmrc` enables engine-strict. The exact pin selects the reproducible local/build version; the engine range admits later Node 24 security patches. This is a security release, qualifying for the seven-day wait exception below. The official Windows archive was SHA-256 verified before execution. Clean installation under this exact version passes, together with all 85 Workers cases, 25 Node checks, three Python runner tests, app/test/E2E typechecks, lint, dev Worker build and deployment dry run. The copied strict-engine settings reject 24.8.0 in an isolated offline probe; the full-project offline probe first stopped on an uncached optional archive. All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory.
@@ -122,7 +123,7 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 ## 3. Commands
 
-Script block in `web/package.json`, confirmed against the manifest on 2026-10-25. The local auth/onboarding browser harness is available through test:e2e. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero.
+Script block in `web/package.json`, confirmed against the manifest on 2026-10-26. The local auth/onboarding browser harness is available through test:e2e. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero.
 
 `.github/workflows/baseline.yml` runs on every PR to dev/main and every dev push, plus manual dispatch. It uses the exact Node pin, runs the application/type/lint/Workers/Node/browser gates and pinned-runner unit tests, performs the full-graph high/critical audit, and packages the dev Worker without upload; it needs no service credentials or production data. The canonical SPINE repository is private: public hosted CI does not clone it or claim canonical document/checkpoint validation. Those remain mandatory local release checks with the installed pinned 0.3.0 engine. PR #14's first run exposed the incorrect public-bootstrap assumption; its dependency-audit job passed while verify stopped before app checks. Hosted success is separate from local YAML/actionlint validation and required-check branch protection. From `web/`, `node scripts/setup-local.mjs --repair-url` repairs only a supported single-line dotenv URL while preserving other values, `node scripts/check-local.mjs` checks runtime/config/account readiness, and `node --test scripts/setup-local.test.mjs` runs five helper safety cases alongside the 25 deployment/R2 cases. Malformed, duplicate or actual multiline configuration is rejected before repair writes. The nvm default now selects 24.22.1; approved Cloudflare account selection remains explicit per shell as documented in README.
 
@@ -137,9 +138,10 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-25
 | Deploy already-built Worker (production) | `npm run deploy:worker` (configuration guard then `opennextjs-cloudflare deploy`) |
 | Deploy already-built Worker (dev) | `npm run deploy:worker:dev` (configuration guard then `opennextjs-cloudflare deploy --env dev`) |
 | Manual build and deploy | `npm run deploy` (production), `npm run deploy:dev` (dev) |
-| Verify dev release | `npm run verify:dev` (read-only binding metadata plus anonymous route and invalid-code checks; no mail/signup) |
+| Verify dev release | `npm run verify:dev -- --expected-version <full Worker UUID>` (explicit candidate, binding metadata, routes, invalid codes; no mail/signup); `npm run verify:dev -- --health-only` checks current health without candidate verification |
 | Test | `npm test` (`vitest run`) |
-| Deployment boundary and R2 audit tests | `npm run test:deploy` (25 Node tests for branch/environment/account checks, live binding validation, and conservative R2 audit policy) |
+| Deployment boundary, release identity and R2 audit tests | `npm run test:deploy` (branch/environment/account checks, active candidate identity, live binding validation and conservative R2 audit policy) |
+| Packaged Worker smoke | `npm run test:worker:smoke` after `npm run build:worker:dev`; executes the built artifact in local workerd with synthetic isolated D1/R2 |
 | Inspect R2 resources and usage | `npm run audit:r2` (read-only API inspection; exit 1 unsafe/incomplete resource inspection, exit 2 warnings/incomplete billing access; never a spending cap) |
 | End-to-end | `npm run test:e2e` (`node scripts/e2e.mjs`); desktop and 360px Chromium |
 | Lint | `npm run lint` (`eslint`) |
@@ -152,7 +154,10 @@ Script block in `web/package.json`, confirmed against the manifest on 2026-10-25
 | Read pinned template | `python scripts/spine.py template CODE` (repo root) |
 | Docs validator | `python scripts/spine.py check docs/` (repo root) |
 | Checkpoint verification | `python scripts/spine.py checkpoint verify` (repo root) |
-| Pinned engine runner tests | `python -m unittest discover -s scripts -p 'test_spine.py'` (repo root) |
+| Python runner and recovery safety tests | `python -m unittest discover -s scripts -p 'test_*.py'` (repo root) |
+| Offline recovery rehearsal | `python scripts/recovery_rehearsal.py` (repo root); hash-reviewed migrations through 0005, synthetic native SQLite only; report in ignored `temporary/recovery-rehearsal-report.md` |
+
+2026-10-26 resumed child-worktree validation: exact Node 24.22.1/npm 11.19.1 passes 89 Workers, 38 deployment/release/R2 Node, five setup and ten Python cases, all typechecks/lint, actual OpenNext dev Worker build, packaged workerd smoke, no-upload dev dry run and six desktop/mobile browser cases. Fresh full/omit-dev audits report zero findings. The logout fault-injection test retains its assertions with a bounded fifteen-second timeout; the smoke migration command has a two-minute timeout. Credential-free build prerendering emits missing-secret diagnostics while exiting zero; configured synthetic workerd runtime checks pass. QAD records the sandbox retry and exact evidence; independent review, hosted CI and dev publication remain pending.
 
 2026-10-21 typecheck correction: `web/tests/tsconfig.json:7` overrides the app exclusion so the test project includes all five test files. Earlier successful commands skipped them. The corrected check exposed TS2345 at `web/tests/f02-schema.test.ts:162`; its unsupported-proof-metadata regression now uses a precise partial type, retaining the negative runtime assertions. App, integration-test, and E2E TypeScript checks pass through the full manifest command above. All 85 Workers tests, 25 Node deployment/audit checks, three Python runner tests, full lint, and the OpenNext dev Worker build pass. Chromium verification passes all six cases across desktop and 360px mobile; the complete runner exits zero. That first milestone was verified on Node 24.8.0. The owner-approved 24.22.1 pin and its later verification are recorded in the version notes above.
 
@@ -163,6 +168,8 @@ Browser infrastructure: `web/playwright.config.ts:1` defines Chromium desktop (1
 `scripts/spine.py:1` reads this repository's 0.3.0 pin from AGENTS.md and resolves the same local engine sources in order. It extracts the local v0.3.0 tag into an automatically cleaned OS temporary snapshot without switching or upgrading the shared clone. If no tag is available, only an already matching 0.3.0 engine is accepted; a different version is an error. No command depends on the repo's temporary/ directory. Its tests cover a shared 0.4.0 checkout with a 0.3.0 tag, exit-code/argument forwarding, Unicode output, cleanup, and refusing an unavailable pin. Other agents should use this runner rather than executing a different shared engine's validators.
 
 Long-running commands (dev servers, watchers) must be run by the owner in their own terminal. The owner explicitly authorized the finite browser E2E runner for this milestone; it owns and tears down its test server automatically.
+
+Runtime/release controls (2026-10-26): `web/scripts/release-identity.mjs:8` requires exactly one explicit full Worker UUID, or explicit health-only mode. Missing/duplicate/conflicting/unknown arguments fail before authentication/network. Latest unambiguous deployment must have one version at 100 percent; a historical candidate, split traffic, missing/malformed metadata and mismatched version fail closed. `web/scripts/verify-dev-release.mjs:43` rechecks the original version before invalid-code probes and after all checks; only the final successful release-mode output claims identity verified. This detects changes visible at those metadata observations, not an atomic lock, source-SHA provenance, or proof every request reached one version. CI runs the packaged smoke and Python safety suite credential-free, retaining local canonical SPINE validation.
 
 ### 3.1 Deploy and migrations (read before any schema change)
 

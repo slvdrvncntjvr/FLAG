@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.15
+doc_version: 2.16
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-25
+updated: 2026-10-26
 reconciled: 2026-10-13
 ---
 
@@ -189,11 +189,23 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 
 | What | Frequency | Location | Restore tested |
 |------|-----------|----------|----------------|
-| D1 | Continuous (D1 Time Travel, 30 days on paid, 7 on free) | Cloudflare | not yet |
-| D1 export | Weekly during the pilot (`wrangler d1 export`) | Owner's encrypted drive | not yet |
-| R2 proofs | Durability of the configured private buckets after remote provisioning | Cloudflare (remote provisioning pending); local R2 binding tested | not yet; local put/get/delete primitives pass, not a remote backup/restore test |
+| D1 | Continuous (D1 Time Travel, 30 days on paid, 7 on free) | Cloudflare | No actual D1/Time Travel restore drill observed; synthetic native SQLite rehearsal only (2026-10-26, below) |
+| D1 export | Weekly during the pilot (`wrangler d1 export`, planned remote procedure) | Owner-selected encrypted destination and access still pending | No real remote export/import observed; synthetic SQL export/import passes locally only |
+| R2 proofs | Durability of configured private buckets | Cloudflare private Standard buckets last inspected 2026-10-25; not rechecked by this local candidate | No remote backup/restore drill; local put/get/delete primitives only |
 
 ## 7. Production readiness gate
+
+### 2026-10-26 baseline runtime and release-control candidate
+
+Owner authorized the recommended bounded repairs/audits and sequential milestone preparation (LOG). This isolated branch prepares a dev PR candidate; no push, PR creation, remote deployment/migration/merge, mail, paid change, protection bypass or checkpoint is performed here. Production remains held. Historical live Worker observations below are not fresh verification of this candidate.
+
+After a separately authorized dev deployment, capture the full expected Worker UUID from that deployment and run `npm run verify:dev -- --expected-version <full Worker UUID>` from web/. The active latest deployment must be unambiguous, at 100 percent on that exact version; candidate presence in history is insufficient. Arguments fail before credentials/network. The verifier checks DB/auth/PROOFS, seven anonymous routes, policy/noindex boundaries and six invalid-code throttle responses, then rechecks active identity before reporting success (`web/scripts/verify-dev-release.mjs:43`). It also checks identity before invalid-code probes. Any observed concurrent version change or unavailable metadata fails the run; rerun after deployment settles. Metadata checks bracket observations but cannot lock deployment or establish source-SHA/request-level provenance. `npm run verify:dev -- --health-only` explicitly reports identity unverified and never substitutes for candidate release verification.
+
+`npm run build:worker:dev` followed by `npm run test:worker:smoke` runs the actual packaged Worker locally (`web/scripts/smoke-built-worker.mjs:1`), using synthetic credentials, a temporary profile/config, local migrated D1 and local R2. It verifies seven anonymous routes, protected redirects, noindex, policy versions 2026-10-14, empty session and invalid-code statuses 400/400/400/400/400/429 with Retry-After; no send-code call, mail, real account or remote resource is used. The finite runner owns process-tree and OS-temp cleanup. This supplements the six auth/onboarding Next-development browser cases; neither proves hosted deployment or real email delivery.
+
+Offline recovery preparation: from repo root run `python scripts/recovery_rehearsal.py` and `python -m unittest discover -s scripts -p 'test_*.py'`. The hash-reviewed migration allowlist ends at 0005. Fresh synthetic native SQLite databases verify original row/schema preservation, independent binary snapshots, pre0003/post0005 SQL export/import, integrity/FK checks and fourteen constraint rejections on both migrated and restored final data. Only ignored `temporary/recovery-rehearsal-report.md` remains; databases/exports are removed. Existing databases and redirected report paths are refused (`scripts/recovery_rehearsal.py:57`, `:418`). This is not a D1/Time Travel/R2 restore or Worker rollback drill.
+
+The populated SQLite transaction compatibility probe must remain visible: migration 0005 uses foreign_keys=OFF, which cannot disable D1 foreign keys inside an implicit transaction. A blocked populated probe with preserved rollback is a readiness limitation, even when native autocommit migration/restore passes. No published migration is rewritten. [Cloudflare foreign-key rules](https://developers.cloudflare.com/d1/sql-api/foreign-keys/) describe the boundary. Before production, retain the existing owner gates for encrypted backup destination/access, accepted write-pause/data-loss window, explicitly isolated real Cloudflare export/import/Time Travel and populated migration rehearsal, source/version correlation, billing/alerts, real mail and device checks. Local evidence does not clear those gates.
 
 ### 2026-10-25 baseline promotion preparation
 

@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.37
+doc_version: 0.39
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-25
+updated: 2026-10-26
 reconciled: 2026-09-14
 ---
 
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.12 | Review | 2026-10-25 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.14 | Review | 2026-10-26 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.8 | Review | 2026-10-25 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.14 | Review | 2026-10-25 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.15 | Review | 2026-10-25 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.28 | Draft | 2026-10-25 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.16 | Review | 2026-10-26 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.16 | Review | 2026-10-26 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.30 | Draft | 2026-10-26 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -170,6 +170,8 @@ This section describes implementation status, not new requirements. IDEA and PRD
 | Log/proof/rating data foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema constraints, private R2 configuration, local storage primitives; dev migrations through 0005 applied | `web/src/server/db/schema.ts:261`, `web/tests/f03-storage.test.ts:1`; no submission, proof streaming, publication, or record UI exists yet |
 | Verification and engagement handshake (PRD-F1, PRD-F9) | Planned workflows with supporting tables; verified-freelancer guard intentionally rejects everyone | `web/src/server/auth/guards-core.ts:11`; implement name/profile capture, reconcile pending verification requests with completed inspection fields, and design engagement-specific consent-receipt linkage before schema changes |
 | Moderation, records, corrections, retention (PRD-F4, PRD-F6, PRD-F12, PRD-F13, PRD-F14) | Planned target behavior | SDD §3 designs MODERATION_CASE, AUDIT_EVENT, CORRECTION_REQUEST, DATA_REQUEST; these tables, log proof/freeze triggers, retention changes, and feature handlers remain to be built |
-| Automated verification | 89 Workers cases across six files, 30 Node deployment/audit/setup cases, three Python runner tests, app/test/E2E typechecks, full lint, OpenNext dev Worker build and Wrangler dev dry run pass on Node 24.22.1. All six desktop/360px Chromium cases and complete runner exit 0 pass; fresh-context agent review finds no remaining code blocker after repairs. | BUILD §3 lists exact commands; QAD §1 distinguishes local, hosted and deployed evidence from the full-product target case plan |
+| Automated verification | Current child candidate: 89 Workers cases across six files, 38 deployment/release/R2 Node plus five setup cases, ten Python cases, app/test/E2E typechecks, lint, actual OpenNext dev Worker build, packaged workerd smoke and no-upload Wrangler dev dry run pass on Node 24.22.1. All six desktop/360px Chromium cases and complete runner exit 0 pass. Fresh independent review remains pending; QAD records credential-free build diagnostics and the sandbox retry. | BUILD §3 lists exact commands; QAD §1 distinguishes local, hosted and deployed evidence from the full-product target case plan |
+
+2026-10-26 current child-worktree milestone supersedes the older gate counts below: the runtime/release-controls candidate passes the local checks above and both fresh audits report zero findings. Orca confirms parentage under the original FLAG checkout; this candidate stays isolated from F1 implementation. Native SQLite recovery passes but its populated transaction probe remains blocked; real D1/Time Travel/R2 recovery and production gates remain open. Canonical SPINE stays at 0.3.0. Independent review, hosted CI and dev publication are separate next gates; this local milestone authorizes no push, PR or remote release.
 
 2026-10-25 security refresh supersedes the earlier dependency counts: a clean installation of the narrowed patched lockfile and fresh full/omit-dev audits pass with zero findings. Backend logout failure is reproduced and repaired, local combined gates pass, and the default Windows nvm selection is now Node 24.22.1/npm 11.19.1. Hosted Linux CI, the updated dev deployment and the one authorized real inbox test remain pending at this record. Billing/alert access remains unverified; no hard zero-cost guarantee or runtime proof quota enforcement is claimed. SPINE normal validation has zero errors and six known warnings for historical/deferred markers and the four design-first entities. Strict validation is not clean and is not represented as a launch gate that has passed. Main/production promotion remains on hold until the owner's explicit signal. BUILD §8 records the remaining feature plan; OPS §7 records concrete promotion prerequisites.
