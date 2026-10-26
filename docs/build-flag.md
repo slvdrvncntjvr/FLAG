@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.24
+doc_version: 2.25
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-26
+updated: 2026-10-27
 reconciled: 2026-10-13
 ---
 
@@ -163,6 +163,8 @@ The credential-free baseline workflow retains verify/dependency-audit for PRs to
 | Python runner and recovery safety tests | `python -m unittest discover -s scripts -p 'test_*.py'` (repo root) |
 | Offline recovery rehearsal | `python scripts/recovery_rehearsal.py` (repo root); hash-reviewed migrations through 0005, synthetic native SQLite only; report in ignored `temporary/recovery-rehearsal-report.md` |
 | Production-shape local D1 rehearsal | `python scripts/production_migration_rehearsal.py` (repo root); existing pinned Node/Wrangler dependencies required; unchanged 0000-0007, synthetic auth-only fixtures, staged preservation, exact local export/import and reapplication; report in ignored `.local-evidence/production-rehearsal/report.json` |
+
+The retained183-command rehearsal measures original sourced7805bfa on the observed Windows checkout. Publication review later reproduced a portability defect: its raw migration hash pins reject unchanged canonical Git LF files. The narrow repair is limited to explicitly reviewed per-file LF/CRLF input hashes, retaining original execution bytes and rejection before dependencies; published migrations and execution/schema comparisons must never be normalized to satisfy this guard. Focused repair results are recorded separately in QAD/LOG rather than relabeling the historical full rehearsal as a new-source run.
 
 Local browser infrastructure uses fresh OS-temporary app/D1/R2 state, synthetic credentials and no provider keys. It refuses an occupied port 3000, captures localhost OTP privately, and cleans up its owned server/process tree and dependency link after a finite run. No real mail, OAuth, physical-device or authenticated deployed-runtime acceptance follows from this suite. Packaged smoke separately exercises the built artifact in local workerd. LOG preserves the earlier cold-start, fixture, logout and runtime repair evidence.
 

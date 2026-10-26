@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.56
+doc_version: 0.57
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.24 | Review | 2026-10-26 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.25 | Review | 2026-10-27 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.14 | Review | 2026-10-26 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.31 | Review | 2026-10-27 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.28 | Review | 2026-10-27 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.47 | Draft | 2026-10-27 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.32 | Review | 2026-10-27 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.29 | Review | 2026-10-27 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.48 | Draft | 2026-10-27 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 

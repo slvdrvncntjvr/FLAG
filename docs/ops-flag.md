@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.28
+doc_version: 2.29
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -181,6 +181,8 @@ The automatic build's GitHub receipt explicitly maps merged 45540d8 to full vers
 Future releases must freshly inspect their target and apply only genuinely pending reviewed migrations before code deployment; never replay 0007 from this historical procedure. Documentation-only publication can trigger another same-code build, requiring its own mapped exact-version check recorded on that PR. Real authenticated/manual-inspection acceptance is separate from synthetic test and anonymous release evidence.
 
 ### Before production or main promotion
+
+Independent operational review,2026-10-27: GitHub's Cloudflare integration summary maps dev db74ce2/build9b68856c to live0830625e-42cc-428a-bc3a-9de0f686d2cd at100percent; main3582f7e/build74aee71a maps to the unchanged production9b1fdc1d. Dev's ten anonymous route/current-policy/binding checks pass. Fresh SELECT/PRAGMA-only production inspection matches the retained0007 schema/ledger exactly,14triggers/0FKviolations/0temporaryguards. Both actual R2 buckets are private Standard with safe lifecycle metadata; the audit still exits1 for old production's missing PROOFS, with subscription/notification HTTP403 and unknown-operation warnings. PR19 publishes recovery tooling/evidence; draftPR20 prepares application promotion. Their hosted CI passes at their observed heads, including main-target production packaging; any later head/base or deployment needs its own checks. Publication review identified a narrow rehearsal checkout-hash portability defect; QAD section1 records its separate guard-only repair, independent verification and22passingPython cases. The completed production migration is unchanged. Ignored release-preparation operational/publication/repair reports retain exact observations and limitations.
 
 Application promotion preparation,2026-10-27 (Asia/Manila): the owner directed the next recommended steps after SQL completion. Publish the reviewed recovery tooling/evidence through dev, verify any resulting exact dev release, and prepare a draft dev-to-main PR. Fresh local checks of the unchanged application pass the actual production build, production binding guard, no-upload packaging and ten-route isolated packaged-Worker smoke, including the invalid-code throttle with no mail. All seventeen Python tests pass; fresh full/omit-dev audits report zero vulnerabilities. These checks do not establish a deployed production candidate or physical-device/inbox/authenticated acceptance. Main's required independent developer/last-push approval, strict verify/dependency-audit checks pinned to app15368 and administrator enforcement were freshly read back unchanged. Intermittent GitHub connectivity and Orca account-routing startup failures are recorded in LOG; failed starts are not completed reviews.
 

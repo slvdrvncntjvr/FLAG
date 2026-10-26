@@ -46,6 +46,7 @@ TRIGGERS = {
     "verification_portfolio_frozen_insert", "verification_portfolio_frozen_update",
     "verification_portfolio_frozen_delete", "verification_submitted_profile_frozen",
 }
+# Historical raw hashes from the original Windows rehearsal; retain its receipt binding.
 REVIEWED_SHA256 = (
     "c01ae6ee3252711aadcc27a546c329c49a7925155fd1c792cf0ff6e7960a2c7d",
     "e3dc23f66aaa022c5ff0317abd877469ed6d69573722b3b65c3268b2d3d7ae1a",
@@ -56,6 +57,44 @@ REVIEWED_SHA256 = (
     "0f645218e0d946673975b2f2704149b0ea4c49676c0bd4dc77e9cae277773c70",
     "86d00f812e22f4a92ac8d8db852b652353a38581ccf94811e82f642639fc11b1",
 )
+# Independently derived from exact Git blobs at 82057ecdaace93c83ea297b9c780593807134f1e:
+# canonical LF bytes and complete LF-to-CRLF checkout bytes, including quoted text.
+# Only these exact per-file hashes are accepted. Never normalize input for validation
+# or execution: every accepted file is copied byte-for-byte into the owned rehearsal.
+REVIEWED_CHECKOUT_SHA256 = {
+    "0000_init.sql": (
+        "ccbdf47104ecfd84d00700970e1ec56d9aa2df7e79871eb47a6861e933656322",
+        "c01ae6ee3252711aadcc27a546c329c49a7925155fd1c792cf0ff6e7960a2c7d",
+    ),
+    "0001_triggers.sql": (
+        "4406970708512ce3826be721170d48a3cfdd2c10ff0827e2a9552447fcf48297",
+        "e3dc23f66aaa022c5ff0317abd877469ed6d69573722b3b65c3268b2d3d7ae1a",
+    ),
+    "0002_pink_colossus.sql": (
+        "5e71d71c09cef9d040fd4fa014c061a976f31b632bf8b84037a21bf2e97fb4a4",
+        "0b049a1233d1f6ca4dc03ee2fabbb0ca88e6d0bae4dca968c4fde39f8a2ce020",
+    ),
+    "0003_melted_the_twelve.sql": (
+        "5a3d4e85b0591df91f4aafb18c3b7699dfeb6824ee46719d2f27d57cd383c5d2",
+        "6a5e37cd456a028101446ffd10074d329d466532bb48064a3af1dc2d1459be2d",
+    ),
+    "0004_clever_arclight.sql": (
+        "12177289b6a018330cbe0ee934ac0a717ad1f54271e57b775c9d88f67a296e24",
+        "8ae7dc16f749b172aeca5777aee6caeb6ad22165c608f48cc670973302de3d49",
+    ),
+    "0005_happy_vermin.sql": (
+        "81cce6b4286b1e57133a999e87c5d24fb99a8bb12f3ce67317020651e84d8019",
+        "e92c4142f30c671c2359619f04ed9537f0b28ba5915566701358ee2287e8ef92",
+    ),
+    "0006_verification_review.sql": (
+        "3c34a504f38ee8996fe324ad97f191f18122dcbde19deadf42a0faa3eacc93d7",
+        "0f645218e0d946673975b2f2704149b0ea4c49676c0bd4dc77e9cae277773c70",
+    ),
+    "0007_verification_submitted_profile.sql": (
+        "66be5b23abaa2278b9fab52675da8f4608001fb2cff2ba8dd69e7ba9e433a55d",
+        "86d00f812e22f4a92ac8d8db852b652353a38581ccf94811e82f642639fc11b1",
+    ),
+}
 
 
 def require(value, message):
@@ -443,7 +482,7 @@ def restore(db, config, migrations, label, expected):
 
 def run_rehearsal(evidence):
     scripts = {name: (ROOT / "web/drizzle" / name).read_bytes() for name in MIGRATIONS}
-    require(tuple(digest(scripts[name]) for name in MIGRATIONS) == REVIEWED_SHA256,
+    require(all(digest(scripts[name]) in REVIEWED_CHECKOUT_SHA256[name] for name in MIGRATIONS),
             "Published SQL differs from reviewed hashes; explicit review required")
     evidence["migration_sha256"] = {name: digest(sql) for name, sql in scripts.items()}
     node = shutil.which("node")

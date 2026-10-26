@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.31
+doc_version: 2.32
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -19,6 +19,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+Independent publication review of82057ec reproduces oneP2: the optional full rehearsal's original raw hash guard rejects pristine Git LF migration bytes before Node/Wrangler. A separately dispatched narrow repair now accepts only the sixteen exact per-file LF/CRLF hashes derived from canonical Git blobs, preserving historical pins and original executed bytes. All22Python cases pass normally and with Node/Wrangler absent. Regressions cover pristineLF/fullCRLF and mixed formats across files, modified/mixed-within-file/BOM/truncated/wrong-file/quoted input rejection before tool lookup, and unchanged owned copies. Independent coordinator review verifies every hash from exact Git bytes and confirms the execution syntax tree is unchanged after the guard. Reviewed source is655baedee5f32502b91924036f21565a0d624e31227c5d26912a155c87a6653b; tests c61235ff4f65302f842beab30456e2b72dc88709f0ec4d70324eac4ffd5dabba. This clears the reproduced guard defect; the original183-command full rehearsal remains measured only against d7805bfa, with no full new-source execution claimed. No published SQL/schema/data is rewritten. Operational review separately confirms the exact current dev mapping, production0007 schema/ledger/FKs/no guards and both private R2 buckets; billing/alerts remain HTTP403. PR20 stays draft until its remaining OPS acceptance gates pass, with fresh hosted checks required after publication updates its head.
 
 Release preparation refresh,2026-10-27 (Asia/Manila), base db74ce2 plus the documented recovery-publication changes: all seventeen Python runner/recovery safety cases pass; the unchanged application passes a fresh production OpenNext build, exact production configuration guard, Wrangler no-upload package and ten anonymous packaged-workerd route checks with synthetic isolated D1/R2 and400/400/400/400/400/429 invalid-code responses. No mail was sent. Full and omit-dev dependency audits both report zero vulnerabilities. Ignored release-preparation production-build/smoke/dry-run and audit logs retain the observations. These are local production-target packaging checks, not a new live production application or full authenticated/device acceptance. OPS section7 retains the draft-promotion checklist and exact-version verification requirement after any dev publication.
 
