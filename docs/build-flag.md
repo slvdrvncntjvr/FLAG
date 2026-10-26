@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.22
+doc_version: 2.25
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-26
+updated: 2026-10-27
 reconciled: 2026-10-13
 ---
 
@@ -24,6 +24,8 @@ reconciled: 2026-10-13
 Current owner-directed branch policy, 2026-10-26: dev now requires zero approving reviews and require_last_push_approval is false. This is the requested persistent change, not a temporary exception. Strict current-base verify/dependency-audit checks pinned to GitHub Actions app15368, administrator enforcement, stale-review dismissal and force-push/deletion prohibitions remain unchanged. Main retains one approving developer review and independent last-push approval; its complete protection configuration is unchanged. Agent code/scope review and required CI remain part of the development workflow.
 
 Verified scoped baseline: PR17 is merged into dev 45540d8, migration0007 and exact dev release verification pass, and local checkpoint spine-cp-2026-10-26-1 captures that application. INDEX section 6/QAD section 1/OPS section 7 hold the actual gate evidence and remaining main prerequisites. This documentation-only follow-up introduces no application/migration/policy/dependency change.
+
+Later owner-approved production SQL operation, 2026-10-26: production now has0000-0007 with exact original auth preservation, eight ledger rows, fourteen permanent triggers, clean FKs and no pending migration. The unchanged main application remains Worker9b1fdc1d at100percent. OPS section7 records verified remote recovery, fresh encrypted paused backup, the single7minute36second write pause, exact reapplication/no temporary guards, and seven anonymous live checks. Main/code promotion remains separate; published migration bytes, application source, dependencies, policy versions, invariants and reconciled dates are unchanged.
 
 Current scope: see INDEX section 6 for the observed dev release and LOG's 2026-10-26 owner authorization for the three audit repairs, current copy/docs, gated dev integration and local checkpoint. The repair includes additive migration 0007 for immutable case input snapshots and privacy/terms reacknowledgment at versions 2026-10-26. Product meaning, invariants, SPINE 0.3.0, published migration history and reconciled dates stay fixed. Review-state technical implementation is explicitly authorized within this scope; main/production remains gated by OPS section 7.
 
@@ -160,6 +162,9 @@ The credential-free baseline workflow retains verify/dependency-audit for PRs to
 | Checkpoint verification | `python scripts/spine.py checkpoint verify` (repo root) |
 | Python runner and recovery safety tests | `python -m unittest discover -s scripts -p 'test_*.py'` (repo root) |
 | Offline recovery rehearsal | `python scripts/recovery_rehearsal.py` (repo root); hash-reviewed migrations through 0005, synthetic native SQLite only; report in ignored `temporary/recovery-rehearsal-report.md` |
+| Production-shape local D1 rehearsal | `python scripts/production_migration_rehearsal.py` (repo root); existing pinned Node/Wrangler dependencies required; unchanged 0000-0007, synthetic auth-only fixtures, staged preservation, exact local export/import and reapplication; report in ignored `.local-evidence/production-rehearsal/report.json` |
+
+The retained183-command rehearsal measures original sourced7805bfa on the observed Windows checkout. Publication review later reproduced a portability defect: its raw migration hash pins reject unchanged canonical Git LF files. The narrow repair is limited to explicitly reviewed per-file LF/CRLF input hashes, retaining original execution bytes and rejection before dependencies; published migrations and execution/schema comparisons must never be normalized to satisfy this guard. Focused repair results are recorded separately in QAD/LOG rather than relabeling the historical full rehearsal as a new-source run.
 
 Local browser infrastructure uses fresh OS-temporary app/D1/R2 state, synthetic credentials and no provider keys. It refuses an occupied port 3000, captures localhost OTP privately, and cleans up its owned server/process tree and dependency link after a finite run. No real mail, OAuth, physical-device or authenticated deployed-runtime acceptance follows from this suite. Packaged smoke separately exercises the built artifact in local workerd. LOG preserves the earlier cold-start, fixture, logout and runtime repair evidence.
 

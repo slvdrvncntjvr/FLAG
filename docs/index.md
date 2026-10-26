@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.53
+doc_version: 0.57
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-26
+updated: 2026-10-27
 reconciled: 2026-09-14
 ---
 
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.22 | Review | 2026-10-26 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.25 | Review | 2026-10-27 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.14 | Review | 2026-10-26 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.28 | Review | 2026-10-26 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.25 | Review | 2026-10-26 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.44 | Draft | 2026-10-26 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.32 | Review | 2026-10-27 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.29 | Review | 2026-10-27 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.48 | Draft | 2026-10-27 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -119,11 +119,15 @@ The three reproduced defects are repaired: standard-auth user hooks reject recog
 
 Dev migration 0007 completed before merge after fresh preflight and a captured recovery bookmark. Original row-value hashes and prior schema objects were preserved; 0000-0007 are applied, fourteen triggers are installed, no historical snapshots were fabricated and foreign keys are clean. The owner-approved local annotated checkpoint spine-cp-2026-10-26-1 captures the integrated application at 45540d8. Normal SPINE 0.3.0 validation passes with four known warnings and checkpoint verification is CLEAN. The tag remains local. Strict validation, document lock/human reconciliation, complete-product and production acceptance are not claimed; all reconciled dates and eight invariants remain unchanged.
 
-This follow-up records release/checkpoint evidence without changing application, schema, dependencies or policies. Documentation publication can trigger a same-code dev build; its resulting exact-version check belongs on the publishing PR. The UUID above is a dated verified observation, not a permanent claim about active deployment metadata. LOG preserves dated decisions, previous failures and prior release evidence.
+The earlier PR18 documentation follow-up recorded that dev release/checkpoint without application, schema, dependency or policy source changes. Subsequent production SQL evidence appears below. Documentation publication can trigger a same-code dev build, whose resulting exact-version check belongs on its publishing PR. The dev UUID above is a dated observation; LOG preserves dated decisions, failures and release evidence.
 
-Main remains 3582f7e and production remains Worker 9b1fdc1d-c4cb-495c-a343-fb042cbaae68 at 100 percent. Production has only 0000-0002; pending order 0003 -> 0004 -> 0005 -> 0006 -> 0007, recovery/preflight and OPS section 7 gates must complete before any protected main merge triggers deployment. The known populated-0005 failure is a conditional migration hazard, not an observed failure of the empty-feature production shape. Main's independent developer/last-push approval protections remain unchanged. Dev's persistent zero required human approvals retains strict CI and independent agent review.
+Main remains3582f7e and production remains Worker9b1fdc1d-c4cb-495c-a343-fb042cbaae68 at100percent. Production SQL now has0000-0007 after the owner-approved2026-10-26 operation: eight ledger rows, fourteen permanent triggers, all original auth/ledger values preserved, clean FKs, exact no-op reapplication and no remaining temporary pause guards. The single write pause lasted7minutes36.393seconds, including the safely stopped0004 wire-format comparison and reviewed continuation; original source files and active Worker were preserved. OPS section7/QAD section1 record remote recovery, fresh paused encrypted backup, exact per-stage and live postflight evidence. The conditional populated0005 hazard remains documented for future nonempty targets. Main's developer/last-push approvals and remaining application-release gates stay in force; dev's zero required human approvals retains strict CI and independent agent review.
+
+Production verification includes the real local D1 rehearsal, seventeen Python tests, independently reviewed isolated remote backup import/Time Travel restore, and synthetic private R2 recovery. LOG Q26 records explicit approval of the temporary production-backup destination; the selected encrypted directory and thirty-minute zero-planned-loss pause remain the governing decisions. QAD section1/OPS section7 bind the current source/receipt evidence and its limits.
 
 ## 7. Implemented scope and remaining work
+
+Next owner-directed step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
 
 | Area | Current boundary | Evidence / next gate |
 |------|------------------|----------------------|
@@ -132,6 +136,8 @@ Main remains 3582f7e and production remains Worker 9b1fdc1d-c4cb-495c-a343-fb042
 | Log/proof/rating foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema and isolated private R2 configuration/storage primitives | No log submission, proof serving, publication, records or average UI yet |
 | Engagement handshake (PRD-F9) | Existing design and foundation only | Consent-receipt linkage and lifecycle contract must be designed before implementation; preserved original-only F9 design is not silently adopted |
 | Correction, retention and closure (PRD-F12, PRD-F13) | Approved intended behavior; no complete automation | CORRECTION_REQUEST/DATA_REQUEST, safe lifecycle schema, holds, purge/closure and log freeze/proof gates remain later work |
-| Release and recovery | Exact-version dev verifier, isolated packaged smoke, CI and target guards; local/native recovery evidence | OPS section 7 retains production-specific migration/restore, backup/write-pause, cost/device and authenticated-workflow prerequisites |
+| Release and recovery | Dev release controls, local D1 rehearsal, isolated remote D1/synthetic R2 recovery and verified production SQL through0007 | OPS section7 records fresh paused backup, preserved data and safe reopen; application promotion, cost/device and authenticated workflow gates remain separate |
 
 Automatic QR verification remains deferred. Public replies, corroboration, paid SMS, unapproved reputation signals, payments and marketplace work remain excluded.
+
+Latest completed operation,2026-10-26: production SQL0003-0007 is applied and independently checked. The fresh paused encrypted backup and retained recovery bookmark pass exact comparison; all original auth data survives, all fifteen pause guards are removed, schema/ledger/FKs/no-op and seven anonymous live checks pass, and the unchanged Worker remains at100percent. The final receipt binds source70360436 and SHA58ffadc4; original interrupted evidence remains in LOG/local receipts. Main/code promotion, authenticated workflows, device/budget-alert acceptance, checkpoints and human reconciliation remain separate.
