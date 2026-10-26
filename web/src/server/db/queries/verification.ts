@@ -3,6 +3,7 @@ import type { Db } from "@/server/db";
 import { auditEvent, freelancerProfile, moderationCase, portfolioLink, user, verificationCase } from "@/server/db/schema";
 import { isOnboarded, loadViewer } from "./viewer";
 import { verificationQueueAge } from "@/features/moderation/queue-age";
+import { parseSubmittedProfile } from "@/features/verification/submitted-profile";
 
 async function isReviewer(db: Db, actorId: string | null) {
   if (!actorId) return false;
@@ -42,10 +43,16 @@ export async function loadVerificationReview(db: Db, actorId: string | null, cas
   if (!await isReviewer(db, actorId)) return null;
   const [row] = await reviewQuery(db).where(and(eq(moderationCase.id, caseId), eq(moderationCase.kind, "verification"), ne(verificationCase.freelancerId, actorId!))).limit(1);
   if (!row) return null;
-  const links = await db.select().from(portfolioLink).where(eq(portfolioLink.freelancerId, row.request.freelancerId));
+  const submittedProfile = parseSubmittedProfile(row.request.submittedProfile);
+  // Current values are available only for fresh inspection of a legacy open
+  // request; never expose them as evidence of an older inspection/decision.
+  const currentProfile = !submittedProfile && !row.request.decidedAt
+    ? { name: row.profile.displayName, city: row.profile.city, portfolioLinks: await db.select({ url: portfolioLink.url, label: portfolioLink.label }).from(portfolioLink).where(eq(portfolioLink.freelancerId, row.request.freelancerId)) }
+    : null;
   const history = await db.select().from(auditEvent).where(or(
     and(eq(auditEvent.subjectType, "verification_case"), eq(auditEvent.subjectId, row.request.id)),
     and(eq(auditEvent.subjectType, "moderation_case"), eq(auditEvent.subjectId, row.review.id)),
   )).orderBy(auditEvent.createdAt, auditEvent.id);
-  return { ...row, portfolioLinks: links, history };
+  return { request: row.request, review: row.review, serverNow: row.serverNow, claimActive: row.claimActive,
+    submittedProfile, currentProfile, portfolioLinks: submittedProfile?.portfolioLinks ?? [], history };
 }

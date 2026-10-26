@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [dev, main]
   push:
-    branches: [dev]
+    branches: [dev, main]
   workflow_dispatch:
 
 permissions:
@@ -69,6 +69,17 @@ jobs:
         run: npx --no-install playwright install --with-deps chromium
       - name: Local auth and onboarding browser tests
         run: npm run test:e2e
+      - name: Build production Worker locally
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: npm run build:worker
+      - name: Validate production bindings and package Worker without uploading
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: |
+          node scripts/check-deploy.mjs --env=
+          npx --no-install wrangler deploy --env= --dry-run --outdir "$RUNNER_TEMP/flag-production-worker-dry-run"
+      - name: Run production package with isolated local bindings
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: node scripts/smoke-built-worker.mjs --env=
 
   dependency-audit:
     runs-on: ubuntu-24.04

@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { unstable_readConfig } from "wrangler";
 import { CLOUDFLARE_ACCOUNT_ID, checkDeployedBindings, checkResourceBindings } from "./check-resource-bindings.mjs";
 import { checkActiveRelease, parseReleaseOptions } from "./release-identity.mjs";
+import { ANONYMOUS_ROUTES, checkAnonymousRoute } from "./release-routes.mjs";
 
 // Read-only deployment metadata and anonymous route checks. No sign-in mail is sent.
 // Parse before authentication or any request; release mode must name its candidate.
@@ -47,16 +48,10 @@ async function requireUnchangedRelease() {
   assert.equal(current, versionId, "Active dev Worker changed during verification; rerun against the intended release");
 }
 
-const routes = await Promise.all(["/", "/home", "/onboarding", "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"].map(async path => {
+const routes = await Promise.all(ANONYMOUS_ROUTES.map(async path => {
   const response = await fetch(`${base}${path}`, { redirect: "manual", signal: AbortSignal.timeout(20000) });
   const body = await response.text();
-  const protectedPage = path === "/home" || path === "/onboarding";
-  assert.equal(response.status, protectedPage ? 307 : 200, `${path}: unexpected status`);
-  if (protectedPage) assert.equal(new URL(response.headers.get("location"), base).pathname, "/sign-in");
-  if (path !== "/") assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow", `${path}: missing noindex header`);
-  if (path.startsWith("/legal/")) assert.ok(body.includes("2026-10-14"), `${path}: old policy version`);
-  if (path === "/legal/privacy") assert.ok(!body.includes("permanent record"), "Privacy page still has permanent-retention copy");
-  if (path === "/api/auth/get-session") assert.equal(body, "null");
+  checkAnonymousRoute({ path, response, body, base });
   return { path, status: response.status };
 }));
 console.log(JSON.stringify({ routesVerified: routes }));

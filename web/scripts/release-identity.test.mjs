@@ -4,6 +4,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkActiveRelease, parseReleaseOptions } from "./release-identity.mjs";
 import { CLOUDFLARE_ACCOUNT_ID, getDeploymentTarget } from "./check-resource-bindings.mjs";
+import { ANONYMOUS_ROUTES, checkAnonymousRoute } from "./release-routes.mjs";
+import { POLICY_VERSIONS } from "../src/lib/policies.ts";
 
 const candidate = "56f6236e-eb0a-4627-9ada-ca9e59994ff8";
 const older = "0530461e-9992-4f4c-8b28-68fbfd1d61b2";
@@ -63,7 +65,7 @@ test("split traffic, missing metadata and malformed identity fail closed", () =>
 
 // Exercise the actual CLI without credentials or network. Module hooks replace
 // only its Wrangler config/auth lookup; fetch rejects any unexpected request.
-function runVerifier(args, activeVersion = older, subsequentVersions = [activeVersion, activeVersion]) {
+function runVerifier(args, activeVersion = older, subsequentVersions = [activeVersion, activeVersion], routeOverrides = {}) {
   const target = getDeploymentTarget("dev");
   const config = {
     name: target.worker, account_id: CLOUDFLARE_ACCOUNT_ID,
@@ -91,6 +93,8 @@ function runVerifier(args, activeVersion = older, subsequentVersions = [activeVe
     }});
     let attempts = 0;
     const activeVersions = ${JSON.stringify([activeVersion, ...subsequentVersions])};
+    const routeOverrides = ${JSON.stringify(routeOverrides)};
+    const policies = ${JSON.stringify(POLICY_VERSIONS)};
     globalThis.fetch = async (url, options = {}) => {
       const path = new URL(url).pathname;
       console.log("REQUEST " + (options.method || "GET") + " " + path);
@@ -105,14 +109,21 @@ function runVerifier(args, activeVersion = older, subsequentVersions = [activeVe
         return Response.json({ success: true, result });
       }
       if (new URL(url).origin !== ${JSON.stringify(target.authUrl)}) throw new Error("Unexpected origin");
+      if (new Headers(options.headers).has("cookie") || new Headers(options.headers).has("authorization")) throw new Error("Probe must be anonymous");
       if (path === "/api/auth/sign-in/email-otp" && options.method === "POST") {
+        const payload = JSON.parse(options.body);
+        if (!payload.email.endsWith("@example.invalid") || payload.otp !== "000000") throw new Error("Unexpected OTP payload");
         return new Response("", { status: ++attempts === 6 ? 429 : 400, headers: { "retry-after": "900" } });
       }
-      const routes = ["/", "/home", "/onboarding", "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"];
+      const privateRoutes = ["/home", "/onboarding", "/verification", "/moderation/verification", "/moderation/verification/nonexistent"];
+      const routes = ["/", ...privateRoutes, "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"];
       if (!routes.includes(path) || options.method) throw new Error("Unexpected smoke request");
-      const protectedPage = path === "/home" || path === "/onboarding";
-      return new Response(path === "/api/auth/get-session" ? "null" : "2026-10-14", {
-        status: protectedPage ? 307 : 200, headers: { "x-robots-tag": "noindex, nofollow", location: "/sign-in" },
+      const protectedPage = privateRoutes.includes(path);
+      const override = routeOverrides[path] || {};
+      const policy = { "/legal/privacy": "privacy", "/legal/terms": "terms" }[path];
+      return new Response(override.body ?? (path === "/api/auth/get-session" ? "null" : policy ? '<main><h1>' + (policy === 'privacy' ? 'Privacy notice' : 'Terms') + '</h1><p>Version <!-- -->' + policies[policy] + '</p></main>' : ""), {
+        status: override.status ?? (protectedPage ? 307 : 200),
+        headers: { "x-robots-tag": "noindex, nofollow", location: "/sign-in", ...override.headers },
       });
     };
   `;
@@ -144,7 +155,74 @@ test("actual CLI exact candidate preserves binding, access, policy and OTP check
   assert.match(result.stdout, /"bindingsVerified":true/);
   assert.match(result.stdout, /"routesVerified":\[/);
   assert.match(result.stdout, /"activeVersionStable":true,"otpLimitVerified":true,"statuses":\[400,400,400,400,400,429\],"mailSent":false/);
-  assert.equal(result.stdout.split("\n").filter(line => line.startsWith("REQUEST")).length, 17);
+  assert.equal(result.stdout.split("\n").filter(line => line.startsWith("REQUEST")).length, 20);
+  const routes = JSON.parse(result.stdout.split("\n").find(line => line.startsWith('{"routesVerified":'))).routesVerified;
+  assert.deepEqual(routes.map(route => route.path), ANONYMOUS_ROUTES);
+  for (const path of ["/verification", "/moderation/verification", "/moderation/verification/nonexistent"]) {
+    assert.deepEqual(routes.find(route => route.path === path), { path, status: 307 });
+  }
+});
+
+test("actual CLI rejects stale policy pages before OTP checks", () => {
+  for (const path of ["/legal/privacy", "/legal/terms"]) {
+    const result = runVerifier(["--expected-version", candidate], candidate, undefined, { [path]: { body: "outdated-policy" } });
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /missing current policy version|unexpected legal page title/);
+    assert.doesNotMatch(result.stdout, /REQUEST POST|"releaseIdentityVerified":true/);
+  }
+});
+
+test("actual CLI rejects public, misdirected or indexable F1 pages before OTP checks", () => {
+  for (const path of ["/verification", "/moderation/verification", "/moderation/verification/nonexistent"]) {
+    for (const override of [
+      { status: 200 }, { headers: { location: "/home" } },
+      { headers: { location: "https://other.example.invalid/sign-in" } },
+      { headers: { "x-robots-tag": "index" } },
+    ]) {
+      const result = runVerifier(["--expected-version", candidate], candidate, undefined, { [path]: override });
+      assert.equal(result.status, 1, result.stderr);
+      assert.match(result.stderr, /unexpected status|unexpected redirect|missing noindex/);
+      assert.doesNotMatch(result.stdout, /REQUEST POST|"releaseIdentityVerified":true/);
+    }
+  }
+});
+
+test("actual CLI requires the correct visible legal title and version, not incidental dates", () => {
+  for (const path of ["/legal/privacy", "/legal/terms"]) {
+    const policy = path.endsWith("privacy") ? "privacy" : "terms";
+    const title = policy === "privacy" ? "Privacy notice" : "Terms";
+    const current = POLICY_VERSIONS[policy];
+    for (const body of [
+      `<main><h1>${title}</h1><p>Version 2026-10-14</p><!-- generated ${current} --></main>`,
+      `<main><h1>${title}</h1><p>Version 2026-10-14</p><script>const page = '<p>Version ${current}</p>';</script></main>`,
+      `<!-- <main><h1>${title}</h1><p>Version ${current}</p></main> --><main>Error</main>`,
+      `<main><h1>${policy === "privacy" ? "Terms" : "Privacy notice"}</h1><p>Version ${current}</p></main>`,
+      `<main><h1>${title}</h1><p>Version 2026-10-14</p><p>Version ${current}</p></main>`,
+    ]) {
+      const result = runVerifier(["--expected-version", candidate], candidate, undefined, { [path]: { body } });
+      assert.equal(result.status, 1, result.stderr);
+      assert.match(result.stderr, /missing current policy version|unexpected legal page title/);
+      assert.doesNotMatch(result.stdout, /REQUEST POST|"releaseIdentityVerified":true/);
+    }
+  }
+});
+
+test("shared probes follow each policy's source version across later bumps", () => {
+  const original = { ...POLICY_VERSIONS };
+  const response = new Response("", { headers: { "x-robots-tag": "noindex, nofollow" } });
+  try {
+    Reflect.set(POLICY_VERSIONS, "privacy", "next-privacy");
+    Reflect.set(POLICY_VERSIONS, "terms", "next-terms");
+    for (const policy of ["privacy", "terms"]) {
+      const probe = { path: `/legal/${policy}`, response, base: "https://example.invalid" };
+      const page = version => `<main><h1>${policy === "privacy" ? "Privacy notice" : "Terms"}</h1><p>Version <!-- -->${version}</p></main>`;
+      assert.doesNotThrow(() => checkAnonymousRoute({ ...probe, body: page(POLICY_VERSIONS[policy]) }));
+      assert.throws(() => checkAnonymousRoute({ ...probe, body: page(original[policy]) }), /missing current policy version/);
+      assert.throws(() => checkAnonymousRoute({ ...probe, body: page(POLICY_VERSIONS[policy === "privacy" ? "terms" : "privacy"]) }), /missing current policy version/);
+    }
+  } finally {
+    Object.assign(POLICY_VERSIONS, original);
+  }
 });
 
 test("actual CLI health-only output cannot be mistaken for candidate verification", () => {

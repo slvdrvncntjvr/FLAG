@@ -49,7 +49,9 @@ async function seed() {
 }
 
 it("preserves populated D1 evidence, rolls back unsafe 0005/invalid 0006, and backfills valid 0006 without invented history", async () => {
-  const migrations = env.TEST_MIGRATIONS;
+  // This regression owns the published 0000–0006 boundary; additive later
+  // migrations have dedicated preservation tests with their own row shapes.
+  const migrations = env.TEST_MIGRATIONS.filter(migration => migration.name <= "0006_verification_review.sql");
   expect(migrations.map(migration => migration.name)).toContain("0006_verification_review.sql");
   await applyD1Migrations(db, migrations.slice(0, 5));
   await seed();

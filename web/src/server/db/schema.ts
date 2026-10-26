@@ -156,6 +156,7 @@ export const verificationCase = sqliteTable(
   {
     id: text("id").primaryKey(),
     freelancerId: text("freelancer_id").notNull().references(() => freelancerProfile.userId, { onDelete: "cascade" }),
+    submittedProfile: text("submitted_profile"),
     reviewerId: text("reviewer_id").references(() => user.id, { onDelete: "restrict" }),
     method: text("method", { enum: VERIFICATION_METHODS }).notNull().default("live_manual"),
     idKind: text("id_kind", { enum: ID_KINDS }),

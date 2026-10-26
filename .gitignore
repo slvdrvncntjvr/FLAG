@@ -8,5 +8,11 @@ group_context/
 # Local agent handoffs; never commit
 temporary/
 
+# Archived local release evidence; never used as instructions or shipped.
+.local-evidence/
+
+# Local Orca/Chromium diagnostics.
+/debug.log
+
 # Python helper bytecode
 scripts/__pycache__/

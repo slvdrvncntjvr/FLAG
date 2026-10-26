@@ -20,10 +20,7 @@ checkout, even if that checkout has been upgraded. `SPINE_HOME` can point at a
 local clone containing that tag. No application or documentation command needs
 the repo's disposable `temporary/` folder. Other features require their own
 scope/authorization; passing the baseline checks does not make the full product
-implemented. Production promotion remains on hold until the owner's signal. The 2026-10-26
-owner authorization covers bounded repairs/audits and sequential milestones;
-this branch prepares the runtime/release-controls baseline for a dev PR. F1
-implementation and its schema/design changes are excluded from this candidate.
+implemented. Accounts/onboarding and manual verification/review are deployed to dev through migration 0006. The approved audit-repair candidate closes auth profile privacy, numeric portfolio URL and historical request attribution defects; its additive 0007 snapshot migration must precede its dev release. See INDEX section 6 for current candidate/release evidence and OPS section 7 for production prerequisites. Main/production promotion remains held; a scoped dev checkpoint is not full-product acceptance.
 
 ## Local development
 
@@ -100,14 +97,7 @@ files, or existing `.wrangler` data; mail/Google credentials are absent. Port
 3000 must be free. It starts the server automatically and stops its process tree
 and deletes temporary data after the finite suite, including failure.
 
-Six Chromium cases cover desktop and 360px: anonymous redirects/noindex,
-real localhost console OTP account creation and D1 sessions, both account roles,
-required policy/freelancer checkboxes, the onboarding gate, aborted send/verify
-recovery, failed sign-out retaining the session, and successful sign-out with
-replay of the revoked cookie. Transport errors and the unsuccessful sign-out
-response are injected; successful authentication/onboarding/logout use actual
-application handlers and local D1. This is Next development mode with OpenNext
-bindings, not a deployed Worker, real email, Google OAuth, or future workflows.
+The suite runs on desktop and 360px Chromium. Accounts scenarios cover anonymous redirects/noindex, real localhost console OTP and D1 sessions, both roles, required policy/freelancer acknowledgments, network recovery, failed sign-out retaining the session and successful revocation. Verification scenarios cover role boundaries, request/queue/claim/inspection/approval, and rejection followed by corrected resubmission with the original review retaining its own name/city/portfolio. Numeric project URLs are exercised through the actual form. The runner uses Next development mode and isolated local D1/R2; it does not prove real mail, Google OAuth, authenticated packaged/deployed workerd or physical-device behavior.
 
 OTPs stay in a restricted temporary file and are removed at teardown. Traces and
 screenshots are disabled to avoid retaining codes/cookies. Failure reports are
@@ -126,7 +116,7 @@ are included in public/font-licenses/.
 ## Checks
 
 ```bash
-npm run test        # Vitest in the Workers pool (89 tests)
+npm run test        # Vitest in the Workers pool; current results in QAD
 npm run test:deploy # Deployment isolation, release identity and R2 audit policy
 node --test scripts/setup-local.test.mjs # Local setup safety
 npm run build:worker:dev
@@ -221,11 +211,7 @@ npx wrangler secret put BREVO_API_KEY --env dev
 
 ### Database migrations
 
-Apply migrations before code that needs them. Dev has migrations through
-`0005_happy_vermin.sql` applied, including authentication limits, log/proof tables,
-and the constraint tying a log's parties to its engagement. Production still
-needs its pending migrations before promotion. The CI deployment commands do not
-migrate databases automatically. The email-delivery repair adds no migration.
+Apply migrations before code that needs them. Pre-repair dev has 0000-0006; the repair adds nullable immutable request snapshots in 0007 without inventing legacy inputs or rewriting published files. Production has only 0000-0002. OPS section 7 requires recovery/preflight and the complete reviewed pending sequence before a main merge triggers deployment; populated dependent logs can prevent 0005 from rebuilding safely. Never delete real data to make that migration pass. Deployment commands do not migrate databases.
 
 ```bash
 npm run db:migrate:remote   # production flag-db
@@ -272,9 +258,7 @@ unverified. Metadata observations cannot lock deployment, prove every request's
 version or establish source-SHA provenance. Existing Wrangler login supplies
 read-only deployment metadata; this local candidate does not deploy.
 
-The privacy and terms versions are now `2026-10-14`; existing accounts must
-accept again after release. Legal pages label the future workflows explicitly.
-Accounts/onboarding are the currently implemented product boundary.
+The repair candidate's privacy and terms versions are `2026-10-26`; existing accounts must accept those policies again after release. Legal pages describe current manual verification/profile/review collection and distinguish planned engagement/log/correction workflows. Freelancer acknowledgment and per-engagement client-consent versions are unchanged.
 
 ## Not yet enabled (optional, also free when configured)
 
@@ -282,13 +266,11 @@ Accounts/onboarding are the currently implemented product boundary.
   Cloud OAuth). Email-code sign-in works without it.
 - **Turnstile bot check** — needs site/secret keys (requires a domain). Sign-in
   uses durable D1 rate limits meanwhile (`cf-connecting-ip` plus email).
-- **Freelancer verification (PRD-F1)** — Week 3–4 feature. Until it ships,
-  `requireVerifiedFreelancer()` refuses everyone, so no logs can be filed. This
-  is deliberate.
+Manual freelancer verification is implemented; future engagement, log, proof-serving, publication, records, corrections and retention workflows remain separate milestones. The verified-freelancer guard checks the live profile plus current acknowledgments rather than granting access from a cached label.
 
 ## Dependency audit evidence
 
-On 2026-10-26, this isolated candidate's clean `npm ci` passed under Node
+Historical pre-repair evidence on 2026-10-26: the isolated baseline's clean `npm ci` passed under Node
 24.22.1/npm 11.19.1. Fresh `npm audit --json` and
 `npm audit --omit=dev --json` both returned zero findings. The manifest and lock
 select OpenNext Cloudflare 1.20.12 with AWS adapter 4.1.11 and retain Next 16.4.3;
@@ -322,3 +304,7 @@ write-pause/data-loss acceptance and production promotion remain separate owner
 gates in OPS. Canonical SPINE validation remains a local release gate because
 the pinned engine repository is private; hosted CI runs application and
 self-contained runner/recovery tests without copying private engine source.
+
+## Local evidence and cleanup
+
+The old `temporary/` reports/handoffs were removed after all 51 files were hash-verified in ignored `.local-evidence/flag-pre-audit-2026-10-26.zip` with its receipt. They are historical evidence, not current instructions. The offline recovery command may generate a fresh bounded report under `temporary/`; no runtime workflow reads that folder. LOG/INDEX/SDD are the authoritative context.
