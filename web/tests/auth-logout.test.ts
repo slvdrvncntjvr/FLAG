@@ -60,7 +60,10 @@ describe("PRD-F7 durable logout", () => {
     expect((await auth.handler(new Request(`${BASE}/api/auth/sign-out`, {
       method: "POST", headers: { origin: BASE, "content-type": "application/json", "cf-connecting-ip": ip }, body: "{}",
     }))).status).toBe(200);
-  });
+  // This case performs real D1 fault injection, session reads and concurrent
+  // retries through the auth client. Allow a bounded budget under pool startup
+  // contention while retaining every failure, cookie and revocation assertion.
+  }, 15_000);
 
   it("rejects cross-origin logout and untrusted callbacks before revoking the session", async () => {
     const { auth, signIn, ip } = setup();

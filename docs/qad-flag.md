@@ -3,11 +3,11 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.14
+doc_version: 2.16
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-25
+updated: 2026-10-26
 reconciled: 2026-10-13
 ---
 
@@ -19,6 +19,14 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Strategy
+
+2026-10-26 baseline runtime/release-control candidate, PRD-F7/PRD-F8: isolated branch `slvdrvncntjvr/f7-runtime-release-gates` starts at dev `561e917`; F1 source/schema/migration 0006, verification guard/test and design changes are excluded. Exact Node 24.22.1/npm 11.19.1 `npm ci` exits zero; fresh full and omit-dev audits each report zero findings. All 38 Node deployment/R2/release-identity cases, five setup safety cases and ten Python runner/recovery cases pass without skips. Local actionlint 1.7.12 accepts the workflow (external shellcheck/pyflakes integrations disabled). Resumed local verification now passes all 89 Workers cases, app/test/E2E typechecks, lint, the actual dev Worker build, packaged workerd smoke, dev deployment dry run and all six desktop/360px Chromium cases; fresh full/omit-dev audits still each report zero findings. These are local Windows observations for the candidate based on dev 561e917, not hosted, integrated or deployed evidence. Independent review remains pending.
+
+Resumption details: the first logout fault-injection case originally exceeded Vitest's default five-second budget. Its timeout is now a bounded fifteen seconds, with every D1 failure, retry, cookie and revocation assertion retained (`web/tests/auth-logout.test.ts:8`); normal `npm test` passes 89/89 afterward. `npm run typecheck`, `npm run lint`, `npm run test:deploy`, the five setup cases and ten Python tests all pass. `npm run build:worker:dev` initially hit sandbox ancestor-directory access denial; an expanded-filesystem rerun exits zero on the exact pins. Credential-free prerendering logs zero-length-HMAC/default-secret diagnostics from the existing auth initialization; the build is not described as diagnostic-free. With synthetic local bindings and a fresh secret, `npm run test:worker:smoke` passes all seven routes and invalid-code statuses 400/400/400/400/400/429, including policy/noindex assertions, then exits zero. The migration subprocess has a two-minute timeout so a stall reaches owned-process cleanup (`web/scripts/smoke-built-worker.mjs:45`). Actual `wrangler deploy --env dev --dry-run` reports flag-db-dev, flag-proofs-dev and the dev auth URL, gzip 1678.90 KiB, then exits without upload. `npm run test:e2e` passes all six cases and the complete runner exits zero; the subsequent Orca workspace port scan is empty and no matching E2E/smoke/recovery OS-temp directories remain. Actionlint and `git diff --check` pass. Real D1 recovery, hosted Linux CI and release verification remain separate gates.
+
+Release identity controls (`web/scripts/release-identity.test.mjs:14`) cover full explicit UUID arguments, failure before credentials/network, a candidate present only in history, rollback/reactivation, exact active version at 100 percent, split traffic, ambiguous/malformed/missing metadata and an unmistakable health-only opt-out. Three additional actual-CLI concurrency regressions at `web/scripts/release-identity.test.mjs:157` fail against the pre-repair verifier because it returns success after an active-version change; after repair all thirteen identity cases pass. A route-phase version change fails before invalid-code POSTs, an OTP-phase version change fails without release-success output, and health-only also rejects changes or lost metadata. Metadata observations are rechecked before OTP and at completion; this is not an atomic deployment lock or request/source-SHA attestation. Mocked API tests make no external calls.
+
+Recovery evidence (`scripts/test_recovery_rehearsal.py:15`, `scripts/recovery_rehearsal.py:324`): synthetic native SQLite migration, binary snapshot, pre0003/post0005 SQL export/import and exact row/schema comparisons pass; integrity is ok, FK check empty, and fourteen constraint probes reject on both migrated and restored final data. Safety tests refuse existing/escaped database targets, arbitrary/remote CLI flags, modified reviewed SQL and redirected report symlinks; injected mid-run failure removes only owned OS-temp data. A negative test removes FK enforcement and observes the expected failure. The standalone rehearsal exits zero and verifies cleanup; its populated transaction compatibility probe reports blocked with preserved rollback for migration 0005. This native result does not prove D1/Time Travel, remote backup/export/import, R2 restoration or Worker rollback safety, and does not clear production gates. Only ignored `temporary/recovery-rehearsal-report.md` remains; no real data or migration SQL is changed.
 
 Hosted CI boundary correction, 2026-10-25: PR #14 run `40169695258` passed dependency-audit but verify failed at the attempted canonical-engine clone, before application gates. The SPINE repository is private; a successful local clone with saved credentials did not establish public access. The corrected credential-free hosted workflow runs pinned-runner unit tests and actual application gates, and explicitly reports canonical docs/checkpoint validation as a local release gate using the installed SPINE 0.3.0 engine. No private engine source, credentials, visibility change or false hosted canonical-validation result is introduced. The next hosted application result must be observed separately.
 

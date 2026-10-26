@@ -42,9 +42,9 @@ jobs:
       - name: Notice - canonical SPINE validation is a LOCAL release gate
         run: |
           echo '::notice::Canonical SPINE 0.3.0 documentation and checkpoint validation requires the owner-installed pinned engine and is a LOCAL release gate. Hosted CI does not run or claim these checks passed. Locally run: python scripts/spine.py check docs/ and python scripts/spine.py checkpoint verify.'
-      - name: Pinned-runner unit tests (self-contained fixtures)
+      - name: Pinned-runner and recovery safety tests (self-contained fixtures)
         working-directory: .
-        run: python -m unittest discover -s scripts -p 'test_spine.py'
+        run: python -m unittest discover -s scripts -p 'test_*.py'
       - name: Install exact lockfile
         run: npm ci
       - name: Check application, integration-test, and E2E TypeScript
@@ -59,6 +59,8 @@ jobs:
         run: node --test scripts/setup-local.test.mjs
       - name: Build dev Worker
         run: npm run build:worker:dev
+      - name: Run packaged Worker with isolated local bindings
+        run: npm run test:worker:smoke
       - name: Validate dev bindings and package Worker without uploading
         run: |
           node scripts/check-deploy.mjs dev
@@ -86,3 +88,5 @@ jobs:
       # No audit fix, omission, severity suppression, or continue-on-error exception.
       - name: Reject high or critical dependency advisories
         run: npm audit --audit-level=high
+      - name: Audit production dependency graph
+        run: npm audit --omit=dev --audit-level=high
