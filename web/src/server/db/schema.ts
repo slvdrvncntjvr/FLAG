@@ -155,17 +155,13 @@ export const verificationCase = sqliteTable(
   "verification_case",
   {
     id: text("id").primaryKey(),
-    freelancerId: text("freelancer_id")
-      .notNull()
-      .references(() => freelancerProfile.userId, { onDelete: "cascade" }),
-    reviewerId: text("reviewer_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict" }),
+    freelancerId: text("freelancer_id").notNull().references(() => freelancerProfile.userId, { onDelete: "cascade" }),
+    reviewerId: text("reviewer_id").references(() => user.id, { onDelete: "restrict" }),
     method: text("method", { enum: VERIFICATION_METHODS }).notNull().default("live_manual"),
-    idKind: text("id_kind", { enum: ID_KINDS }).notNull(),
-    result: text("result", { enum: VERIFICATION_RESULTS }).notNull(),
-    nameMatch: integer("name_match", { mode: "boolean" }).notNull(),
-    inspectedAt: isoTime("inspected_at").notNull().default(isoNow),
+    idKind: text("id_kind", { enum: ID_KINDS }),
+    result: text("result", { enum: VERIFICATION_RESULTS }),
+    nameMatch: integer("name_match", { mode: "boolean" }),
+    inspectedAt: isoTime("inspected_at"),
     decision: text("decision", { enum: VERIFICATION_DECISIONS }),
     reason: text("reason"),
     decidedAt: isoTime("decided_at"),
@@ -173,12 +169,50 @@ export const verificationCase = sqliteTable(
   },
   (t) => [
     index("verification_case_freelancer_idx").on(t.freelancerId),
+    uniqueIndex("verification_case_open_idx").on(t.freelancerId).where(sql`${t.decidedAt} IS NULL`),
     check("verification_case_method_check", sql`${t.method} = 'live_manual'`),
-    check("verification_case_id_kind_check", sql`${t.idKind} IN ('philid','ephilid','passport','drivers_licence')`),
-    check("verification_case_result_check", sql`${t.result} IN ('pass','fail')`),
-    check("verification_case_decision_check", sql`${t.decision} IS NULL OR ${t.decision} IN ('approve','reject')`),
+    check("verification_case_id_kind_check", sql`${t.idKind} IS NULL OR ${t.idKind} IN ('philid','ephilid','passport','drivers_licence')`),
+    check("verification_case_result_check", sql`${t.result} IS NULL OR ${t.result} IN ('pass','fail')`),
+    check("verification_case_inspection_check", sql`(${t.reviewerId} IS NULL AND ${t.idKind} IS NULL AND ${t.result} IS NULL AND ${t.nameMatch} IS NULL AND ${t.inspectedAt} IS NULL) OR (${t.reviewerId} IS NOT NULL AND ${t.idKind} IS NOT NULL AND ${t.result} IS NOT NULL AND ${t.nameMatch} IS NOT NULL AND typeof(${t.nameMatch}) = 'integer' AND ${t.nameMatch} IN (0,1) AND ${t.inspectedAt} IS NOT NULL)`),
+    check("verification_case_decision_check", sql`(${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedAt} IS NULL) OR (${t.decision} IS NOT NULL AND ${t.decision} IN ('approve','reject') AND ${t.reason} IS NOT NULL AND length(trim(${t.reason}, char(9)||char(10)||char(11)||char(12)||char(13)||' ')) > 0 AND ${t.decidedAt} IS NOT NULL)`),
+    check("verification_case_approval_check", sql`${t.decision} IS NULL OR ${t.decision} != 'approve' OR (${t.reviewerId} IS NOT NULL AND ${t.result} IS NOT NULL AND ${t.result} = 'pass' AND ${t.nameMatch} IS NOT NULL AND ${t.nameMatch} = 1)`),
+    check("verification_case_time_check", sql`(${t.inspectedAt} IS NULL OR ${t.createdAt} <= ${t.inspectedAt}) AND (${t.decidedAt} IS NULL OR (${t.createdAt} <= ${t.decidedAt} AND (${t.inspectedAt} IS NULL OR ${t.inspectedAt} <= ${t.decidedAt})))`),
   ],
 );
+
+export const MODERATION_KINDS = ["verification", "log", "correction", "filer_update"] as const;
+export const MODERATION_STATUSES = ["open", "claimed", "decided"] as const;
+export const MODERATION_DECISIONS = ["approve", "ask_changes", "reject", "uphold", "correct", "withdraw"] as const;
+
+export const moderationCase = sqliteTable("moderation_case", {
+  id: text("id").primaryKey(),
+  kind: text("kind", { enum: MODERATION_KINDS }).notNull(),
+  subjectId: text("subject_id").notNull(),
+  status: text("status", { enum: MODERATION_STATUSES }).notNull().default("open"),
+  claimedBy: text("claimed_by").references(() => user.id, { onDelete: "restrict" }),
+  claimedUntil: isoTime("claimed_until"),
+  decision: text("decision", { enum: MODERATION_DECISIONS }),
+  reason: text("reason"),
+  decidedBy: text("decided_by").references(() => user.id, { onDelete: "restrict" }),
+  decidedAt: isoTime("decided_at"),
+  createdAt: isoTime("created_at").notNull().default(isoNow),
+}, (t) => [
+  uniqueIndex("moderation_case_subject_idx").on(t.kind, t.subjectId),
+  index("moderation_case_queue_idx").on(t.kind, t.status, t.createdAt),
+  check("moderation_case_kind_check", sql`${t.kind} IN ('verification','log','correction','filer_update')`),
+  check("moderation_case_state_check", sql`(${t.status} = 'open' AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL) OR (${t.status} = 'claimed' AND ${t.claimedBy} IS NOT NULL AND ${t.claimedUntil} IS NOT NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL) OR (${t.status} = 'decided' AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NOT NULL AND ${t.reason} IS NOT NULL AND length(trim(${t.reason}, char(9)||char(10)||char(11)||char(12)||char(13)||' ')) > 0 AND ${t.decidedBy} IS NOT NULL AND ${t.decidedAt} IS NOT NULL)`),
+  check("moderation_case_decision_check", sql`${t.decision} IS NULL OR (${t.kind} = 'verification' AND ${t.decision} IN ('approve','reject')) OR (${t.kind} IN ('log','filer_update') AND ${t.decision} IN ('approve','ask_changes','reject')) OR (${t.kind} = 'correction' AND ${t.decision} IN ('uphold','ask_changes','correct','withdraw'))`),
+]);
+
+// No content/metadata field: audit records ids, server-selected actions and time only.
+export const auditEvent = sqliteTable("audit_event", {
+  id: text("id").primaryKey(),
+  actorId: text("actor_id").references(() => user.id, { onDelete: "restrict" }),
+  action: text("action").notNull(),
+  subjectType: text("subject_type").notNull(),
+  subjectId: text("subject_id").notNull(),
+  createdAt: isoTime("created_at").notNull().default(isoNow),
+}, (t) => [index("audit_event_subject_idx").on(t.subjectType, t.subjectId, t.createdAt)]);
 
 export const portfolioLink = sqliteTable(
   "portfolio_link",

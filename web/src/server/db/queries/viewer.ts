@@ -1,6 +1,6 @@
 import { and, eq, isNull, notExists, sql } from "drizzle-orm";
 import type { Db } from "@/server/db";
-import { policyAcceptance, user, type Policy, type Role } from "@/server/db/schema";
+import { freelancerProfile, policyAcceptance, user, type FreelancerStatus, type Policy, type Role } from "@/server/db/schema";
 import { missingPolicies, POLICY_VERSIONS } from "@/lib/policies";
 
 export type Viewer = {
@@ -10,6 +10,7 @@ export type Viewer = {
   role: Role | null;
   banned: boolean;
   missingPolicies: Policy[];
+  freelancerStatus: FreelancerStatus | null;
 };
 
 export async function loadViewer(db: Db, userId: string): Promise<Viewer | null> {
@@ -22,7 +23,8 @@ export async function loadViewer(db: Db, userId: string): Promise<Viewer | null>
     .select({ policy: policyAcceptance.policy, version: policyAcceptance.version })
     .from(policyAcceptance)
     .where(eq(policyAcceptance.userId, userId));
-  return { ...row, missingPolicies: missingPolicies(row.role, accepted) };
+  const profile = await db.query.freelancerProfile.findFirst({ columns: { status: true }, where: eq(freelancerProfile.userId, userId) });
+  return { ...row, freelancerStatus: profile?.status ?? null, missingPolicies: missingPolicies(row.role, accepted) };
 }
 
 export function isOnboarded(viewer: Viewer) {

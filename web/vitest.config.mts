@@ -9,7 +9,7 @@ export default defineConfig({
       miniflare: {
         compatibilityDate: "2026-10-01",
         compatibilityFlags: ["nodejs_compat"],
-        d1Databases: ["DB"],
+        d1Databases: ["DB", "MIGRATION_DB"],
         r2Buckets: ["PROOFS"],
         bindings: { TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "drizzle")) },
       },
