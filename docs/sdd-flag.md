@@ -3,7 +3,7 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.13
+doc_version: 2.14
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,7 +19,7 @@ reconciled: 2026-10-13
 
 ## 1. Architecture
 
-Current scope: manual verification/shared review is on dev through 0006, with owner-approved audit repairs and additive immutable submitted-profile snapshots designed below for 0007. PRD 2.0 Review/CR-002 retain the approved product contract; F9 remains a separately designed backlog. INDEX section 6 and QAD section 1 distinguish observed deployed state from the new candidate; all invariants and reconciled dates stay unchanged.
+Current scope: manual verification/shared review and the owner-approved auth/portfolio/history repairs are released on dev through 0007 in PR17, including immutable submitted-profile snapshots. PRD 2.0 Review/CR-002 retain the approved product contract; F9 remains a separately designed backlog. INDEX section 6 and QAD section 1 distinguish observed deployed state from the new candidate; all invariants and reconciled dates stay unchanged.
 
 One Next.js App Router application in `web/`, deployed to Cloudflare Workers Free (`*.workers.dev`) through the OpenNext Cloudflare adapter. Server components and route handlers read and write D1 (SQLite) through Drizzle. Proof files live in a private R2 bucket and only ever pass through the Worker; no bucket is public and no presigned URL is issued. Better Auth handles sessions with email one-time-code sign-in as the launch method; Google sign-in is optional when keys are configured. Turnstile stays disabled until site and secret keys exist. Email goes out through `sendMail`, which selects Brevo when `BREVO_API_KEY` is set, else Resend, else a dev-console no-op (LOG 2026-10-12). No SMS provider is used anywhere: pilot verification is manual live inspection, not a phone-code flow.
 
@@ -429,7 +429,7 @@ Migration scope for the first workflow: make the five inspection fields nullable
 
 ## 4. API surface
 
-Current implementation status, 2026-10-26: manual verification/shared review from migration 0006 is deployed to dev at the observed pre-repair PR16 release (INDEX section 6). The new repair candidate adds submitted_profile and its immutable trigger in 0007; release is pending candidate gates/review and dev preflight at this record. CORRECTION_REQUEST, DATA_REQUEST, engagement receipt wiring and lifecycle maintenance remain design-first. web/tests/migration-preservation.test.ts preserves the published 0005/0006 risk/rollback evidence; web/tests/verification-snapshot-migration.test.ts covers 0007 row/trigger preservation and collision rollback. Native integrity and remote recovery remain distinct; D1 rejects native integrity_check.
+Current implementation status, 2026-10-26: PR17 releases the manual verification/shared review and audit repairs on dev through migration 0007, including submitted_profile and its immutable trigger. Local/hosted gates, independent review, dev preservation pre/postflight and exact mapped live-version verification pass (INDEX section 6). CORRECTION_REQUEST, DATA_REQUEST, engagement receipt wiring and lifecycle maintenance remain design-first. web/tests/migration-preservation.test.ts preserves the published 0005/0006 risk/rollback evidence; web/tests/verification-snapshot-migration.test.ts covers 0007 preservation and collision rollback. Native integrity, actual remote recovery and real authenticated inspection remain distinct acceptance evidence; D1 rejects native integrity_check.
 
 Verification privacy repair: free-text/request reasons use strict bounded sensitive-value checks. Portfolio URLs use a separate structural component check: ordinary 6-11 digit project IDs are allowed without concatenating unrelated query/fragment IDs; recognizable full 12/16-digit national numbers, passport/licence tokens, marked/encoded ID/QR/image/hash payloads and excessive decoding reject. Input is not rewritten or logged, URLs are not fetched, and recognition is bounded rather than universal classification. Standard-auth create/update hooks reject recognizable sensitive names/raw images before adapter writes and discard complete HTTP(S) image values to NULL, preserving configured provider sign-in without avatar storage or hidden URL payload persistence. Permanent auth, URL, history and migration regressions cover these boundaries; full source/release gate evidence is QAD section 1.
 

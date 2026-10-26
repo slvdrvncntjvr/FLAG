@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.52
+doc_version: 0.53
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.21 | Review | 2026-10-26 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.22 | Review | 2026-10-26 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.13 | Review | 2026-10-26 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.27 | Review | 2026-10-26 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.24 | Review | 2026-10-26 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.43 | Draft | 2026-10-26 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.14 | Review | 2026-10-26 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.28 | Review | 2026-10-26 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.25 | Review | 2026-10-26 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.44 | Draft | 2026-10-26 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -113,20 +113,22 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Current development baseline
 
-As of 2026-10-26, before this repair release: local dev and origin/dev are 6f23b4d, the merge of [PR #16](https://github.com/slvdrvncntjvr/FLAG/pull/16). [PR #15](https://github.com/slvdrvncntjvr/FLAG/pull/15) is also merged. The latest merged-dev [run 40277706124](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40277706124) passed verify and dependency-audit; its Cloudflare build d65d01ea passed. Exact live dev version a653efae-73b1-4ba8-ad47-bf5416b9a1c9 serves 100 percent, has the correct dev DB/auth/private PROOFS bindings, and passed all ten anonymous route/noindex checks and invalid-code throttling with stable version identity. Dev D1 has 0000-0006 applied and a clean foreign_key_check. These are observed pre-repair results, not evidence of the new repair candidate.
+Verified application release, observed 2026-10-26 at 07:52 UTC: [PR #17](https://github.com/slvdrvncntjvr/FLAG/pull/17) merged reviewed source cdcdc50 into dev as 45540d8d6c2be8a89d492cba38ec464d7ea62ed7. Required hosted jobs passed on the [PR head](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40287087925) and [merged dev](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40287906609). Cloudflare build ad814386-4966-46f7-8a27-16976a5317ba explicitly maps that merged commit to Worker 1e1c2440-1ce1-484b-abee-e7c3558000a1. Exact-version verification passed at 100 percent with correct dev DB/auth/private PROOFS bindings, all ten anonymous route/noindex checks, matching displayed 2026-10-26 policy titles/versions, invalid-code statuses 400/400/400/400/400/429 and stable identity. No mail, signup or real inspection was performed.
 
-Owner-approved repair scope is recorded in LOG: close the standard-auth name/image privacy bypass (INV-3), accept ordinary numeric portfolio project URLs while rejecting recognizable ID payloads, preserve case-specific submitted profile/portfolio history through corrected requests, and update current copy/docs. SDD section 3.5 defines the immutable submitted_profile snapshot before migration 0007. Implementation, local gates (333 Workers, 47 Node, ten Python, twelve browser cases, both target builds/smoke/dry runs) and fresh independent review pass; QAD section 1 carries scope and corrections. Hosted checks, dev0007 and exact repaired live release remain before the authorized scoped checkpoint. No new checkpoint or repaired live release is claimed yet.
+The three reproduced defects are repaired: standard-auth user hooks reject recognizable sensitive names/raw images and discard HTTP image values; ordinary numeric project URLs work with bounded component/payload checks; new cases retain immutable name/city/portfolio snapshots through rejection and corrected resubmission. Legacy original inputs remain explicitly unavailable. Privacy/terms versions are 2026-10-26 and require reacknowledgment; freelancer/client-consent versions are unchanged. Full scoped local evidence is 333 Workers, 47 Node, ten Python and twelve desktop/360px cases, types/lint, both zero-finding audits, both target builds/guards/dry runs and packaged smoke; fresh independent reviews find no remaining blocker. QAD section 1 states evidence scope and the minor follow-ups.
 
-Main remains 3582f7e and production remains Worker 9b1fdc1d-c4cb-495c-a343-fb042cbaae68 at 100 percent. Production D1 has only 0000-0002 and clean FKs; the verification/profile/portfolio/engagement tables have zero rows and log tables are absent. Production must complete the pending migration sequence, recovery/preflight and release gates in OPS section 7 before a protected main merge triggers deployment. The populated-0005 failure is a conditional migration hazard, not an observed failure of this empty-feature production shape. Main's required independent developer approval and last-push approval remain unchanged.
+Dev migration 0007 completed before merge after fresh preflight and a captured recovery bookmark. Original row-value hashes and prior schema objects were preserved; 0000-0007 are applied, fourteen triggers are installed, no historical snapshots were fabricated and foreign keys are clean. The owner-approved local annotated checkpoint spine-cp-2026-10-26-1 captures the integrated application at 45540d8. Normal SPINE 0.3.0 validation passes with four known warnings and checkpoint verification is CLEAN. The tag remains local. Strict validation, document lock/human reconciliation, complete-product and production acceptance are not claimed; all reconciled dates and eight invariants remain unchanged.
 
-Development uses persistent zero required human approvals on dev plus strict verify/dependency-audit checks and independent agent review. Main/production is still held. A development checkpoint does not lock or reconcile Review-state documents, clear strict/deferred warnings, or accept the complete product. All reconciled dates and eight invariants remain unchanged. Dated decisions, previous failed attempts and prior release evidence remain in LOG; use this current summary rather than historical pending-status paragraphs.
+This follow-up records release/checkpoint evidence without changing application, schema, dependencies or policies. Documentation publication can trigger a same-code dev build; its resulting exact-version check belongs on the publishing PR. The UUID above is a dated verified observation, not a permanent claim about active deployment metadata. LOG preserves dated decisions, previous failures and prior release evidence.
+
+Main remains 3582f7e and production remains Worker 9b1fdc1d-c4cb-495c-a343-fb042cbaae68 at 100 percent. Production has only 0000-0002; pending order 0003 -> 0004 -> 0005 -> 0006 -> 0007, recovery/preflight and OPS section 7 gates must complete before any protected main merge triggers deployment. The known populated-0005 failure is a conditional migration hazard, not an observed failure of the empty-feature production shape. Main's independent developer/last-push approval protections remain unchanged. Dev's persistent zero required human approvals retains strict CI and independent agent review.
 
 ## 7. Implemented scope and remaining work
 
 | Area | Current boundary | Evidence / next gate |
 |------|------------------|----------------------|
-| Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, acknowledgment/reacceptance, current-policy and ban/role gates; reliable mail failure/logout handling | Auth tests and browser scenarios; auth privacy repair is part of the current candidate |
-| Manual verification (PRD-F1 and verification part of PRD-F4) | Request, queue/claim/inspection/approve/reject, reasoned decision, corrected new requests, ids-only audit; deployed to dev through 0006 | Snapshot/portfolio repairs require 0007 and final reviewed dev release; authenticated deployed acceptance remains separate from anonymous smoke |
+| Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, acknowledgment/reacceptance, current-policy and ban/role gates; reliable mail failure/logout handling | Auth privacy regressions and browser scenarios pass locally and in hosted CI |
+| Manual verification (PRD-F1 and verification part of PRD-F4) | Request, queue/claim/inspection/approve/reject, reasoned decision, corrected new requests, ids-only audit; deployed to dev through 0007 | Snapshot/portfolio repairs are released in PR17/0007; authenticated real-inspection acceptance remains separate from anonymous smoke |
 | Log/proof/rating foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema and isolated private R2 configuration/storage primitives | No log submission, proof serving, publication, records or average UI yet |
 | Engagement handshake (PRD-F9) | Existing design and foundation only | Consent-receipt linkage and lifecycle contract must be designed before implementation; preserved original-only F9 design is not silently adopted |
 | Correction, retention and closure (PRD-F12, PRD-F13) | Approved intended behavior; no complete automation | CORRECTION_REQUEST/DATA_REQUEST, safe lifecycle schema, holds, purge/closure and log freeze/proof gates remain later work |

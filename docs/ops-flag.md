@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.24
+doc_version: 2.25
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -13,7 +13,7 @@ reconciled: 2026-10-13
 
 # Ops & Observability: FLAG
 
-Current operational state is INDEX section 6; LOG preserves dated release/recovery history. The observed pre-repair dev release is PR16/6f23b4d, Worker a653efae at 100 percent, migrations through 0006 and clean FKs. The current owner-approved candidate adds privacy/history/portfolio repairs and migration 0007; candidate gates, dev migration/release and checkpoint are pending. Production remains held at its old release/schema.
+Current operational state is INDEX section 6. PR17/source cdcdc50 is integrated on dev 45540d8; its required hosted jobs and mapped live Worker 1e1c2440 exact-version ten-route/binding/policy/throttle/stability checks pass. Dev0000-0007 are applied with original data/schema preserved, fourteen triggers and clean FKs; a recovery bookmark is captured. Local checkpoint spine-cp-2026-10-26-1 captures that scoped application baseline. This follow-up records evidence only and may trigger a same-code automatic dev deployment; verify that publishing PR's exact version after merge. Production remains held at the old release/schema. LOG preserves dated history.
 
 ## 1. Environments
 
@@ -170,14 +170,15 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 
 ## 7. Production readiness gate
 
-A main merge triggers production deployment; it is a release operation. Deployment does not apply SQL. Dev currently has 0000-0006; the repair candidate adds 0007 for immutable request snapshots. Production currently has only 0000-0002, with no verification/profile/portfolio/engagement rows or log tables at the 2026-10-26 read-only preflight. Refresh that state immediately before any authorized migration; never treat this dated observation as a future preflight.
+A main merge triggers production deployment; it is a release operation. Deployment does not apply SQL. Dev has 0000-0007 including immutable request snapshots, with no pending migration after the verified PR17 release. Production currently has only 0000-0002, with no verification/profile/portfolio/engagement rows or log tables at the 2026-10-26 read-only preflight. Refresh that state immediately before any authorized migration; never treat this dated observation as a future preflight.
 
-### Scoped dev repair release
+### Completed scoped dev repair release
 
-1. Finish the three repairs and copy/docs, full candidate gates and independent review; publish a PR into dev and require both hosted jobs. Keep published 0000-0006 unchanged.
-2. Before merge, freshly inspect dev ledger/schema, original rows and FKs and capture a recoverable point. Apply only pending 0007 after reviewed migration preservation evidence; it adds nullable submitted_profile and an immutable-snapshot trigger, preserving NULL for legacy cases. Verify all prior values/schema/13 triggers, the new field/trigger, ledger and clean FKs. No fabricated original evidence or historical backfill.
-3. Merge under unchanged dev protections, inspect the commit's automatic build, independently map its exact Worker version and run the release verifier with that full UUID. Require correct dev DB/auth/PROOFS bindings, stable 100 percent identity, ten anonymous route/status/noindex/current-policy checks and invalid-code throttling. Authenticated F1 acceptance is separate; synthetic local/browser evidence is not a real government-ID inspection.
-4. Record actual release/check evidence and the remaining full-product/production limits, then create the owner-authorized local development checkpoint. A green normal validator and drift check do not mean strict validation, document lock/reconciliation or production acceptance. No extra email, paid change or production command is authorized by this sequence.
+PR17 merged at 07:46:55 UTC on 2026-10-26 only after both required PR checks and independent review passed. Fresh dev preflight showed exactly 0000-0006 and thirteen triggers; a Time Travel recovery bookmark was captured. Wrangler applied only 0007. Pre/post row hashes, schema/columns and FKs prove preservation of every original value/schema object, nullable submitted_profile with no fabricated legacy backfill, one new immutable trigger (fourteen total) and eight ledger rows. No migration remains pending. No actual recovery restore was performed.
+
+The automatic build's GitHub receipt explicitly maps merged 45540d8 to full version 1e1c2440-1ce1-484b-abee-e7c3558000a1. The verifier confirms exact stable 100 percent identity, actual dev DB/auth/PROOFS, all ten anonymous routes/current legal titles/versions/noindex and invalid-code throttling without email/account creation. Both merged-dev hosted jobs pass in run 40287906609. The owner-approved local checkpoint spine-cp-2026-10-26-1 was then created at 45540d8 and verifies CLEAN. Normal SPINE 0.3 passes with four known warnings; strict, Locked/human reconciliation, full-product and production gates remain open.
+
+Future releases must freshly inspect their target and apply only genuinely pending reviewed migrations before code deployment; never replay 0007 from this historical procedure. Documentation-only publication can trigger another same-code build, requiring its own mapped exact-version check recorded on that PR. Real authenticated/manual-inspection acceptance is separate from synthetic test and anonymous release evidence.
 
 ### Before production or main promotion
 

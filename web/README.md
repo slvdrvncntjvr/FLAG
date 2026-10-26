@@ -20,7 +20,7 @@ checkout, even if that checkout has been upgraded. `SPINE_HOME` can point at a
 local clone containing that tag. No application or documentation command needs
 the repo's disposable `temporary/` folder. Other features require their own
 scope/authorization; passing the baseline checks does not make the full product
-implemented. Accounts/onboarding and manual verification/review are deployed to dev through migration 0006. The approved audit-repair candidate closes auth profile privacy, numeric portfolio URL and historical request attribution defects; its additive 0007 snapshot migration must precede its dev release. See INDEX section 6 for current candidate/release evidence and OPS section 7 for production prerequisites. Main/production promotion remains held; a scoped dev checkpoint is not full-product acceptance.
+implemented. Accounts/onboarding and manual verification/review are deployed to dev through migration 0007. PR17 repairs auth profile privacy, numeric portfolio URLs and historical request attribution; its immutable snapshots preserve new case inputs and mark legacy originals unavailable. Local checkpoint spine-cp-2026-10-26-1 captures the verified integrated application. See INDEX section 6 for current candidate/release evidence and OPS section 7 for production prerequisites. Main/production promotion remains held; a scoped dev checkpoint is not full-product acceptance.
 
 ## Local development
 
@@ -211,7 +211,7 @@ npx wrangler secret put BREVO_API_KEY --env dev
 
 ### Database migrations
 
-Apply migrations before code that needs them. Pre-repair dev has 0000-0006; the repair adds nullable immutable request snapshots in 0007 without inventing legacy inputs or rewriting published files. Production has only 0000-0002. OPS section 7 requires recovery/preflight and the complete reviewed pending sequence before a main merge triggers deployment; populated dependent logs can prevent 0005 from rebuilding safely. Never delete real data to make that migration pass. Deployment commands do not migrate databases.
+Apply migrations before code that needs them. Dev has 0000-0007 applied; nullable immutable request snapshots in 0007 preserve new inputs without inventing legacy evidence or rewriting published files. Production has only 0000-0002. OPS section 7 requires recovery/preflight and the complete reviewed pending sequence before a main merge triggers deployment; populated dependent logs can prevent 0005 from rebuilding safely. Never delete real data to make that migration pass. Deployment commands do not migrate databases.
 
 ```bash
 npm run db:migrate:remote   # production flag-db
@@ -258,7 +258,7 @@ unverified. Metadata observations cannot lock deployment, prove every request's
 version or establish source-SHA provenance. Existing Wrangler login supplies
 read-only deployment metadata; this local candidate does not deploy.
 
-The repair candidate's privacy and terms versions are `2026-10-26`; existing accounts must accept those policies again after release. Legal pages describe current manual verification/profile/review collection and distinguish planned engagement/log/correction workflows. Freelancer acknowledgment and per-engagement client-consent versions are unchanged.
+The released privacy and terms versions are `2026-10-26`; existing accounts must accept those policies again after release. Legal pages describe current manual verification/profile/review collection and distinguish planned engagement/log/correction workflows. Freelancer acknowledgment and per-engagement client-consent versions are unchanged.
 
 ## Not yet enabled (optional, also free when configured)
 
