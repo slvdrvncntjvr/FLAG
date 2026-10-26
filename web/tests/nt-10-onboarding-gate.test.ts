@@ -4,7 +4,7 @@ import { acceptOnboarding } from "@/features/onboarding/accept";
 import { POLICY_VERSIONS } from "@/lib/policies";
 import { AccessError, assertVerifiedFreelancer } from "@/server/auth/guards-core";
 import { isOnboarded, loadViewer } from "@/server/db/queries/viewer";
-import { authVerification, policyAcceptance, user } from "@/server/db/schema";
+import { authVerification, freelancerProfile, policyAcceptance, user } from "@/server/db/schema";
 import { setup } from "./helpers";
 
 const FREELANCER_FORM = { role: "freelancer", privacy: "on", terms: "on", ack_proof: "on", ack_not_legal: "on", ack_false_logs: "on" };
@@ -146,6 +146,43 @@ describe("NT-10 (INV-8)", () => {
     const onboarded = (await loadViewer(db, userId!))!;
     expect(isOnboarded(onboarded)).toBe(true);
     expect(() => assertVerifiedFreelancer(onboarded)).toThrow(AccessError);
+  });
+});
+
+describe("NT-10 (INV-8) real verification status", () => {
+  it("only verified current-policy non-banned freelancers pass the shared guard", async () => {
+    const { db, signIn } = setup();
+    const { userId } = await signIn("nt10-real-profile@example.com");
+    await acceptOnboarding(db, userId!, FREELANCER_FORM);
+    await db.insert(freelancerProfile).values({ userId: userId!, displayName: "Owner Name" });
+    for (const status of ["unverified", "pending", "rejected", "suspended", "verified"] as const) {
+      await db.update(freelancerProfile).set({ status }).where(eq(freelancerProfile.userId, userId!));
+      const viewer = await loadViewer(db, userId!);
+      if (status === "verified") expect(() => assertVerifiedFreelancer(viewer)).not.toThrow();
+      else expect(() => assertVerifiedFreelancer(viewer)).toThrow(AccessError);
+    }
+    await db.update(user).set({ banned: true }).where(eq(user.id, userId!));
+    const banned = await loadViewer(db, userId!);
+    expect(() => assertVerifiedFreelancer(banned)).toThrow(AccessError);
+  });
+
+  it("verified status never bypasses stale or missing policies or a different role", async () => {
+    const { db, signIn } = setup();
+    const { userId } = await signIn("nt10-stale-verified@example.com");
+    await db.update(user).set({ role: "freelancer" }).where(eq(user.id, userId!));
+    await db.insert(freelancerProfile).values({ userId: userId!, displayName: "Owner Name", status: "verified" });
+    await db.insert(policyAcceptance).values([
+      { id: crypto.randomUUID(), userId: userId!, policy: "privacy", version: "old" },
+      { id: crypto.randomUUID(), userId: userId!, policy: "terms", version: POLICY_VERSIONS.terms },
+      { id: crypto.randomUUID(), userId: userId!, policy: "freelancer_ack", version: POLICY_VERSIONS.freelancer_ack },
+    ]);
+    const stale = await loadViewer(db, userId!);
+    expect(stale?.freelancerStatus).toBe("verified");
+    expect(() => assertVerifiedFreelancer(stale)).toThrow(AccessError);
+    await acceptOnboarding(db, userId!, FREELANCER_FORM);
+    await db.update(user).set({ role: "client" }).where(eq(user.id, userId!));
+    const client = await loadViewer(db, userId!);
+    expect(() => assertVerifiedFreelancer(client)).toThrow(AccessError);
   });
 });
 

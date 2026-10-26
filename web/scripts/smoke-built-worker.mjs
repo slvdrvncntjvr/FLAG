@@ -107,12 +107,14 @@ try {
     await new Promise(accept => setTimeout(accept, 250));
   }
   const failures = [];
-  for (const path of ["/", "/home", "/onboarding", "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"]) {
+  const protectedPages = new Set(["/home", "/onboarding", "/verification", "/moderation/verification", "/moderation/verification/nonexistent"]);
+  const paths = ["/", ...protectedPages, "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session"];
+  for (const path of paths) {
     const response = await fetch(base + path, { redirect: "manual", signal: AbortSignal.timeout(20000) });
     const body = await response.text();
     console.log(JSON.stringify({ path, status: response.status }));
     try {
-      const protectedPage = path === "/home" || path === "/onboarding";
+      const protectedPage = protectedPages.has(path);
       assert.equal(response.status, protectedPage ? 307 : 200, `${path}: unexpected status`);
       if (protectedPage) assert.equal(new URL(response.headers.get("location"), base).pathname, "/sign-in");
       if (path !== "/") assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow", `${path}: missing noindex`);
@@ -136,7 +138,7 @@ try {
     if (attempt === 5) assert.ok(Number(response.headers.get("retry-after")) > 0, "Missing retry delay");
   }
   assert.deepEqual(statuses, [400, 400, 400, 400, 400, 429]);
-  console.log(JSON.stringify({ packagedWorkerVerified: true, routes: 7, otpStatuses: statuses, mailSent: false }));
+  console.log(JSON.stringify({ packagedWorkerVerified: true, routes: paths.length, otpStatuses: statuses, mailSent: false }));
 } catch (error) {
   console.error(redact(error.message));
   console.error(redact(diagnostics));

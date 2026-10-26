@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.8
+doc_version: 2.12
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-25
+updated: 2026-10-26
 reconciled: 2026-10-13
 ---
 
@@ -18,6 +18,8 @@ reconciled: 2026-10-13
 ---
 
 ## 1. Architecture
+
+Integration scope (2026-10-26): the original F1 design is carried onto baseline aa90465, retaining the nullable pending-request/inspection ERD, verification approve/reject with new-request resubmission, shared review/audit contract. F9 retains its baseline planned backlog without the original-only consent-receipt design additions. Local code has been copied; QAD §1 distinguishes this child's current checks from prior original-checkout evidence. PRD 2.0 Review and CR-002 0.2 Review remain the approved product contract; all invariants and reconciled dates stay unchanged.
 
 One Next.js App Router application in `web/`, deployed to Cloudflare Workers Free (`*.workers.dev`) through the OpenNext Cloudflare adapter. Server components and route handlers read and write D1 (SQLite) through Drizzle. Proof files live in a private R2 bucket and only ever pass through the Worker; no bucket is public and no presigned URL is issued. Better Auth handles sessions with email one-time-code sign-in as the launch method; Google sign-in is optional when keys are configured. Turnstile stays disabled until site and secret keys exist. Email goes out through `sendMail`, which selects Brevo when `BREVO_API_KEY` is set, else Resend, else a dev-console no-op (LOG 2026-10-12). No SMS provider is used anywhere: pilot verification is manual live inspection, not a phone-code flow.
 
@@ -55,7 +57,7 @@ Locations under `web/`. Built so far: Auth, Onboarding, Data access for the acco
 | Verification | Manual live ID inspection case, portfolio links, verification case submission. No phone-OTP step, no QR body, no ID image or number handling | PRD-F1 | `web/src/features/verification` |
 | Engagements | Create engagement, invite link, client sign-up and accept or decline, client profile; rejects self-invites; never auto-merges on names | PRD-F9 | `web/src/features/engagements` |
 | Logs | Log form, rating input, covered work period and optional amount, tag rules, 15-day window check, proof upload and streaming, submission, filer updates as new revisions | PRD-F2, PRD-F3, PRD-F14 | `web/src/features/logs` |
-| Moderation | Queue, claim lock, decisions with reasons (approve / ask-changes / reject; corrections: uphold / ask-changes / correct / withdraw), audit trail, conflict checks including reviewer-different rule for corrections | PRD-F4, PRD-F13 | `web/src/features/moderation` |
+| Moderation | Queue, claim lock, kind-specific decisions with reasons (verification: approve / reject; log and filer update: approve / ask-changes / reject; corrections: uphold / ask-changes / correct / withdraw), audit trail, conflict checks including reviewer-different rule for corrections | PRD-F4, PRD-F13 | `web/src/features/moderation` |
 | Records | Client search, client record page, read-time average with contributor count and Limited-record label, outcome counts, tags. No scores beyond the approved rating and average; no replies; no corroboration | PRD-F6, PRD-F14 | `web/src/features/records` |
 | Maintenance | Daily retention run: expiry, draft and rejected purges, withdrawn-deadline and abandoned ask-changes/update purges, closure purges, abandoned-proof and R2-orphan cleanup, audit and metadata purges, hold-aware deletion. Planned; invoked by Cron, never by a public route | PRD-F12 | `web/src/features/maintenance/run.ts` |
 | Data access | Drizzle schema, queries that take a viewer and enforce relationship rules; every record read hides expired rows | all | `web/src/server/db` |
@@ -77,9 +79,9 @@ erDiagram
     USER ||--o{ POLICY_ACCEPTANCE : accepts
     USER |o--o| FREELANCER_PROFILE : "is"
     USER |o--o| CLIENT_PROFILE : "is"
-    USER ||--o{ AUDIT_EVENT : performs
+    USER |o--o{ AUDIT_EVENT : performs
     USER ||--o{ DATA_REQUEST : files
-    USER ||--o{ VERIFICATION_CASE : reviews
+    USER |o--o{ VERIFICATION_CASE : inspects
     USER ||--o{ LOG_REVISION : submits
     USER ||--o{ PROOF_FILE : uploads
     USER ||--o{ CORRECTION_REQUEST : files
@@ -166,12 +168,12 @@ erDiagram
     VERIFICATION_CASE {
         text id PK
         text freelancer_id FK
-        text reviewer_id FK "moderator who did the live inspection"
+        text reviewer_id FK "nullable until live inspection; inspecting moderator"
         text method "live_manual"
-        text id_kind "philid | ephilid | passport | drivers_licence"
-        text result "pass | fail"
-        integer name_match "0 | 1"
-        text inspected_at
+        text id_kind "nullable until inspection; philid | ephilid | passport | drivers_licence"
+        text result "nullable until inspection; pass | fail"
+        integer name_match "nullable until inspection; 0 | 1"
+        text inspected_at "nullable until inspection; no default"
         text decision "nullable, approve | reject"
         text reason "nullable"
         text decided_at "nullable"
@@ -277,7 +279,7 @@ erDiagram
     MODERATION_CASE {
         text id PK
         text kind "verification | log | correction | filer_update"
-        text subject_id "id of the row under review"
+        text subject_id "id of the row under review; UNIQUE with kind"
         text status "open | claimed | decided"
         text claimed_by FK "nullable"
         text claimed_until "nullable"
@@ -321,7 +323,7 @@ erDiagram
 | AUTH_RATE_LIMIT | PRD-F7 | — | internal | Expired buckets removed on authentication requests | HMAC of trusted IP and route, plus normalized email on OTP routes; no raw IP/email; cr-001 |
 | POLICY_ACCEPTANCE | PRD-F8, PRD-F9 | INV-8 | internal | Current effective rows stay while needed to gate an active account and are never purged by the gate; retired rows purge 12 months after the retired_at anchor (policy superseded/inactive, account closure, or consented-purpose end), with holds excepted | Append-only except authorized maintenance purge; retired_at is a timestamp only, no PII; planned field, future migration |
 | FREELANCER_PROFILE | PRD-F1 | INV-3, INV-8 | PII | Life of account | No ID hash, image, or number column of any kind |
-| VERIFICATION_CASE | PRD-F1 | INV-3 | internal | 12 months after case close (minimal); never holds raw ID data | Reviewer, method, result, name-match, and time only |
+| VERIFICATION_CASE | PRD-F1 | INV-3 | internal | 12 months after case close (minimal); never holds raw ID data | Request initially has no inspection evidence; eventual permitted inspection tuple and decision/reason only; §3.5 |
 | PORTFOLIO_LINK | PRD-F1 | — | PII | Life of account | |
 | CLIENT_PROFILE | PRD-F9, PRD-F6 | INV-6 | PII | Life of account | Exactly one per client user; never auto-merged |
 | ENGAGEMENT | PRD-F9 | INV-2 | internal | Life of the client record | Invite token stored hashed; self-invites rejected |
@@ -360,6 +362,8 @@ AUTH_RATE_LIMIT (cr-001): PRIMARY KEY(key), CHECK(count >= 1), INDEX(expires_at)
 | Correction `decided_by` differs from the log's original decider and has no conflict (not the filer, the client, or engaged with that client) | CORRECTION_REQUEST | Handler check | PRD-F13 |
 | UNIQUE `log_id` removals: no CLIENT_REPLY or CORROBORATION tables exist | — | PRD-F5 and PRD-F10 are Retired; nothing stores a reply, vote, or count | PRD-F5, PRD-F10 |
 | UNIQUE `invite_token_hash` | ENGAGEMENT | Unguessable single-use invite | PRD-F9 |
+| All-NULL or complete inspection tuple; approval requires pass and name match; partial UNIQUE freelancer_id WHERE decided_at IS NULL | VERIFICATION_CASE | Pending request cannot fabricate completed inspection; one undecided request per freelancer; §3.5 | PRD-F1, INV-3, INV-8 |
+| UNIQUE(kind, subject_id), open/claimed/decided state CHECKs, lease compare-and-set and kind-specific outcomes | MODERATION_CASE | One review row per subject, reasoned immutable decision, atomic subject/profile/audit effects; §3.5 | PRD-F4 |
 | UNIQUE `user_id` | CLIENT_PROFILE | One client profile per account; duplicates resolved by moderator evidence check, never auto-merge | PRD-F9 |
 | Self-invite rejected: `client_id` user must differ from the freelancer user | ENGAGEMENT | Handler check | PRD-F9 |
 | No client mutation path to ENGAGEMENT_LOG, LOG_REVISION, LOG_TAG, or PROOF_FILE; frozen triggers reject direct edits after submission | ENGAGEMENT_LOG and children | No such server action exists | INV-6 |
@@ -382,9 +386,47 @@ Read-time aggregate contract (PRD-F6, PRD-F14). The client average is never stor
 
 ### 3.4 Migration policy
 
-Drizzle Kit generates SQL migrations into `web/drizzle/`; Wrangler applies them (`wrangler d1 migrations apply`). Migrations are forward-only, reviewed in the pull request, applied to `preview` before `production`, and never edited after they reach `preview`. Every new field above lands through the ERD first (a change record once this doc is Locked). Design-first deltas pending future migrations: `USER.closed_at`, `POLICY_ACCEPTANCE.retired_at`, and the POLICY_ACCEPTANCE cascade removal (as-built cascades today; see §3.3). LOG_REVISION covered-period and amount columns already exist in migration 0004 and `web/src/server/db/schema.ts:294`. MODERATION_CASE, AUDIT_EVENT, CORRECTION_REQUEST, and DATA_REQUEST remain design-first entities; log submission/freeze triggers and retention maintenance remain planned. Triggers in §3.3 live in hand-written migration files next to the generated ones. R2 and D1 purges are separate steps, never one atomic cross-store transaction: the run follows the ordered idempotent protocol in §3.3 (claim eligibility in D1, mark `pending_purge`, retry the R2 delete to confirmation, then purge confirmed D1 rows), so orphans are retried rather than silently accumulated.
+Drizzle Kit generates SQL migrations into `web/drizzle/`; Wrangler applies them (`wrangler d1 migrations apply`). Migrations are forward-only, reviewed in the pull request, applied to `preview` before `production`, and never edited after they reach `preview`. Every new field above lands through the ERD first (a change record once this doc is Locked). Design-first deltas pending future migrations: `USER.closed_at`, `POLICY_ACCEPTANCE.retired_at`, and the POLICY_ACCEPTANCE cascade removal (as-built cascades today; see §3.3). LOG_REVISION covered-period and amount columns already exist in migration 0004 and `web/src/server/db/schema.ts:294`. MODERATION_CASE and AUDIT_EVENT are implemented locally in migration 0006; CORRECTION_REQUEST and DATA_REQUEST remain design-first. Log submission/freeze triggers and retention maintenance remain planned. Triggers in §3.3 live in hand-written migration files next to the generated ones. R2 and D1 purges are separate steps, never one atomic cross-store transaction: the run follows the ordered idempotent protocol in §3.3 (claim eligibility in D1, mark `pending_purge`, retry the R2 delete to confirmation, then purge confirmed D1 rows), so orphans are retried rather than silently accumulated.
+
+### 3.5 Verification request and shared review contract (target, not implementation evidence)
+
+This resolves the existing PRD-F1/PRD-F4 lifecycle, under the owner's 2026-10-25 authorization to implement Review-state designs. It adds no verification method or separate name approval. `VERIFICATION_CASE` is the request and eventual inspection record; `MODERATION_CASE` owns the queue and claim. Do not add a second request table or duplicate lifecycle-status column.
+
+Owner-approved cr-002 (2026-10-26) aligns PRD 2.0 §3.1 with this design: verification permits approve/reject, and a corrected submission after rejection creates a new request while preserving the previous request and decision. There is no verification ask-changes transition. The local decision schema accepts only approve/reject (`web/src/features/moderation/schema.ts:9`); corrected resubmission and two retained request rows are exercised at `web/tests/f01-verification.test.ts:137`, while decided-case and audit immutability are covered at `web/tests/f01-verification-schema.test.ts:65`. This is contract approval and local compatibility evidence; human reconciliation, a new lock, F1 integration/release and full PRD-F4 completion remain separate gates.
+
+| Stage | VERIFICATION_CASE | MODERATION_CASE | FREELANCER_PROFILE |
+|-------|-------------------|-----------------|--------------------|
+| Request submitted | `method = live_manual`; reviewer_id, id_kind, result, name_match, inspected_at, decision, reason, decided_at all NULL | One row, kind verification, subject_id request id, status open; claim and decision fields NULL | pending |
+| Claimed | Inspection fields still NULL until an actual live inspection | claimed; claimed_by authorized moderator; claimed_until server time + 30 minutes | pending |
+| Inspected | All five inspection fields set together by current claimant; name_match is integer 0 or 1 | Still claimed; inspection is not a decision or a verification grant | pending |
+| Decided | decision approve or reject, nonblank reason and decided_at set together | decided, same decision/reason/time, decided_by current claimant; clear claim fields | verified and verified_at = decided_at only on approval; rejected with verified_at NULL on rejection |
+
+The five inspection fields are reviewer_id, id_kind, result, name_match and inspected_at. A CHECK admits either all NULL or all non-NULL, with explicit null tests so SQLite's NULL CHECK semantics cannot admit partial evidence. Keep method live_manual; validate the existing ID-kind/result enums and integer name_match IN (0,1). Decision/reason/decided_at are either all NULL or a supported decision with trimmed nonempty reason and timestamp; approval requires complete inspection, result pass and name_match = 1. A reasoned rejection may close an uninspected request (for example a banned account); leave all inspection fields NULL rather than fabricating an inspection. Complete inspection may record fail or name mismatch, but can never approve it. Require created_at <= inspected_at <= decided_at when those times exist. Ordinary inserts always create undecided requests; imported historical completed rows are handled by migration review, never by a public action.
+
+Add partial UNIQUE VERIFICATION_CASE(freelancer_id) WHERE decided_at IS NULL. Add UNIQUE MODERATION_CASE(kind, subject_id); a request has exactly one queue row throughout its life. A rejected freelancer may submit a new request after correcting their profile, retaining the old request and decision. Never reset or overwrite a decided case. An already verified or suspended profile cannot create a new request through this initial workflow.
+
+Capture the existing required account/profile name before submission: a nonblank owner-entered USER.name and FREELANCER_PROFILE.display_name representing the same account/profile name, plus at least one PORTFOLIO_LINK. Do not use the email address or an authentication placeholder as the name, infer a legal-name format, or insert an extra moderator name-approval step. The live inspection's existing name_match compares the ID to that captured name. Store no spelling or identifier copied from the ID. Profile city remains optional. Profile/name/portfolio writes are owner-scoped; name and portfolio used for an open request stay fixed during review, and this milestone exposes no verified-name edit that could bypass the check. Later personal-data correction follows PRD-F12 rather than silently changing a verified identity. Portfolio links are validated web URLs; the server does not fetch arbitrary submitted URLs.
+
+Submission rechecks signed-in, non-banned freelancer role, current onboarding policies, name/profile and portfolio in the write boundary. It atomically inserts the request, open moderation case, ids-only verification_requested audit event and profile pending transition. A duplicate or failed insert leaves none of these changes. A freelancer can submit only the request fields; reject inspection/decision/claim fields, ID files, numbers, QR bodies and phone-derived data. Verification has no proof-upload or camera-recording endpoint; a moderator inspects live without saving an image.
+
+Shared foundation rules, implemented for verification first and reused by later PRD-F4/PRD-F13 handlers:
+
+- MODERATION_CASE uses existing kind/status/decision enums. CHECK open means all claim and decision fields NULL; claimed means both claim fields present and all decision fields NULL; decided means claim fields NULL and decision/reason/decided_by/decided_at present. Verification decisions are only approve/reject; log/filer_update decisions approve/ask_changes/reject; correction decisions uphold/ask_changes/correct/withdraw. Kind-specific handlers must reject a decision from another kind.
+- Claim is compare-and-set from open, or from a claimed lease expired at server time, to a 30-minute lease. Simultaneous claimants produce one winner. Release is allowed only to the live claimant, returning the case to open; expiry alone never changes the subject. Every successful claim, expired-lease reclaim and release appends an AUDIT_EVENT. No token, name, free-text reason or ID data goes into that event.
+- Every claim, inspection, release and decision rechecks a live moderator role/permission and ban state; bare admin status grants no review authority. Verification excludes the subject freelancer from review. For log/filer_update/correction, reject the filer, named client or a reviewer with their own engagement with that client; correction additionally excludes the original decider. These relationship rules are checked again at decision, not cached at claim. Unsupported future kinds have no active mutation route until their handlers exist.
+- Only the current, unexpired claimant can record inspection or decide. Approval/rejection following an inspection requires reviewer_id = claimed_by = decided_by. After expiry or release, a different moderator must perform a fresh live inspection before deciding from inspection evidence; append an ids-only verification_inspected event on each actual inspection. No prior result is silently attributed to a new reviewer. The prior request/claim/release/inspection events remain history; decided evidence and reasons are immutable except authorized retention purge.
+- Inspection and decision writes use compare-and-set against the expected claim owner, lease value, unexpired lease and undecided subject. Decision atomically closes both rows, updates the profile and appends the decision audit event. If any condition or write fails, there is no profile grant, partial close or audit-only success. Parallel decisions, stale releases and repeated decisions return conflict without mutation. Every decision requires a trimmed nonblank reason; keep reasons limited to review grounds and never transcribe ID details.
+- AUDIT_EVENT uses exactly its ERD fields: generated id, actor_id (NULL only for genuine system events), action from a server allowlist, subject_type, subject_id and created_at. Inspection and decision events identify the verification request; claim/release events identify the moderation case. No metadata/content column is needed. Case reads join the two ids for the review history. Subject existence and kind association are validated inside the write boundary because subject_id is polymorphic. Client input cannot select an audit actor or action.
+
+Use D1's atomic batch boundary with conditional writes and database rejection of invalid state, not an interactive transaction API assumed from another database. Dependent statements must share the winning compare-and-set predicate or be gated by the successful transition inside the batch. A zero-row UPDATE is not a SQL error: the implementation must ensure a losing claim/decision writes no receipt, event, profile change or subject change. A thrown error after a committed batch cannot provide rollback. Fault-injection and concurrent tests must prove both rollback on actual SQL failure and no mutation on a zero-row loser. Application checks enforce identity/role/conflict and current policies; database CHECKs, uniqueness, foreign keys and transition/immutability triggers enforce stored state. Never claim SQLite knows the web session principal.
+
+Migration scope for the first workflow: make the five inspection fields nullable and remove inspected_at's fabricated default in the existing verification table; add its checks/partial index; build the already-designed MODERATION_CASE and AUDIT_EVENT with state checks, subject uniqueness and append-only/immutability protections. Preserve historical rows, foreign keys, ids and decisions during SQLite table rebuilds. Invalid legacy rows stop migration for explicit remediation; never invent evidence or delete them. CORRECTION_REQUEST/DATA_REQUEST, USER.closed_at and consent retirement remain later dependencies, not required new tables for the first verification review. No production migration or feature completion is claimed here.
 
 ## 4. API surface
+
+Local implementation status, 2026-10-26: migration `web/drizzle/0006_verification_review.sql:1` and `web/src/server/db/schema.ts:154` implement the verification request/shared review foundation. `MODERATION_CASE` and `AUDIT_EVENT` now exist locally; `CORRECTION_REQUEST`, `DATA_REQUEST`, engagement receipt wiring and lifecycle maintenance remain design-first. No remote application of 0006 or full-product completion is claimed. `web/tests/migration-preservation.test.ts:51` uses a dedicated local D1/workerd binding to prove populated 0005 rejection rolls back schema/data/ledger, empty-log 0005 succeeds, invalid legacy 0006 aborts unchanged and valid 0006 preserves all original values while backfilling queue rows without invented audit history. D1 rejects native `integrity_check`; native SQLite integrity checks remain separate evidence.
+
+Verification privacy repair: `web/src/features/verification/privacy.ts:3` recognizes long numeric sequences across punctuation, symbols, Unicode decimal digits/combining marks and format controls, tagged ID/QR/phone-derived payloads and known image/hash shapes. Every permitted request value and decision reason passes bounded normalization/percent-decoding before persistence; reason-only URL/markup restrictions apply to every inspected decoded form. Input is not rewritten or logged. `web/tests/f01-verification.test.ts:70` asserts rejected submissions and decisions leave all dependent state unchanged. This is bounded recognition, not universal classification of arbitrary opaque encodings or semantic identity text; conservative numeric/date/identifier URLs can be rejected. It adds no legal-name format, ID-derived field or additional name approval. The queue uses the database clock for waiting hours and marks requests overdue strictly after 36 hours (`web/src/server/db/queries/verification.ts:16`, `web/src/features/moderation/queue-age.ts:5`).
 
 Mutations are Next.js server actions unless a file stream or an external caller requires a route handler. All server actions call `requireViewer()` and a role or relationship check as their first statement. Banned accounts are blocked at `requireViewer()`; their open cases are force-finished (decided on the record) without deleting case evidence.
 
@@ -392,7 +434,8 @@ Mutations are Next.js server actions unless a file stream or an external caller 
 |--------|------|------|--------|-------|
 | GET, POST | `/api/auth/[...all]` | Public | PRD-F7 | Better Auth handler; email OTP launch, Google only when keys exist |
 | action | `acceptPolicies` | Signed in | PRD-F8 | Writes POLICY_ACCEPTANCE rows for the current versions |
-| action | `submitVerificationCase` | Signed in, freelancer | PRD-F1 | Opens a `verification` MODERATION_CASE from a VERIFICATION_CASE row (reviewer, method, kind, result, name-match, time) plus portfolio links; no ID image, number, QR body, or phone proof is accepted or stored |
+| action | `requestVerification` (local) | Signed in, current-policy freelancer, own profile/request | PRD-F1 | Captures existing name/profile/portfolio, then atomically opens an undecided request with NULL inspection plus open moderation case/profile pending/audit; no inspection/decision fields or ID/QR/phone data accepted from freelancer; §3.5 |
+| action | `recordInspection` (local) | Current unexpired unconflicted moderator claimant | PRD-F1, PRD-F4 | Records only actual live inspection tuple and ids-only audit; never grants verified by itself; §3.5 |
 | action | `createEngagement` | Verified freelancer | PRD-F9 | Returns the invite URL once; stores only the token hash; sets `invite_expires_at` to created time plus the invite TTL of 14 days (the single authoritative value for S-13; implemented as one named constant, not duplicated); rejects self-invite |
 | GET | `/invite/[token]` | Public page | PRD-F9 | Shows inviter display name and what accepting means; no client data |
 | action | `acceptEngagement`, `declineEngagement` | Signed in, client | PRD-F9 | Writes `client_consent` acceptance; decline closes with no signal |
@@ -400,7 +443,7 @@ Mutations are Next.js server actions unless a file stream or an external caller 
 | POST | `/api/logs/[id]/proofs` | Verified freelancer, log owner, log in `draft` or `ask_changes` | PRD-F3 | Multipart; size and signature checked; streamed to R2; row starts `uploading`, becomes `attached` on submit |
 | GET | `/api/proofs/[id]` | Moderator, filer, or named client; an admin only under an actual moderator permission or persona | PRD-F3 | Streams from R2; 404 for everyone else; `Cache-Control: private, no-store` |
 | GET | `/moderation` | Moderator | PRD-F4 | Queue page |
-| action | `claimCase`, `releaseCase`, `decideCase` | Moderator, no conflict | PRD-F4 | Decision requires a reason; writes AUDIT_EVENT with ids only |
+| action | `claimReview`, `releaseReview`, `decideReview` (local verification); later kinds planned | Moderator, no conflict; current unexpired claimant for release/decision | PRD-F4 | Shared foundation initially dispatches verification only; 30-minute claim, kind-specific reasoned decision, atomic subject/profile/audit and no zero-row side effects; §3.5 |
 | action | `decideCorrection` | Independent unconflicted moderator (not the original decider) | PRD-F13 | Uphold, ask-changes, correct (publishes a new revision), or withdraw, each with a reason and history |
 | action | `requestCorrection` | Client named on the log, or filer for their own log | PRD-F13 | One open per log; repeats need new evidence with owner-bound uploads |
 | action | `submitFilerUpdate` | Filer, record exists | PRD-F13 | Later-dated update (e.g. paid late) as a new LOG_REVISION with proof; needs moderator approval; original `published_at` and expiry never reset |
@@ -435,7 +478,7 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 |-------|-------------|----------|-----|
 | INV-1 | Logs and Records data access, Moderation decision handler | `web/src/server/db/queries/logs.ts`, `web/src/features/moderation/decide.ts` | Reader queries select the current revision of `status = 'published'` non-expired logs unless the viewer is the filer, the named client, or a moderator (who additionally see the pending chain and case history); only `decideCase` sets `published`. Readers see current approved content plus moderator-approved dated update metadata only; private requests, counter-proof, reviewer notes, and invalidated revisions are never rendered to readers, so no response thread can form |
 | INV-2 | Log submit handler, D1 trigger | `web/src/features/logs/submit.ts`, `web/drizzle/0001_triggers.sql` | Submit checks engagement `accepted`, an attached PROOF_FILE on the revision, a valid anchor, and the 15-day window in the same batch; the trigger rejects the status change otherwise |
-| INV-3 | Verification case handler, logging policy | `web/src/features/verification/submit.ts` | Only reviewer, method, kind, result, name-match, and time are recorded; no ID image, number, QR payload, or phone proof is accepted, logged, or stored, and no ERD field can hold one |
+| INV-3 | Verification request/inspection handlers, logging policy | `web/src/features/verification` (local implementation) | Request accepts existing profile/portfolio only, with bounded sensitive-value validation described above; moderator records only permitted live-inspection evidence and reasoned decision under §3.5. There is no ID upload/camera path or ID-derived ERD field; logging and audit carry no content. Remaining opaque-content recognition limits are explicit and do not waive the invariant |
 | INV-4 | Proof stream handler, authorization layer | `web/src/app/api/proofs/[id]/route.ts` | Relationship check before reading R2, with admins admitted only under a moderator permission or persona; bucket has no public access and no custom domain; 404 otherwise |
 | INV-5 | Schema review, record components | `web/src/server/db/schema.ts`, `web/src/features/records` | The only rating signal is the `rating` column plus the read-time average; record UI renders the average with its count, outcome counts, and tags only; a lint test greps the schema and record components for score, rank, leaderboard, and endorsement fields while allowing `rating` |
 | INV-6 | Server actions, D1 triggers | `web/src/features/logs/*`, `web/src/features/moderation/*`, `web/drizzle/0001_triggers.sql` | No client action touches logs or revisions; decided revisions and submitted logs are frozen and change only through new moderated revisions |
@@ -446,7 +489,7 @@ The only unauthenticated surfaces are the landing page, legal pages, sign-in and
 
 | PRD-F# | Designed | Components | RFC |
 |--------|----------|------------|-----|
-| PRD-F1 | yes | Auth, Verification, Moderation | flag-rfc-001 (manual-inspection update owned by the support worker) |
+| PRD-F1 | yes | Auth, Verification, Moderation (§3.5 request/inspection contract) | flag-rfc-001 (future QR design deferred; not required for manual workflow) |
 | PRD-F2 | yes | Logs, Data access | N/A |
 | PRD-F3 | yes | Logs, Data access | N/A |
 | PRD-F4 | yes | Moderation, Data access | N/A |
