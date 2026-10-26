@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.21
+doc_version: 2.22
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -22,6 +22,8 @@ reconciled: 2026-10-13
 ## 1. How to build from these docs
 
 Current owner-directed branch policy, 2026-10-26: dev now requires zero approving reviews and require_last_push_approval is false. This is the requested persistent change, not a temporary exception. Strict current-base verify/dependency-audit checks pinned to GitHub Actions app15368, administrator enforcement, stale-review dismissal and force-push/deletion prohibitions remain unchanged. Main retains one approving developer review and independent last-push approval; its complete protection configuration is unchanged. Agent code/scope review and required CI remain part of the development workflow.
+
+Verified scoped baseline: PR17 is merged into dev 45540d8, migration0007 and exact dev release verification pass, and local checkpoint spine-cp-2026-10-26-1 captures that application. INDEX section 6/QAD section 1/OPS section 7 hold the actual gate evidence and remaining main prerequisites. This documentation-only follow-up introduces no application/migration/policy/dependency change.
 
 Current scope: see INDEX section 6 for the observed dev release and LOG's 2026-10-26 owner authorization for the three audit repairs, current copy/docs, gated dev integration and local checkpoint. The repair includes additive migration 0007 for immutable case input snapshots and privacy/terms reacknowledgment at versions 2026-10-26. Product meaning, invariants, SPINE 0.3.0, published migration history and reconciled dates stay fixed. Review-state technical implementation is explicitly authorized within this scope; main/production remains gated by OPS section 7.
 

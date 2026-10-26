@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.27
+doc_version: 2.28
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -20,7 +20,7 @@ reconciled: 2026-10-13
 
 ## 1. Strategy
 
-The tables below define the approved product and invariant test plan; a planned case is not evidence that the full workflow exists. Current implemented scope is auth/onboarding plus manual verification and shared review/audit, with log/proof schema/storage primitives. INDEX section 6 records the observed pre-repair dev release. LOG retains historical run counts and failures rather than duplicating them here.
+The tables below define the approved product and invariant test plan; a planned case is not evidence that the full workflow exists. Current implemented scope is auth/onboarding plus manual verification and shared review/audit, with log/proof schema/storage primitives. INDEX section 6 records the verified PR17 dev release and local checkpoint. LOG retains historical run counts and failures rather than duplicating them here.
 
 Owner-approved 2026-10-26 regression scope: standard-auth user create/update rejects recognizable ID-number/name or image payloads before persistence (INV-3/NT-05); ordinary numeric portfolio project URLs succeed while marked/encoded ID payloads still reject; corrected new requests retain immutable case-specific name/city/portfolio snapshots; legacy snapshots remain unknown rather than fabricated. Additive 0007 preserves existing rows/triggers and rejects snapshot mutation. H-24/H-25, S-38 and applicable abuse/negative tests cover this repair; privacy/terms reacceptance uses current POLICY_VERSIONS and S-12. Desktop/360px cases must exercise reject, corrected resubmission and reopening the original review as well as the approval path.
 
@@ -30,7 +30,9 @@ Local repair evidence, 2026-10-26: final npm run typecheck, npm run lint and npm
 
 Fresh independent Orca app/migration review (ctx_ad8fc043e865) finds all three original reproductions closed and no blocker; independent release/docs review and recheck (ctx_481c4dc83bf5, ctx_4a4d58850034) resolved a stale-policy false-positive and stale SDD status. The shared probe now requires the matching displayed legal title and current Version marker, excluding comments/scripts and swapped pages; 17 focused identity cases pass after that fix. A final minor legacy-unavailable copy correction avoids claiming why malformed evidence is missing; its three existing display regressions pass. Auth and verification implementers observed red-before-green cases and migration preservation/rollback; published 0000-0006 SQL/meta, dependency pins, eight invariants, policy-ack versions and reconciled dates are unchanged. Review scope is source/probes, not production or real Google callback acceptance.
 
-Hosted clean-install validation, exact dev migration/release and the scoped checkpoint remain pending at this record. Canonical SPINE 0.3.0 normal validation and checkpoint verification pass locally; strict validation retains three error groups (historical/deferred LOG/RFC owner markers and unchecked human INDEX health items) and two planned-entity warnings. No strict/full-product acceptance, authenticated deployed inspection, actual remote restore, physical-device or production release is claimed.
+Hosted acceptance: reviewed source cdcdc50 and merged dev 45540d8 both pass verify/dependency-audit in runs 40287087925 and 40287906609, including a clean exact-lock installation and full twelve-case browser suite on Linux. Cloudflare build ad814386 maps the merge to Worker 1e1c2440-1ce1-484b-abee-e7c3558000a1; exact-version verification passes correct bindings, ten anonymous routes, displayed current policy titles/versions, invalid-code throttling and unchanged 100 percent version identity. Dev0007 pre/postflight preserves original rows/schema, leaves legacy snapshots NULL, installs fourteen total triggers and has clean FKs; a recovery bookmark was captured without a restoration drill. Local checkpoint spine-cp-2026-10-26-1 captures 45540d8 after those gates. A documentation-only follow-up may trigger the same application's redeployment; its exact-version result is recorded on that PR.
+
+Canonical SPINE 0.3.0 normal validation/checkpoint verification pass locally; strict validation retains three error groups (historical/deferred LOG/RFC markers and unchecked human INDEX health items) and two planned-entity warnings. No strict/full-product acceptance, authenticated deployed government-ID inspection, actual remote restore, physical-device, real OAuth or production release is claimed.
 
 ---
 
