@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.30
+doc_version: 2.31
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -229,6 +229,12 @@ Final production evidence: all five pending migrations applied once, all origina
 
 
 ### Dev-readiness observations, 2026-10-27
+
+Dev engagement schema operation completed14:30:09UTC,2026-10-27: exact target flag-db-dev/54aca5df-2ae7-4150-bd75-0f6365e5bfa3 in account1af65da586efd62d6f6d429240395f28. Owner explicitly authorizes privacy/terms27, dev0008 and PR21 merge; client_consent/freelancer_ack stay12. Independent Orca review pins SQLc388da6d70efacbc7d6f029be0c7b129f232c2ae65b9c9f0d9964f0a25fe4ede, corrected runner1faba65db6afb2816521b716dcbe9910382bd1e9f910cd32de3fbfeb7b04712f and helperbbb8cc0c2c12f0c7bbd3cff56bf4cd406fee3bb1b9b266d68517f721b70a11e3. Fresh preflight finds ledger0000-0007,14triggers,cleanFK,4users/3sessions/2verification cases/14acceptances and empty engagement/client profiles. Existing old-Worker auth/verification paths do not write engagement tables.
+
+The bounded dev-only operation captures a nonempty Time Travel bookmark and complete SQL export, keeping the signed URL and plaintext solely in memory. Windows CurrentUser DPAPI writes a unique encrypted backup in the owner's FLAG-backups directory; decrypt/encrypt roundtrip and encrypted-file readback pass before migration. These are available recovery mechanisms, not a newly tested current-dev restore or a frozen snapshot matching the later baseline. Only pending0008 is applied through project Wrangler; no guard/freeze, production mutation or app deployment occurs. Immediate pre/post observations preserve every original row/schema and all eight historical ledger entries; ledger9,21triggers,cleanFK,zero fabricated engagement receipts and exact no-op reapplication pass. Both Worker deployments stay unchanged throughout. Concurrent drift or an unknown command outcome would stop for investigation without automatic retry/restore. Local source/hashed snapshots/CLI/recovery/result receipts are in .local-evidence/dev-notices-0008-2026-10-27; no raw rows or credentials are retained there, and encrypted recovery must be preserved. Restoring D1 remains a separate data-loss decision; Worker rollback retains the forward schema.
+
+Privacy/terms27 source accurately describes invitations/client profiles and independent per-engagement consent; deployment of that source makes existing users explicitly reaccept current notices. It never writes acceptance on their behalf or changes client_consent12. Logs/proof uploads/records/corrections/retention automation remain unlaunched. Notice author validation passes151focusedWorkers/27verifier cases, types/scopedlint; independent source review clears it. This paragraph records pre-publication state: final-head hosted CI, merge and Cloudflare's automatic dev build/version mapping are recorded on PR21 when complete. Owner reports existing-dev mobile/inbox/verification/queue working; Messenger, genuine ID inspection and reject/resubmit remain explicitly untested, with OS/browser unspecified. Main/production release and plan/alert assurance remain separately gated.
 
 Owner approved the named branch sequence in LOG and deferred real-device/inbox/live-inspection acceptance to QAD section7.1. The repaired verifier passes exact stable dev41a5c046-06df-43cb-88fb-348a953553c2 at100percent with correct dev bindings and nine anonymous page routes. The separately explicit dev throttle run also passes five400 responses then429. Neither run deploys branch code; the application candidate remains unpromoted. Anonymous GET /api/auth/get-session is excluded by default because Better Auth's general limiter writes durable counters. Earlier ten-route evidence remains historical and is not relabeled read-only.
 

@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.26
+doc_version: 2.27
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -281,7 +281,7 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 
 ## 8. Baseline boundary and next development milestones
 
-Current deployed boundary: auth/onboarding and manual verification are on dev through 0007, freshly observed at Worker 41a5c046-06df-43cb-88fb-348a953553c2 on 2026-10-27. This corrects the stale 0006 summary; historical release/checkpoint evidence stays in INDEX section 6 and LOG. The owner-authorized feat/dev-readiness-and-engagements branch repairs passwordless auth/release checks and designs explicit consent before local PRD-F9 implementation. Branch work and synthetic QA are not a deployed engagement release, human reconciliation, checkpoint or production acceptance.
+Pre-publication boundary at2026-10-27T14:30UTC: dev Worker41a5c046-06df-43cb-88fb-348a953553c2 still serves auth/onboarding/manual verification; dev SQL0008 is now applied, preserving observed old rows/schema with ledger9/21triggers/cleanFK/zero fabricated receipts/exact no-op. Historical release/checkpoint evidence stays in INDEX section6 and LOG. The owner-authorized feat/dev-readiness-and-engagements/PR21 source implements passwordless hardening, release-verifier repairs and consent-first PRD-F9, with privacy/terms27 and unchanged freelancer_ack/client_consent12. Focused notice/auth/F9 checks and independent source/recovery review pass. Owner authorizes dev merge after final-head CI; PR21 carries the resulting merge/build/exact-Worker verification. Synthetic QA and a dev merge do not establish genuine ID inspection, human reconciliation, a checkpoint or production acceptance.
 
 The sequence below organizes existing owner-approved requirements under the recorded implementation override; it introduces no new requirements. Read SDD §3 before every migration. Each implementation milestone needs its named scope and the relevant QAD happy, sad, abuse and invariant tests.
 
@@ -297,7 +297,7 @@ The sequence below organizes existing owner-approved requirements under the reco
 Resolved design contracts and remaining implementation dependencies:
 
 - Local migration 0006 and `web/src/server/db/schema.ts:154` implement SDD §3.5's nullable request evidence; a completed inspection tuple and current moderator lease gate the eventual decision. Focused backend/privacy/migration tests exist; complete integrated and browser/review gates before release. No separate name approval or automated ID scanning.
-- `POLICY_ACCEPTANCE` stores user/policy/version/time, while `ENGAGEMENT` currently stores acceptance time without a receipt relationship. Design explicit per-engagement consent linkage and transactional acceptance before building the handshake; onboarding is not consent to every engagement.
+- `POLICY_ACCEPTANCE` stores user/policy/version/time; additive0008 now links `ENGAGEMENT_CONSENT` to one fresh per-engagement acceptance, and the PR21 handler commits profile association, acceptance and receipt in one batch. Legacy rows receive no invented receipt. Onboarding remains independent of engagement consent; SDD section3.6 and QAD F9 cases define the contract.
 - MODERATION_CASE and AUDIT_EVENT now exist locally in 0006, with only verification handlers active. CORRECTION_REQUEST and DATA_REQUEST remain later dependencies; their presence in the ERD is not implemented evidence. Preserve IDs and approved product meaning.
 - Plan the existing design-first closure/retirement fields and preservation migration before account closure or retention work. Current account/profile cascades and append-only consent triggers are not an implemented retention system; do not delete accounts to simulate assessed closure.
 - Add the SDD submission/proof/freeze/maintenance constraints with their workflows. D1/R2 foundation tests do not prove upload authorization, publication safety or cross-store atomicity.

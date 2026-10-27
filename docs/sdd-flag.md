@@ -3,7 +3,7 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.15
+doc_version: 2.16
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,7 +19,7 @@ reconciled: 2026-10-13
 
 ## 1. Architecture
 
-Current scope: manual verification/shared review and the owner-approved auth/portfolio/history repairs are released on dev through 0007 in PR17, including immutable submitted-profile snapshots. PRD 2.0 Review/CR-002 retain the approved product contract. PRD-F9 consent/invitation implementation and additive 0008 are local candidate work under the 2026-10-27 override; deployment and release acceptance remain separate. INDEX section 6 and QAD section 1 distinguish observed deployed state from the new candidate; all invariants and reconciled dates stay unchanged.
+Current scope: manual verification/shared review and the owner-approved auth/portfolio/history repairs are released on dev in PR17, including immutable submitted-profile snapshots. Dev SQL0008 is applied2026-10-27 with original observed data/schema preserved, ledger9,21triggers,cleanFK and no fabricated receipts; OPS records recovery/preservation limits. PRD 2.0 Review/CR-002 retain the approved product contract. PRD-F9 consent/invitation source is the PR21 candidate under the owner override, with privacy/terms27 reacceptance and unchanged freelancer_ack/client_consent12; application publication and real workflow acceptance remain separate. PR21 carries the resulting final-head CI/merge/Worker receipt; all invariants and reconciled dates stay unchanged.
 
 One Next.js App Router application in `web/`, deployed to Cloudflare Workers Free (`*.workers.dev`) through the OpenNext Cloudflare adapter. Server components and route handlers read and write D1 (SQLite) through Drizzle. Proof files live in a private R2 bucket and only ever pass through the Worker; no bucket is public and no presigned URL is issued. Better Auth handles sessions with email one-time-code sign-in as the launch method; Google sign-in is optional when keys are configured. Turnstile stays disabled until site and secret keys exist. Email goes out through `sendMail`, which selects Brevo when `BREVO_API_KEY` is set, else Resend, else a dev-console no-op (LOG 2026-10-12). No SMS provider is used anywhere: pilot verification is manual live inspection, not a phone-code flow.
 
