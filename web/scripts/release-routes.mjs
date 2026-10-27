@@ -9,6 +9,13 @@ export const ANONYMOUS_ROUTES = Object.freeze([
   "/", ...protectedPages, "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session",
 ]);
 
+// The HTTP get-session endpoint runs Better Auth's durable general limiter even
+// with no cookie (api/rate-limiter/index.mjs onRequestRateLimit -> customStorage).
+// Page guards call auth.api.getSession directly, bypassing that HTTP limiter;
+// without a cookie they cannot refresh a session. Keep the full list for isolated
+// packaged smoke, but never describe the HTTP session probe as a read-only GET.
+export const READ_ONLY_ANONYMOUS_ROUTES = Object.freeze(ANONYMOUS_ROUTES.filter(path => path !== "/api/auth/get-session"));
+
 export function checkAnonymousRoute({ path, response, body, base }) {
   assert.ok(ANONYMOUS_ROUTES.includes(path), `${path}: unexpected probe route`);
   const protectedPage = protectedPages.includes(path);

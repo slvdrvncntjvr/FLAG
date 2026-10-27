@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.32
+doc_version: 2.33
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -50,6 +50,14 @@ Production SQL acceptance,2026-10-26: the single write pause is14:21:10.133-14:2
 
 ---
 
+### Dev-readiness branch evidence, 2026-10-27 (local candidate)
+
+The named owner-authorized branch adds 21 passwordless regressions using real createAuth/isolated D1; all106 focused auth/privacy/delivery/limit/onboarding/logout cases passed. OTP/core reset credential writes and proof consumption were observed before repair; early denial and account-hook backstops preserve account/proof/user/session state after repair. Optional Google evidence is configuration and password-free account-hook behavior, not live OAuth. Deployment/identity/R2 policy plus fixed-return boundary tests pass61cases; default verifier avoids the counter-writing auth session HTTP endpoint and production refuses throttle before authentication/network. Independent review ctx_5b519f4afe15 reports no blocker in these repairs, fixed continuation and bounded CI setup.
+
+First full Workers run passes382cases and all22Python cases pass. Full lint/types and both dependency audits pass. Dev-target build, binding guard, no-upload dry run and ten-route packaged local runtime with invalid-code throttle pass. These measurements precede the final engagement success-copy/navigation and expiry-boundary repairs; they are not relabeled final-source browser acceptance. Focused final engagement runs pass29real-D1 cases, including deterministic clock-crossing rollback and additive0008 preservation/collision/no-op. Independent review tests pass three targeted expiry/SQL-abort/migration cases; the subsequent query-derived consent claim is corrected to neutral guidance, with recorded consent displayed only from a linked receipt.
+
+Browser attempts remain explicit failures until a final run passes: the first stopped before cases due sandbox denial of global Wrangler registry access; root isolates registry/log paths under the test temporary directory. A later copied pre-fix full run had5passes/3failures/6not-run and a ten-minute suite timeout, with local runtime connection resets, an engagement timeout and secondary queue-test ambiguity after an earlier request remained pending. Packaged smoke also needed a sandbox override after esbuild was denied ancestor-directory traversal; the isolated no-upload runtime then passed. Failed test temporary state is cleaned only after exact path/ownership checks. Final-source targeted desktop PRD-F9 browser scenario then passes1of1 in1.4minutes outside the sandbox: sign-up, unchecked policies and engagement consent, receipt-backed acceptance, neutral query feedback, decline/no association and single-use replay. No creation-runtime workaround was needed. The full final-source desktop/mobile suite remains running; no new application/migration deployment or human acceptance is implied.
+
 ## 2. Happy path cases
 
 Verification additions below are acceptance gates for SDD §3.5, not evidence of implemented workflows or passing tests. The first verification delivery includes its shared review/audit foundation; later log/correction handlers remain gated on their own delivery.
@@ -81,6 +89,7 @@ Verification additions below are acceptance gates for SDD §3.5, not evidence of
 | H-23 | PRD-F7 | Durable logout and replay rejection | Sign in, retain the original cookie, sign out successfully, then replay it; repeat logout and concurrent retries | Session row removed, cookie cleared, replay has no session; repeated/concurrent valid logout remains idempotent |
 | H-24 | PRD-F1 | Pending request through live inspection | Freelancer captures account/profile name and portfolio, submits; moderator claims, records actual live inspection and approves with reason | Before inspection all five evidence fields NULL, exactly one open case and profile pending; inspection alone grants nothing; decision atomically verifies profile and closes both rows with matching decision/time and ids-only audit |
 | H-25 | PRD-F4 | Release and expired-claim recovery | Claim verification, release, reclaim; expire lease, then let another moderator reclaim and reinspect | Each successful transition audited; leases last 30 minutes; different reviewer cannot decide from predecessor's inspection; original evidence never attributed to new reviewer |
+| H-26 | PRD-F7 | Email-code sign-in survives passwordless hardening | Request and use an ordinary email sign-in code after denied password operations; inspect stored account fields | Sign-in succeeds; no password credential or hash is created; optional configured Google provider remains configured |
 
 ## 3. Sad path cases
 
@@ -156,6 +165,9 @@ Verification additions below are acceptance gates for SDD §3.5, not evidence of
 | AB-27 | PRD-F4 | Concurrent claim/decision | Two moderators claim one row; winner and stale claimant race decisions/release; repeat completed decision | Exactly one live claimant and one close; losers' zero-row updates create no event/profile/subject changes; immutable closed history; actual current role/ban/conflict rechecked |
 | AB-28 | PRD-F4 | Self/conflicted review | Subject attempts verification self-review; future log/correction reviewer is filer/client/engaged with client or original decider for correction | Claim and decision rejected; verification handler cannot activate future kinds; no admin bypass |
 | AB-31 | PRD-F4 | Audit injection and history edit | Client supplies actor/action/content, then directly updates/deletes audit or decided case evidence outside maintenance | Actor/action server-owned, no content column; append-only/immutability protections reject edits; retained history exposes no raw request body or ID data |
+| AB-32 | PRD-F7 | Reset and credential creation against passwordless accounts | Call dedicated/deprecated/generic OTP reset send/check/create, core token reset with valid/wrong/expired proof, server-only password setup, account create/update hooks and HTTP password sign-in/signup | Password operations denied before credential or auth-verification mutation and send callback; existing sign-in proof remains usable; ordinary OTP sign-in and optional Google configuration stay intact |
+| AB-33 | PRD-F9 | Concurrent consent and rejected-actor nonmutation | Race two client accepts and accept versus decline/cancel; inject receipt failure; repeat with stale/banned/wrong/self actor and expired invite | One atomic winner and one fresh engagement-linked consent; losers change no profile/acceptance/engagement; failure rolls all batch writes back; unauthorized expiry probes never change rows |
+| AB-34 | PRD-F9, PRD-F7, PRD-F8 | Invite continuation redirect abuse | Supply external URL, protocol-relative path, encoded/token-bearing path, fragment, duplicate returnTo or stale pending capability; sign in and acknowledge current policies | Only fixed /invite/continue is retained; invalid input goes to /home; bearer token never enters auth URLs or client storage; engagement consent stays a separate unchecked choice |
 
 ### 4.1 Negative tests (invariants)
 
@@ -186,9 +198,9 @@ Every Must-Have has at least one case in each class. PRD-F5 and PRD-F10 are Reti
 | PRD-F4 | H-04, H-12, H-25 | S-07, S-08, S-34 | AB-07, AB-08, AB-27, AB-28, AB-31 |
 | PRD-F5 | Retired (H-05, S-09, AB-09 reserved) | — | — |
 | PRD-F6 | H-06, H-11 | S-10, S-23, S-24 | AB-10, AB-11 |
-| PRD-F7 | H-07, H-23 | S-11, S-31 | AB-12, AB-25 |
-| PRD-F8 | H-08 | S-12 | AB-13 |
-| PRD-F9 | H-09 | S-13, S-14 | AB-14, AB-15 |
+| PRD-F7 | H-07, H-23, H-26 | S-11, S-31 | AB-12, AB-25, AB-32, AB-34 |
+| PRD-F8 | H-08 | S-12 | AB-13, AB-34 |
+| PRD-F9 | H-09 | S-13, S-14 | AB-14, AB-15, AB-33, AB-34 |
 | PRD-F10 | Retired (H-10, S-15, AB-16 reserved) | — | — |
 | PRD-F12 | H-17, H-18, H-21, H-22 | S-24, S-26, S-27, S-28, S-29, S-30 | AB-22, AB-24 |
 | PRD-F13 | H-13, H-14 | S-20, S-21, S-22 | AB-18, AB-19 |
@@ -240,3 +252,21 @@ Every Must-Have has at least one case in each class. PRD-F5 and PRD-F10 are Reti
 - [ ] All abuse cases pass or have a signed-off exception in §6
 - [ ] All invariant negative tests pass; no exceptions allowed
 - [ ] No secrets in test fixtures
+
+
+### 7.1 Owner manual acceptance worksheet (prepared 2026-10-27)
+
+Owner selected "Prepare the checklist; I will test later" on 2026-10-27. All results below are Pending. Local synthetic browser checks never fill these rows. Use dev only; record tested source commit, mapped Worker UUID, UTC date, device/OS/browser versions and pass/fail plus the failing step. Do not record codes, cookies, session tokens, ID images/numbers or ID-derived names. Recheck changed candidates rather than carrying acceptance forward silently.
+
+| Check | Steps and pass condition | Result |
+|-------|--------------------------|--------|
+| Real inbox (PRD-F7) | Sign in to the tested dev candidate with the selected mailbox; privately read the email code, return to FLAG and sign in. Record approximate delivery delay and browser, never the code. | Pending |
+| Android Chrome (PRD-F7, PRD-F8, PRD-F1) | Sign in, explicitly accept any current notices, open Home/Verification, submit an owner-entered name and portfolio request once, then sign out. Check keyboard, scrolling, links and no clipped controls. Signed-out private routes return to sign-in. | Pending |
+| iPhone Safari (PRD-F7, PRD-F8, PRD-F1) | Repeat Android steps; switching to the inbox and back preserves the sign-in flow. Record physical device and Safari/iOS versions. | Pending |
+| Messenger browser (PRD-F7) | Open the dev link inside Messenger on each available phone, sign in and navigate; record any limitation and verify opening in external Chrome/Safari as the recovery path. | Pending |
+| Actual moderator inspection (PRD-F1, PRD-F4; INV-3) | Freelancer uses slvdrvncntjvr@gmail.com; moderator uses iamadislikebutton@gmail.com in a separate session. Submit/claim a request, genuinely inspect a supported government ID live without capture, record only the allowed method/result/name-match/time, then approve with a reason. Confirm freelancer status changes correctly. | Pending |
+| Rejection and correction (PRD-F1, PRD-F4) | Use a separate genuine request; reject with a reason, submit a corrected new request, confirm old inputs/inspection/decision remain in history, then inspect and decide the new request. Never fabricate an inspection just to advance the screen. | Pending |
+| Engagement invite (PRD-F9; once deployed) | A verified/current-policy freelancer creates an invite. In another session a client signs in/registers, explicitly acknowledges consent and accepts; confirm both parties see the accepted engagement. Check decline separately, expired/reused link rejection, and no negative rating or warning for refusal. | Pending |
+| Cloudflare plan/usage/alerts | In the correct account, read actual Workers/D1/R2 tier and account-wide usage, applicable allowance, enabled notifications and recipients. Existing OAuth reads subscriptions/alert policies return 403; do not treat this as a configured alert or upgrade merely to enable one. Budget alerts do not cap usage. | Pending |
+
+Main promotion still needs its independent developer/last-push approval and current required CI, then exact production-version/source mapping, stable 100-percent traffic and production DB/auth/private-PROOFS/current-policy checks. This worksheet does not authorize production mutation.

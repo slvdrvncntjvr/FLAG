@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.25
+doc_version: 2.26
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -144,7 +144,7 @@ The credential-free baseline workflow retains verify/dependency-audit for PRs to
 | Deploy already-built Worker (production) | `npm run deploy:worker` (configuration guard then `opennextjs-cloudflare deploy`) |
 | Deploy already-built Worker (dev) | `npm run deploy:worker:dev` (configuration guard then `opennextjs-cloudflare deploy --env dev`) |
 | Manual build and deploy | `npm run deploy` (production), `npm run deploy:dev` (dev) |
-| Verify dev release | `npm run verify:dev -- --expected-version <full Worker UUID>` (explicit candidate, binding metadata, routes, invalid codes; no mail/signup); `npm run verify:dev -- --health-only` checks current health without candidate verification |
+| Verify selected release | `npm run verify:dev -- --expected-version <full Worker UUID>` defaults to dev, exact candidate metadata and nine anonymous page GETs; `--target production` selects production explicitly; `--health-only` opts out of candidate identity. Default skips the counter-writing auth-session endpoint. `--otp-throttle` explicitly adds six invalid-code POSTs and durable counter writes on dev only; production rejects it before authentication/network. No mail/signup is requested |
 | Test | `npm test` (`vitest run`) |
 | Deployment boundary, release identity and R2 audit tests | `npm run test:deploy` (branch/environment/account checks, active candidate identity, live binding validation and conservative R2 audit policy) |
 | Packaged Worker smoke | `npm run test:worker:smoke` after `npm run build:worker:dev`; executes the built artifact in local workerd with synthetic isolated D1/R2 |
@@ -281,7 +281,7 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 
 ## 8. Baseline boundary and next development milestones
 
-Current integration boundary: auth/onboarding and manual verification are deployed to dev through 0006; INDEX section 6 and QAD section 1 distinguish that observed release from the repair candidate. Complete code/tests, independent review, migration preflight and exact-version dev verification before the authorized development checkpoint. No full-product or main/production acceptance follows from these gates.
+Current deployed boundary: auth/onboarding and manual verification are on dev through 0007, freshly observed at Worker 41a5c046-06df-43cb-88fb-348a953553c2 on 2026-10-27. This corrects the stale 0006 summary; historical release/checkpoint evidence stays in INDEX section 6 and LOG. The owner-authorized feat/dev-readiness-and-engagements branch repairs passwordless auth/release checks and designs explicit consent before local PRD-F9 implementation. Branch work and synthetic QA are not a deployed engagement release, human reconciliation, checkpoint or production acceptance.
 
 The sequence below organizes existing owner-approved requirements under the recorded implementation override; it introduces no new requirements. Read SDD §3 before every migration. Each implementation milestone needs its named scope and the relevant QAD happy, sad, abuse and invariant tests.
 

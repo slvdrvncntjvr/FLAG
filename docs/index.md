@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.57
+doc_version: 0.59
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.25 | Review | 2026-10-27 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.26 | Review | 2026-10-27 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.14 | Review | 2026-10-26 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.32 | Review | 2026-10-27 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.29 | Review | 2026-10-27 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.48 | Draft | 2026-10-27 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.15 | Review | 2026-10-27 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.33 | Review | 2026-10-27 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.30 | Review | 2026-10-27 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.50 | Draft | 2026-10-27 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -127,7 +127,9 @@ Production verification includes the real local D1 rehearsal, seventeen Python t
 
 ## 7. Implemented scope and remaining work
 
-Next owner-directed step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
+Current authorized branch, 2026-10-27: `feat/dev-readiness-and-engagements` adds passwordless reset/account-write hardening, explicit read-only versus dev-throttle release verification with production target support, conservative billing evidence, a prepared manual acceptance worksheet, and the consent-first PRD-F9 local workflow with additive migration 0008. Dev still serves 41a5c046 through 0007; no branch application or 0008 release is claimed. QAD records local gate results and failures; physical-device/inbox/live-inspection and account tier/alerts remain pending. All eight invariants, published migrations, policy versions, SPINE 0.3.0 and reconciled dates remain unchanged.
+
+Earlier recovery-publication step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
 
 | Area | Current boundary | Evidence / next gate |
 |------|------------------|----------------------|

@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.29
+doc_version: 2.30
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -43,6 +43,8 @@ Scripts copied from `web/package.json` (run from `web/`). Migration order: previ
 | Binding types | `npm run cf-typegen` | After binding changes; --strict-vars false permits both deployed and local URLs |
 | Verify exact dev release | `npm run verify:dev -- --expected-version <full-candidate-version-uuid>` | Independently map the candidate to a full version UUID first; require that version at 100 percent traffic before binding/route/policy/OTP checks; no mail/signup; see BUILD §3 |
 | Diagnose active dev health | `npm run verify:dev -- --health-only` | Explicitly releaseIdentityVerified false; passing diagnostic health cannot satisfy the candidate gate |
+| Verify exact production release | `npm run verify:dev -- --target production --expected-version <full-candidate-version-uuid>` | Metadata and nine-page GETs only; actual DB/auth/private PROOFS and current policy/access must match; old production is expected to fail missing PROOFS/current-copy gates until separately approved rollout |
+| Explicit dev throttle diagnostic | `npm run verify:dev -- --expected-version <full-candidate-version-uuid> --otp-throttle` | Up to six invalid-code POSTs write durable AUTH_RATE_LIMIT counters; no email/account request. Strict sequence 400/400/400/400/400/429 and valid Retry-After required; alternate header alone cannot pass. Forbidden on production |
 
 Deployment guards load actual selected Wrangler environment and validate account/Worker/DB/auth/PROOFS identifiers. Workers Builds branch/name mismatches fail before upload, including plain Wrangler custom-build entry points; local deliberate deploy commands still need operator authorization. Exact live binding/version verification remains required after any release. INDEX section 6 and this document's section 7 own current migration state; previous releases in LOG are dated observations.
 
@@ -224,3 +226,12 @@ The actual write pause ran14:21:10.133-14:28:46.526UTC,456393ms (7minutes36.393s
 0003 passed normally. The0004 postflight stopped on CRLF/LF expectations: installed Wrangler normalizes SQL outside quoted values before sending remote command queries. The applied schema and original rows were sound, but the local expectation had modeled the unnormalized file. The guards stayed installed while independent review extracted the exact installed normalizer, verified quoted-value preservation and reconstructed exact wire-format expectations; no stored SQL or published file was rewritten. A separately reviewed continuation verified the completed0004 ledger/schema/columns/FKs/auth state, original backup ciphertext and same guard set/deadline, then applied only0005-0007. Both the original interrupted receipt and corrected continuation source are preserved locally; the pause clock was never reset.
 
 Final production evidence: all five pending migrations applied once, all original auth rows/columns/FKs and historical ledger values preserved, expected empty feature tables, fourteen permanent triggers, nullable submitted-profile snapshots without fabricated backfill, foreign_keys1 and foreign_key_check empty. Reapplication is an exact no-op. All fifteen exact owned guards were dropped with confirmed readback; temporary config/migration state was removed. The final frozen receipt and fresh post-migration metadata agree exactly. Seven anonymous routes pass expected status/noindex/private redirects and null session, with the unchanged deployed2026-10-12 legal versions. Worker9b1fdc1d remains100percent throughout. No email, sign-in, actual proof backup, application deployment, main merge, paid change, new checkpoint or human reconciliation was performed. Independent postflight review binds the exact receipts and retains the remaining application-release gates.
+
+
+### Dev-readiness observations, 2026-10-27
+
+Owner approved the named branch sequence in LOG and deferred real-device/inbox/live-inspection acceptance to QAD section7.1. The repaired verifier passes exact stable dev41a5c046-06df-43cb-88fb-348a953553c2 at100percent with correct dev bindings and nine anonymous page routes. The separately explicit dev throttle run also passes five400 responses then429. Neither run deploys branch code; the application candidate remains unpromoted. Anonymous GET /api/auth/get-session is excluded by default because Better Auth's general limiter writes durable counters. Earlier ten-route evidence remains historical and is not relabeled read-only.
+
+Fresh R2 audit retains exit1: both proof buckets are private Standard with no public domains/imports, while old production9b1fdc1d still lacks PROOFS. Thirty-one-day account observations at11:44UTC report18classifiedClassA/70ClassB, conservative74/126 counting unknown operations against both, and0observed storage bytes across594samples. This is observed usage, not an invoice or assurance of complete storage. Subscriptions and notification policies each return403; the repaired audit separates HTTP availability, sanitized configuration observations, actual Workers tier and true account budget alerts. Product usage notifications never establish a Billing budget threshold or intended-recipient ownership. No alert/subscription change or paid upgrade is performed. D1 read-only thirty-day account analytics at11:46UTC report13325rows read/1186written across10samples; this aggregate is not daily headroom or a spending cap. Ignored local receipts are in .local-evidence/dev-readiness-2026-10-27.
+
+PR20's earlier verify job40371650950 was cancelled after the Ubuntu Azure APT mirror stalled during Chromium dependencies, not after a reported test assertion. The branch workflow uses official HTTPS mirrors on the ephemeral runner, bounded APT/download timeouts, two hard-failing installation attempts and headless-shell-only Chromium appropriate to the configured headless projects. Required checks and browser coverage remain mandatory; local YAML parse/help checks do not establish a hosted CI pass.

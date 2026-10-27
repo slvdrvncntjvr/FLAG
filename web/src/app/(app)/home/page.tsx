@@ -19,9 +19,10 @@ export default async function Home() {
       </dl>
       <p className="mt-6 text-sm text-muted">
         {isClient
-          ? "Engagement invites from freelancers will appear here."
+          ? "Open an invite link from your freelancer to accept or decline an engagement."
           : "Client search and engagement logs are planned for later releases."}
       </p>
+      {(isClient || isFreelancer) && <p className="mt-6"><Link href="/engagements" className="underline underline-offset-2">View engagements</Link></p>}
       {isFreelancer && <p className="mt-6"><Link href="/verification" className="underline underline-offset-2">View verification or request an identity check</Link></p>}
       {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/verification" className="underline underline-offset-2">Open verification review queue</Link></p>}
     </>

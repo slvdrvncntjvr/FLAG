@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "./auth-client";
+import { inviteAuthPath } from "@/lib/invite-return";
 
-export function SignInForm() {
+export function SignInForm({ returnTo }: { returnTo?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
@@ -45,7 +46,7 @@ export function SignInForm() {
               ? "Code is incorrect or expired."
               : "Could not check the code. Try again later.",
         );
-      router.replace("/onboarding");
+      router.replace(inviteAuthPath("onboarding", returnTo));
     } catch {
       setError("Could not check the code. Try again later.");
     } finally {
