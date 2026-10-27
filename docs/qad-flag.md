@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.33
+doc_version: 2.34
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -56,7 +56,7 @@ The named owner-authorized branch adds 21 passwordless regressions using real cr
 
 First full Workers run passes382cases and all22Python cases pass. Full lint/types and both dependency audits pass. Dev-target build, binding guard, no-upload dry run and ten-route packaged local runtime with invalid-code throttle pass. These measurements precede the final engagement success-copy/navigation and expiry-boundary repairs; they are not relabeled final-source browser acceptance. Focused final engagement runs pass29real-D1 cases, including deterministic clock-crossing rollback and additive0008 preservation/collision/no-op. Independent review tests pass three targeted expiry/SQL-abort/migration cases; the subsequent query-derived consent claim is corrected to neutral guidance, with recorded consent displayed only from a linked receipt.
 
-Browser attempts remain explicit failures until a final run passes: the first stopped before cases due sandbox denial of global Wrangler registry access; root isolates registry/log paths under the test temporary directory. A later copied pre-fix full run had5passes/3failures/6not-run and a ten-minute suite timeout, with local runtime connection resets, an engagement timeout and secondary queue-test ambiguity after an earlier request remained pending. Packaged smoke also needed a sandbox override after esbuild was denied ancestor-directory traversal; the isolated no-upload runtime then passed. Failed test temporary state is cleaned only after exact path/ownership checks. Final-source targeted desktop PRD-F9 browser scenario then passes1of1 in1.4minutes outside the sandbox: sign-up, unchecked policies and engagement consent, receipt-backed acceptance, neutral query feedback, decline/no association and single-use replay. No creation-runtime workaround was needed. The full final-source desktop/mobile suite remains running; no new application/migration deployment or human acceptance is implied.
+Browser attempts remain explicit failures until a final run passes: the first stopped before cases due sandbox denial of global Wrangler registry access; root isolates registry/log paths under the test temporary directory. A later copied pre-fix full run had5passes/3failures/6not-run and a ten-minute suite timeout, with local runtime connection resets, an engagement timeout and secondary queue-test ambiguity after an earlier request remained pending. Packaged smoke also needed a sandbox override after esbuild was denied ancestor-directory traversal; the isolated no-upload runtime then passed. Failed test temporary state is cleaned only after exact path/ownership checks. Final-source targeted desktop PRD-F9 browser scenario then passes1of1 in1.4minutes outside the sandbox: sign-up, unchecked policies and engagement consent, receipt-backed acceptance, neutral query feedback, decline/no association and single-use replay. No creation-runtime workaround was needed. The full final-source desktop/mobile suite then passes all14cases in6.3minutes outside the sandbox. Final full Workers suite passes383cases, final lint/types pass, and hosted verify/dependency-audit jobs pass at implementation94ffc89 in run40502427522. No new application/migration deployment or human acceptance is implied.
 
 ## 2. Happy path cases
 

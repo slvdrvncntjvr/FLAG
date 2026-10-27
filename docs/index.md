@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.59
+doc_version: 0.60
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -29,9 +29,9 @@ Built on SPINE 0.3.0
 | BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.26 | Review | 2026-10-27 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.15 | Review | 2026-10-27 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.33 | Review | 2026-10-27 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.34 | Review | 2026-10-27 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.30 | Review | 2026-10-27 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.50 | Draft | 2026-10-27 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.51 | Draft | 2026-10-27 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -127,7 +127,7 @@ Production verification includes the real local D1 rehearsal, seventeen Python t
 
 ## 7. Implemented scope and remaining work
 
-Current authorized branch, 2026-10-27: `feat/dev-readiness-and-engagements` adds passwordless reset/account-write hardening, explicit read-only versus dev-throttle release verification with production target support, conservative billing evidence, a prepared manual acceptance worksheet, and the consent-first PRD-F9 local workflow with additive migration 0008. Dev still serves 41a5c046 through 0007; no branch application or 0008 release is claimed. QAD records local gate results and failures; physical-device/inbox/live-inspection and account tier/alerts remain pending. All eight invariants, published migrations, policy versions, SPINE 0.3.0 and reconciled dates remain unchanged.
+Current authorized branch, 2026-10-27: `feat/dev-readiness-and-engagements` adds passwordless reset/account-write hardening, explicit read-only versus dev-throttle release verification with production target support, conservative billing evidence, a prepared manual acceptance worksheet, and the consent-first PRD-F9 local workflow with additive migration 0008. Dev still serves 41a5c046 through 0007; no branch application or 0008 release is claimed. Draft [PR #21](https://github.com/slvdrvncntjvr/FLAG/pull/21) contains implementation94ffc89: final383Workers,61Node deployment/policy/boundary,5setup,22Python and14desktop/mobile browser cases pass, as do full types/lint, both dependency audits and hosted verify/dependency-audit at that implementation head. QAD preserves prior failures and exact evidence limits; physical-device/inbox/live-inspection and account tier/alerts remain pending. All eight invariants, published migrations, policy versions, SPINE 0.3.0 and reconciled dates remain unchanged.
 
 Earlier recovery-publication step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
 
@@ -136,7 +136,7 @@ Earlier recovery-publication step,2026-10-27: publish the reviewed recovery tool
 | Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, acknowledgment/reacceptance, current-policy and ban/role gates; reliable mail failure/logout handling | Auth privacy regressions and browser scenarios pass locally and in hosted CI |
 | Manual verification (PRD-F1 and verification part of PRD-F4) | Request, queue/claim/inspection/approve/reject, reasoned decision, corrected new requests, ids-only audit; deployed to dev through 0007 | Snapshot/portfolio repairs are released in PR17/0007; authenticated real-inspection acceptance remains separate from anonymous smoke |
 | Log/proof/rating foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema and isolated private R2 configuration/storage primitives | No log submission, proof serving, publication, records or average UI yet |
-| Engagement handshake (PRD-F9) | Existing design and foundation only | Consent-receipt linkage and lifecycle contract must be designed before implementation; preserved original-only F9 design is not silently adopted |
+| Engagement handshake (PRD-F9) | Current dev foundation only; PR21 locally implements explicit consent receipts, single-use invites and client responses with additive0008 | Local/hosted candidate gates pass at94ffc89; current-target0008 preflight/recovery review, dev publication and real acceptance remain separate |
 | Correction, retention and closure (PRD-F12, PRD-F13) | Approved intended behavior; no complete automation | CORRECTION_REQUEST/DATA_REQUEST, safe lifecycle schema, holds, purge/closure and log freeze/proof gates remain later work |
 | Release and recovery | Dev release controls, local D1 rehearsal, isolated remote D1/synthetic R2 recovery and verified production SQL through0007 | OPS section7 records fresh paused backup, preserved data and safe reopen; application promotion, cost/device and authenticated workflow gates remain separate |
 
