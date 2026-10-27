@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.57
+doc_version: 0.61
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.25 | Review | 2026-10-27 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.27 | Review | 2026-10-27 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.14 | Review | 2026-10-26 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.32 | Review | 2026-10-27 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.29 | Review | 2026-10-27 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.48 | Draft | 2026-10-27 | 2026-09-14 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.16 | Review | 2026-10-27 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.35 | Review | 2026-10-27 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.31 | Review | 2026-10-27 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.52 | Draft | 2026-10-27 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -127,17 +127,19 @@ Production verification includes the real local D1 rehearsal, seventeen Python t
 
 ## 7. Implemented scope and remaining work
 
-Next owner-directed step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
+Owner-authorized dev release candidate,2026-10-27: feat/dev-readiness-and-engagements/PR21 contains passwordless hardening, explicit read-only versus throttle release verification, conservative billing evidence, the manual acceptance worksheet and consent-first PRD-F9. At14:30:09UTC dev migration0008 completes with reviewed encrypted recovery preparation, observed original-data/schema preservation, ledger9/21triggers/cleanFK/zero fabricated receipts/exact no-op; dev41a5c046 and production9b1fdc1d remain unchanged during SQL. Privacy/terms source now uses2026-10-27 and real reacceptance, while freelancer_ack/client_consent stay2026-10-12. Notice follow-up passes151focusedWorkers/27verifier cases, types/scopedlint and independent review; prior implementation94ffc89/final-head8e5e82c passed full local/hosted gates. Owner authorizes PR21 merge after fresh final-head CI; resulting merge/build/exact-Worker verification is recorded on [PR21](https://github.com/slvdrvncntjvr/FLAG/pull/21). Owner reports existing-dev mobile/inbox/verification/queue working; Messenger, genuine ID inspection and rejection/resubmission are explicitly untested, and new-engagement acceptance remains pending. Published SQL and all eight invariants remain unchanged; only approved privacy/terms versions advance. SPINE0.3.0/reconciled dates and production gates remain unchanged.
+
+Earlier recovery-publication step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
 
 | Area | Current boundary | Evidence / next gate |
 |------|------------------|----------------------|
 | Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, acknowledgment/reacceptance, current-policy and ban/role gates; reliable mail failure/logout handling | Auth privacy regressions and browser scenarios pass locally and in hosted CI |
 | Manual verification (PRD-F1 and verification part of PRD-F4) | Request, queue/claim/inspection/approve/reject, reasoned decision, corrected new requests, ids-only audit; deployed to dev through 0007 | Snapshot/portfolio repairs are released in PR17/0007; authenticated real-inspection acceptance remains separate from anonymous smoke |
 | Log/proof/rating foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema and isolated private R2 configuration/storage primitives | No log submission, proof serving, publication, records or average UI yet |
-| Engagement handshake (PRD-F9) | Existing design and foundation only | Consent-receipt linkage and lifecycle contract must be designed before implementation; preserved original-only F9 design is not silently adopted |
+| Engagement handshake (PRD-F9) | PR21 implements explicit consent receipts, single-use invites and client responses; dev SQL0008 applied with preservation/no-op | Final-head CI, dev merge/automatic publication and exact live version are recorded on PR21; real engagement acceptance remains pending |
 | Correction, retention and closure (PRD-F12, PRD-F13) | Approved intended behavior; no complete automation | CORRECTION_REQUEST/DATA_REQUEST, safe lifecycle schema, holds, purge/closure and log freeze/proof gates remain later work |
 | Release and recovery | Dev release controls, local D1 rehearsal, isolated remote D1/synthetic R2 recovery and verified production SQL through0007 | OPS section7 records fresh paused backup, preserved data and safe reopen; application promotion, cost/device and authenticated workflow gates remain separate |
 
 Automatic QR verification remains deferred. Public replies, corroboration, paid SMS, unapproved reputation signals, payments and marketplace work remain excluded.
 
-Latest completed operation,2026-10-26: production SQL0003-0007 is applied and independently checked. The fresh paused encrypted backup and retained recovery bookmark pass exact comparison; all original auth data survives, all fifteen pause guards are removed, schema/ledger/FKs/no-op and seven anonymous live checks pass, and the unchanged Worker remains at100percent. The final receipt binds source70360436 and SHA58ffadc4; original interrupted evidence remains in LOG/local receipts. Main/code promotion, authenticated workflows, device/budget-alert acceptance, checkpoints and human reconciliation remain separate.
+Latest completed production SQL operation,2026-10-26: production SQL0003-0007 is applied and independently checked. The fresh paused encrypted backup and retained recovery bookmark pass exact comparison; all original auth data survives, all fifteen pause guards are removed, schema/ledger/FKs/no-op and seven anonymous live checks pass, and the unchanged Worker remains at100percent. The final receipt binds source70360436 and SHA58ffadc4; original interrupted evidence remains in LOG/local receipts. Main/code promotion, authenticated workflows, device/budget-alert acceptance, checkpoints and human reconciliation remain separate.

@@ -65,8 +65,27 @@ jobs:
         run: |
           node scripts/check-deploy.mjs dev
           npx --no-install wrangler deploy --env dev --dry-run --outdir "$RUNNER_TEMP/flag-worker-dry-run"
+      - name: Configure bounded Ubuntu package downloads
+        timeout-minutes: 1
+        run: |
+          # The previous PR run stalled on the Azure mirror until the job expired.
+          # Use official HTTPS mirrors on this disposable hosted runner only.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          printf '%s\n' 'Acquire::Retries "1";' 'Acquire::http::Timeout "30";' 'Acquire::https::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/80flag-network-timeouts >/dev/null
       - name: Install Chromium and Linux browser dependencies
-        run: npx --no-install playwright install --with-deps chromium
+        timeout-minutes: 8
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '60000'
+        run: |
+          for attempt in 1 2; do
+            if npx --no-install playwright install --with-deps --only-shell chromium; then
+              exit 0
+            fi
+            echo "Browser dependency installation attempt $attempt failed."
+          done
+          exit 1
       - name: Local auth and onboarding browser tests
         run: npm run test:e2e
       - name: Build production Worker locally

@@ -12,8 +12,9 @@ export default function Privacy() {
         2012 (RA 10173). It applies to everyone who creates a FLAG account.
       </p>
       <p>
-        Accounts, onboarding, manual freelancer verification, and moderator review of verification requests are
-        available. Engagements, logs, client records, and private corrections remain planned.
+        Accounts, onboarding, manual freelancer verification, moderator review of verification requests, engagement
+        invitations, client profiles, and accepting or declining invitations are available. Logs, proof uploads,
+        client records, and private corrections remain planned.
       </p>
 
       <h2 className="font-serif text-lg">What we collect</h2>
@@ -29,19 +30,44 @@ export default function Privacy() {
           image or full ID number, or require an ID-derived hash or phone verification.
         </li>
         <li>
-          When engagements and logs become available: the accepted engagement, facts, rating, covered work period,
-          optional amount, proof files, and review history you submit.
+          For engagements: the title, client name as the freelancer knows it, start date, freelancer account,
+          invitation creation time, status, invite-token hash and expiry, and acceptance or decline time. Invitations
+          expire after fourteen days; the token is stored as a hash rather than as the full invite link.
+        </li>
+        <li>
+          For a client profile: your display name, individual or business profile type, optional city, and optional
+          DTI or SEC business registration number. Accepting explicitly associates your signed-in account and client
+          profile with that engagement. Profiles are never automatically merged because names match.
+        </li>
+        <li>
+          For each accepted engagement: a separate consent receipt linking that engagement to your account&apos;s
+          acceptance of the engagement-consent text, including its version and acceptance time. Accepting the privacy
+          notice and terms during onboarding does not accept an engagement. Account/profile association and engagement
+          consent require separate, initially unchecked choices. Declining requires neither a client profile nor
+          engagement consent and creates no warning or negative signal.
+        </li>
+        <li>
+          When logging becomes available: the facts, rating, covered work period, optional amount, proof files,
+          and review history you submit for an accepted engagement.
         </li>
       </ul>
 
       <h2 className="font-serif text-lg">Why we use it</h2>
       <p>
-        We use this data to authenticate you, to verify freelancers, to run the moderation and private review process, and to
-        keep the proof-backed record that is the purpose of the service. We do not sell your data, and we do not use it
-        for advertising.
+        We use this data to authenticate you, verify freelancers, manage engagement invitations and responses, and
+        record your explicit account/profile association and engagement-specific consent. As logging and private
+        corrections launch, we will use the submitted material to run moderation and private review and keep the
+        proof-backed record that is the purpose of the service. We do not sell your data, and we do not use it for advertising.
       </p>
 
       <h2 className="font-serif text-lg">Who can see it</h2>
+      <p>
+        Each party can read its own engagement list, including the title, start date, status, and any recorded consent
+        version and time. These lists are private to the signed-in freelancer and associated client. Your client profile
+        is linked to your registered account. Anyone holding a live invite link can see the engagement title and the
+        inviting freelancer&apos;s display name before signing in; the link does not expose the client name hint, client
+        profile, contact details, or consent receipt. Share invite links only with the intended client.
+      </p>
       <p>
         Your verification request and its outcome are private to you and authorized moderators. Moderators can see
         the profile and portfolio information needed to review it; the decision reason is shared with you.
@@ -61,7 +87,7 @@ export default function Privacy() {
         expired rate-limit records are removed during authentication requests.
       </p>
       <p>
-        The following policy applies when engagement features launch. Published experiences and their proofs are kept
+        The following policy applies when logging launches. Published experiences and their proofs are kept
         for twelve months from original publication; updates do not restart that period. Expired, hidden, or withdrawn
         experiences do not contribute to visible records or ratings. Idle drafts and abandoned unpublished material
         are deleted after thirty days of inactivity; rejected material after thirty days from the final decision.

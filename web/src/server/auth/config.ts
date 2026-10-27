@@ -26,6 +26,25 @@ type AuthOptions = {
   sendOtp?: (email: string, otp: string) => Promise<void>;
 };
 
+const PASSWORD_PATHS = new Set([
+  "/sign-up/email", "/sign-in/email", "/set-password", "/change-password", "/verify-password",
+  "/request-password-reset", "/forget-password", "/reset-password", "/reset-password/:token",
+  "/email-otp/request-password-reset", "/forget-password/email-otp", "/email-otp/reset-password",
+]);
+
+function denyPasswordAuth(): never {
+  throw new APIError("FORBIDDEN", {
+    code: "PASSWORD_AUTH_DISABLED",
+    message: "Password authentication is unavailable. Use an email sign-in code.",
+  });
+}
+
+async function requirePasswordlessAccount(data: { providerId?: string; password?: string | null }) {
+  // SDD §3: account.password stays NULL. Also covers server-only setPassword,
+  // which has no route path, and future credential writes via the auth adapter.
+  if (data.providerId === "credential" || data.password != null) denyPasswordAuth();
+}
+
 export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
   const limiter = createAuthRateLimiter(db, env.BETTER_AUTH_SECRET);
   // Better Auth catches delivery callback errors. Track failures by its per-call
@@ -66,6 +85,11 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        // Better Auth 1.7.7 reset endpoints ignore emailAndPassword.enabled.
+        // Reject before they generate/consume proofs, send mail or write accounts;
+        // generic and server-only OTP APIs can also request forget-password codes.
+        if ((ctx.path && (PASSWORD_PATHS.has(ctx.path) || ctx.path.startsWith("/reset-password/")))
+          || ctx.body?.type === "forget-password" || ctx.query?.type === "forget-password") denyPasswordAuth();
         if (ctx.path === "/sign-out") {
           // Router origin/CSRF checks run first. Leave invalid bodies to the
           // library's own validation, without changing the session.
@@ -118,6 +142,10 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
     // Cloudflare sets cf-connecting-ip; x-forwarded-for can be supplied by the client.
     advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
     databaseHooks: {
+      account: {
+        create: { before: requirePasswordlessAccount },
+        update: { before: requirePasswordlessAccount },
+      },
       user: {
         create: { before: validateAuthUserProfile },
         update: { before: validateAuthUserProfile },

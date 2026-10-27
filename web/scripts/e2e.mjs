@@ -17,7 +17,13 @@ let writeError;
 let serverLog = '';
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(BETTER_AUTH|BREVO|RESEND|GOOGLE_|CLOUDFLARE_|CF_|NEXTAUTH|NEXT_PUBLIC_|VERCEL_|NEXT_DEV_WRANGLER_ENV|WRANGLER_)/.test(key)));
-Object.assign(env, { NEXT_TELEMETRY_DISABLED: '1', WRANGLER_SEND_METRICS: 'false', E2E_OTP_FILE: otpFile });
+Object.assign(env, {
+  NEXT_TELEMETRY_DISABLED: '1', WRANGLER_SEND_METRICS: 'false', E2E_OTP_FILE: otpFile,
+  // Keep Miniflare discovery and diagnostics inside this owned test run, rather
+  // than writing to the developer's global Wrangler registry/configuration.
+  WRANGLER_REGISTRY_PATH: join(temp, 'wrangler-registry'),
+  WRANGLER_LOG_PATH: join(temp, 'wrangler-logs'),
+});
 function run(file, args, options = {}) {
   const child = spawn(process.execPath, [file, ...args], { cwd: app, env, detached: process.platform !== 'win32', ...options });
   children.add(child);

@@ -1,7 +1,8 @@
 import { env } from "cloudflare:workers";
 import { createAuth } from "@/server/auth/config";
 import { createDb } from "@/server/db";
-import { clientProfile, engagement, engagementLog, freelancerProfile, user } from "@/server/db/schema";
+import { clientProfile, engagement, engagementConsent, engagementLog, freelancerProfile, policyAcceptance, user } from "@/server/db/schema";
+import { POLICY_VERSIONS } from "@/lib/policies";
 
 export const BASE = "http://localhost:3000";
 let clientNumber = 0;
@@ -57,10 +58,12 @@ export async function seedLog() {
     db.insert(freelancerProfile).values({ userId: freelancerId, displayName: "Test Freelancer", status: "verified" }),
     db.insert(clientProfile).values({ id: clientId, userId: clientUserId, displayName: "Test Client", kind: "individual" }),
     db.insert(engagement).values({
-      id: engagementId, freelancerId, clientId, title: "Test project", clientNameHint: "Test Client",
-      startedOn: "2026-10-01", status: "accepted", inviteTokenHash: `hash-${id}`,
-      inviteExpiresAt: "2026-10-15T00:00:00.000Z", acceptedAt: "2026-10-01T00:00:00.000Z",
+      id: engagementId, freelancerId, title: "Test project", clientNameHint: "Test Client",
+      startedOn: "2026-10-01", inviteTokenHash: `hash-${id}`,
+      inviteExpiresAt: new Date(Date.now() + 86400000).toISOString(),
     }),
+    db.insert(policyAcceptance).values({ id: `consent-${id}`, userId: clientUserId, policy: "client_consent", version: POLICY_VERSIONS.client_consent }),
+    db.insert(engagementConsent).values({ engagementId, policyAcceptanceId: `consent-${id}` }),
     db.insert(engagementLog).values({
       id: logId, ref: `FL-${id}`, engagementId, freelancerId, clientId,
       anchorKind: "completed", anchorDate: "2026-10-14",

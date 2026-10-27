@@ -278,12 +278,20 @@ export const engagement = sqliteTable(
   },
   (t) => [
     index("engagement_freelancer_idx").on(t.freelancerId),
+    index("engagement_freelancer_created_idx").on(t.freelancerId, t.createdAt),
     index("engagement_client_idx").on(t.clientId),
     // Target of the log's composite key, so a log always names its engagement's own parties.
     uniqueIndex("engagement_id_parties_idx").on(t.id, t.freelancerId, t.clientId),
     check("engagement_status_check", sql`${t.status} IN ('invited','accepted','declined','expired','cancelled')`),
   ],
 );
+
+// PRD-F9: one explicit consent event belongs to exactly one engagement.
+// Trigger-enforced account/profile/time consistency and append-only evidence.
+export const engagementConsent = sqliteTable("engagement_consent", {
+  engagementId: text("engagement_id").primaryKey().references(() => engagement.id, { onDelete: "restrict" }),
+  policyAcceptanceId: text("policy_acceptance_id").notNull().unique().references(() => policyAcceptance.id, { onDelete: "restrict" }),
+});
 
 // PRD-F2/PRD-F3 foundation (SDD §3.1). Submission, moderation, and retention
 // transitions land with their feature handlers and hand-written trigger migrations.

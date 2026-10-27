@@ -2,10 +2,14 @@ import { spawnSync } from "node:child_process";
 import { unstable_readConfig } from "wrangler";
 import { CLOUDFLARE_ACCOUNT_ID, checkDeployedBindings, checkResourceBindings } from "./check-resource-bindings.mjs";
 import { R2_INCLUDED, checkBucketSafety, summarizeR2Usage } from "./r2-audit-policy.mjs";
+import { inspectBillingConfiguration } from "./r2-billing-policy.mjs";
 
-// Read-only: no object listing/reads, uploads, deletion, subscription changes, or deployment.
+// Read-only metadata GETs and a GraphQL POST containing only an analytics query.
+// No object reads, uploads, deletion, subscription changes, or deployment.
 // Exit 1: unsafe/unreadable resources. Exit 2: incomplete billing verification/warnings.
-// Exit 0 is a clean snapshot, NEVER a spending cap or a guarantee about future billing.
+// Exit 0 is reserved for a complete snapshot, NEVER a spending cap or billing guarantee.
+// These generic APIs cannot close the Workers-tier/account-budget operator gates;
+// successful access alone therefore still produces exit 2 (or 1 for resource errors).
 async function main() {
   const configs = ["", "dev"].map(environment => {
     const config = unstable_readConfig({ config: "wrangler.jsonc", env: environment });
@@ -22,11 +26,18 @@ async function main() {
   }
   if (typeof token !== "string" || !token) throw new Error("Cloudflare authentication is required");
   async function read(path) {
-    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/${path}`, {
-      headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20_000),
-    });
-    const body = await response.json();
-    return { ok: response.ok && body.success === true, status: response.status, result: body.result };
+    let response;
+    try {
+      response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/${path}`, {
+        headers: { authorization: `Bearer ${token}` }, redirect: "error", signal: AbortSignal.timeout(20_000),
+      });
+      const body = await response.json();
+      return { ok: response.ok && body?.success === true, status: response.status, result: body?.result, resultInfo: body?.result_info };
+    } catch {
+      // Optional billing access failure must not suppress the remaining snapshot
+      // or print arbitrary API/HTML content; required resources still fail below.
+      return { ok: false, status: response?.status ?? null };
+    }
   }
   async function required(path) {
     const response = await read(path);
@@ -74,18 +85,21 @@ async function main() {
   });
   const analytics = await response.json();
   if (!response.ok || analytics.errors?.length || analytics.data?.viewer?.accounts?.length !== 1) {
-    throw new Error(`Account R2 analytics could not be verified (HTTP ${response.status}): ${analytics.errors?.map(error => error.message).join("; ") ?? "account data unavailable"}`);
+    throw new Error(`Account R2 analytics could not be verified (HTTP ${response.status}); provider errors or account data unavailable`);
   }
   const data = analytics.data.viewer.accounts[0];
   const usage = summarizeR2Usage(data.r2OperationsAdaptiveGroups, data.r2StorageAdaptiveGroups);
   warnings.push(...usage.warnings);
   const [subscriptions, alerts] = await Promise.all([read("subscriptions"), read("alerting/v3/policies")]);
-  if (!subscriptions.ok) warnings.push(`Billing/subscription verification unavailable (HTTP ${subscriptions.status}); Workers plan and invoice are unverified`);
-  if (!alerts.ok) warnings.push(`Budget-alert verification unavailable (HTTP ${alerts.status}); no alert is claimed configured`);
+  const billingConfiguration = inspectBillingConfiguration(subscriptions, alerts);
+  warnings.push(...billingConfiguration.warnings);
   console.log(JSON.stringify({
     checkedAt: now.toISOString(), account: CLOUDFLARE_ACCOUNT_ID, buckets, workers,
     accountUsage: { from: start.toISOString(), to: now.toISOString(), ...usage }, includedStandardUsage: R2_INCLUDED,
-    billingVerificationAvailable: subscriptions.ok, budgetAlertVerificationAvailable: alerts.ok,
+    billingVerificationAvailable: subscriptions.ok, notificationPolicyApiAvailable: alerts.ok,
+    budgetAlertVerificationAvailable: false,
+    billing: billingConfiguration.billing, notifications: billingConfiguration.notifications,
+    freePlanVerified: false, budgetAlertVerified: false,
     noChargeGuarantee: false,
     limitations: "Analytics can lag. Empty storage samples mean no observed data, not an invoice. Shared account allowance; other buckets and deleted buckets count. Budget alerts do not stop usage. This command does not enforce runtime quotas or a hard spending cap.",
     errors, warnings,

@@ -5,23 +5,27 @@ import { useActionState, useState } from "react";
 import { FREELANCER_STATEMENTS } from "@/lib/policies";
 import type { Role } from "@/server/db/schema";
 import { acceptPolicies } from "./actions";
+import { INVITE_RETURN_PATH, inviteReturnPath } from "@/lib/invite-return";
 
 const ACK_NAMES = ["ack_proof", "ack_not_legal", "ack_false_logs"] as const;
 
-export function OnboardingForm({ role }: { role: Role | null }) {
+export function OnboardingForm({ role, returnTo }: { role: Role | null; returnTo?: string }) {
   const [state, action, pending] = useActionState(acceptPolicies, null);
-  const [chosen, setChosen] = useState<Role | null>(role);
+  const destination = inviteReturnPath(returnTo);
+  const initialRole = role ?? (destination === INVITE_RETURN_PATH ? "client" : null);
+  const [chosen, setChosen] = useState<Role | null>(initialRole);
   const errors: Record<string, string | undefined> = state && !state.ok ? (state.fieldErrors ?? {}) : {};
 
   return (
     <form action={action} className="mt-6 space-y-8">
+      <input type="hidden" name="returnTo" value={destination} />
       {role === null && (
         <fieldset>
           <legend className="text-sm font-medium">Account type</legend>
           <p className="text-sm text-muted">This cannot be changed later.</p>
           {(["freelancer", "client"] as const).map((r) => (
             <label key={r} className="mt-2 flex items-start gap-3 border border-rule p-3">
-              <input type="radio" name="role" value={r} required onChange={() => setChosen(r)} className="mt-1" />
+              <input type="radio" name="role" value={r} required defaultChecked={initialRole === r} onChange={() => setChosen(r)} className="mt-1" />
               <span>
                 <span className="block font-medium">{r === "freelancer" ? "Freelancer" : "Client"}</span>
                 <span className="block text-sm text-muted">
