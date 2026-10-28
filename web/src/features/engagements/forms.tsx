@@ -35,11 +35,12 @@ export function ContinueInviteForm({ token }: { token: string }) {
   </form>;
 }
 
-export function RespondInviteForm({ profile }: { profile: { displayName: string; kind: string } | null }) {
+export function RespondInviteForm({ engagementId, profile }: { engagementId: string; profile: { displayName: string; kind: string } | null }) {
   const [accepted, accept, accepting] = useActionState(acceptEngagement, null);
   const [declined, decline, declining] = useActionState(declineEngagement, null);
   return <div className="mt-6 space-y-8">
     <form action={accept} className="space-y-5">
+      <input type="hidden" name="engagementId" value={engagementId} />
       {profile ? <p>Your client profile: <strong>{profile.displayName}</strong> ({profile.kind}).</p> : <fieldset className="space-y-4">
         <legend className="font-medium">Your client profile</legend>
         <p className="text-sm">Enter your details. Profiles are linked to registered accounts and are never merged by name.</p>
@@ -56,6 +57,7 @@ export function RespondInviteForm({ profile }: { profile: { displayName: string;
       <button disabled={accepting || declining} className={button}>{accepting ? "Accepting" : "Accept engagement"}</button>
     </form>
     <form action={decline} className="border-t border-rule pt-6">
+      <input type="hidden" name="engagementId" value={engagementId} />
       <p className="mb-3 text-sm">Declining requires no profile or engagement consent.</p>
       {declined && !declined.ok && <p role="alert">{declined.message}</p>}
       <button disabled={accepting || declining} className="w-full border border-rule px-4 py-3 disabled:opacity-60">{declining ? "Declining" : "Decline invitation"}</button>

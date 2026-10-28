@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.61
+doc_version: 0.64
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-27
+updated: 2026-10-28
 reconciled: 2026-09-14
 ---
 
@@ -26,12 +26,12 @@ Built on SPINE 0.3.0
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.27 | Review | 2026-10-27 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.28 | Review | 2026-10-27 | 2026-10-13 |
 | PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.16 | Review | 2026-10-27 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.35 | Review | 2026-10-27 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.31 | Review | 2026-10-27 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.52 | Draft | 2026-10-27 | 2026-09-14 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.37 | Review | 2026-10-28 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.32 | Review | 2026-10-27 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.55 | Draft | 2026-10-28 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -113,6 +113,20 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 6. Current development baseline
 
+### Current release receipt — observed 2026-10-27, 14:49–14:55 UTC
+
+[PR21](https://github.com/slvdrvncntjvr/FLAG/pull/21) merged source `13c4aeaaeddc0aabce11adaa05e999bb58550bb2` into dev as `b647a81d4a3c2d73948d3eb321ce23b5a841ed57` at14:39:35UTC. Required verify/dependency-audit jobs pass on the [source run40522142739](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40522142739) and [merged-dev run40523238223](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40523238223); both skip production packaging. The merged commit's [Cloudflare check](https://github.com/slvdrvncntjvr/FLAG/commit/b647a81d4a3c2d73948d3eb321ce23b5a841ed57/checks) maps build `be23beb1-8336-4dfc-92ae-e830cdfe15e4` to Worker `270fd47e-9bdc-4a7e-8cd6-9f4b14a0fa35`. From web/, `npm run verify:dev -- --expected-version 270fd47e-9bdc-4a7e-8cd6-9f4b14a0fa35` passes exact stable100percent identity, dev DB/auth/PROOFS, nine anonymous page routes, noindex and displayed privacy/terms2026-10-27. No throttle probe, mail, signup or authenticated acceptance was performed; counter-writing `/api/auth/get-session` was excluded.
+
+Documented migration receipts record dev0000-0008 (9ledger/21triggers) versus production0000-0007 (8ledger/14triggers); this audit did not freshly query SQL. Inspect genuine pending migrations and recovery prerequisites before any later production operation; historical0007/no-pending statements below describe their dated operation. Main remains `3582f7e31c0d1caf3c22d71adcd8a7f9756e80d1`; fresh metadata confirms production Worker `9b1fdc1d-c4cb-495c-a343-fb042cbaae68` at100percent. The current production verifier fails at missing PROOFS before route probes; no new production route-health claim follows.
+
+Dev now implements auth/onboarding, manual verification/shared review and consent-first engagements, with current privacy/terms reacceptance. Log/proof intake and publication, aggregate records/ratings, correction and retention automation remain unlaunched. [QAD section7.1](qad-flag.md#71-owner-manual-acceptance-worksheet-prepared-2026-10-27) retains changed-candidate inbox, physical Android/iPhone, Messenger, genuine inspection, reject/resubmit, engagement and tier/budget-alert acceptance. Separate production signal, independent main developer/last-push approval, current required CI and exact production binding/policy/version checks remain required; PR20 is open draft/REVIEW_REQUIRED at this observation. Normal SPINE passes with four known warnings and checkpoint verification is CLEAN; strict validation still fails. No checkpoint, status, reconciled date or human acceptance is advanced. The ignored command/results report is `.local-evidence/coordinator-audit-2026-10-27/release.md`.
+
+Current review blocker,2026-10-27 at14:59UTC: coordinator confirms P1 engagement response target confusion: render invite A, continue invite B in another tab, then submitting A acts on B because forms have no bound invite target and actions use the mutable pending cookie. Repair and regression verification are pending; the observed live dev release above is not a readiness approval. This finding is coordinator-reported (Orca message `msg_716c66d6fe38`), not a fresh reproduction by this documentation worker.
+
+Local repair follow-up,2026-10-28: both response forms now bind a nonsecret engagement ID; the server independently checks it against the live cookie-selected authorized invite before either mutation. Forty-six focused action/D1/migration tests, app/test/E2E types and scoped lint pass; removing both guards in memory makes both stale-response rejection assertions fail and target B, while guarded source writes nothing. QAD AB-35 records the regression, including first-profile fields and malformed/missing/duplicate targets or cookies. Final isolated desktop1280px/mobile360px browser cases both pass (1.2minutes), proving both stale responses preserve B and both invite states while matching responses still work. This is local uncommitted evidence; the dated live dev release remains unfixed pending separate publication and exact-version verification.
+
+### Historical release observations
+
 Verified application release, observed 2026-10-26 at 07:52 UTC: [PR #17](https://github.com/slvdrvncntjvr/FLAG/pull/17) merged reviewed source cdcdc50 into dev as 45540d8d6c2be8a89d492cba38ec464d7ea62ed7. Required hosted jobs passed on the [PR head](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40287087925) and [merged dev](https://github.com/slvdrvncntjvr/FLAG/actions/runs/40287906609). Cloudflare build ad814386-4966-46f7-8a27-16976a5317ba explicitly maps that merged commit to Worker 1e1c2440-1ce1-484b-abee-e7c3558000a1. Exact-version verification passed at 100 percent with correct dev DB/auth/private PROOFS bindings, all ten anonymous route/noindex checks, matching displayed 2026-10-26 policy titles/versions, invalid-code statuses 400/400/400/400/400/429 and stable identity. No mail, signup or real inspection was performed.
 
 The three reproduced defects are repaired: standard-auth user hooks reject recognizable sensitive names/raw images and discard HTTP image values; ordinary numeric project URLs work with bounded component/payload checks; new cases retain immutable name/city/portfolio snapshots through rejection and corrected resubmission. Legacy original inputs remain explicitly unavailable. Privacy/terms versions are 2026-10-26 and require reacknowledgment; freelancer/client-consent versions are unchanged. Full scoped local evidence is 333 Workers, 47 Node, ten Python and twelve desktop/360px cases, types/lint, both zero-finding audits, both target builds/guards/dry runs and packaged smoke; fresh independent reviews find no remaining blocker. QAD section 1 states evidence scope and the minor follow-ups.
@@ -127,7 +141,7 @@ Production verification includes the real local D1 rehearsal, seventeen Python t
 
 ## 7. Implemented scope and remaining work
 
-Owner-authorized dev release candidate,2026-10-27: feat/dev-readiness-and-engagements/PR21 contains passwordless hardening, explicit read-only versus throttle release verification, conservative billing evidence, the manual acceptance worksheet and consent-first PRD-F9. At14:30:09UTC dev migration0008 completes with reviewed encrypted recovery preparation, observed original-data/schema preservation, ledger9/21triggers/cleanFK/zero fabricated receipts/exact no-op; dev41a5c046 and production9b1fdc1d remain unchanged during SQL. Privacy/terms source now uses2026-10-27 and real reacceptance, while freelancer_ack/client_consent stay2026-10-12. Notice follow-up passes151focusedWorkers/27verifier cases, types/scopedlint and independent review; prior implementation94ffc89/final-head8e5e82c passed full local/hosted gates. Owner authorizes PR21 merge after fresh final-head CI; resulting merge/build/exact-Worker verification is recorded on [PR21](https://github.com/slvdrvncntjvr/FLAG/pull/21). Owner reports existing-dev mobile/inbox/verification/queue working; Messenger, genuine ID inspection and rejection/resubmission are explicitly untested, and new-engagement acceptance remains pending. Published SQL and all eight invariants remain unchanged; only approved privacy/terms versions advance. SPINE0.3.0/reconciled dates and production gates remain unchanged.
+Historical pre-publication candidate observation,2026-10-27 (superseded by section6 receipt): feat/dev-readiness-and-engagements/PR21 contains passwordless hardening, explicit read-only versus throttle release verification, conservative billing evidence, the manual acceptance worksheet and consent-first PRD-F9. At14:30:09UTC dev migration0008 completes with reviewed encrypted recovery preparation, observed original-data/schema preservation, ledger9/21triggers/cleanFK/zero fabricated receipts/exact no-op; dev41a5c046 and production9b1fdc1d remain unchanged during SQL. Privacy/terms source now uses2026-10-27 and real reacceptance, while freelancer_ack/client_consent stay2026-10-12. Notice follow-up passes151focusedWorkers/27verifier cases, types/scopedlint and independent review; prior implementation94ffc89/final-head8e5e82c passed full local/hosted gates. Owner authorizes PR21 merge after fresh final-head CI; resulting merge/build/exact-Worker verification is recorded on [PR21](https://github.com/slvdrvncntjvr/FLAG/pull/21). Owner reports existing-dev mobile/inbox/verification/queue working; Messenger, genuine ID inspection and rejection/resubmission are explicitly untested, and new-engagement acceptance remains pending. Published SQL and all eight invariants remain unchanged; only approved privacy/terms versions advance. SPINE0.3.0/reconciled dates and production gates remain unchanged.
 
 Earlier recovery-publication step,2026-10-27: publish the reviewed recovery tooling/evidence to dev and prepare a protected draft application-promotion PR. Fresh local production build/guard/no-upload package/ten-route isolated smoke, seventeen Python cases and both zero-finding dependency audits pass. OPS section7/QAD section1 retain evidence boundaries and the remaining developer, device/Messenger, inbox, authenticated inspection and budget-alert gates. No production application release follows from local packaging success.
 
@@ -136,7 +150,7 @@ Earlier recovery-publication step,2026-10-27: publish the reviewed recovery tool
 | Accounts and onboarding (PRD-F7, PRD-F8) | Email-code authentication, acknowledgment/reacceptance, current-policy and ban/role gates; reliable mail failure/logout handling | Auth privacy regressions and browser scenarios pass locally and in hosted CI |
 | Manual verification (PRD-F1 and verification part of PRD-F4) | Request, queue/claim/inspection/approve/reject, reasoned decision, corrected new requests, ids-only audit; deployed to dev through 0007 | Snapshot/portfolio repairs are released in PR17/0007; authenticated real-inspection acceptance remains separate from anonymous smoke |
 | Log/proof/rating foundation (PRD-F2, PRD-F3, PRD-F14) | D1 schema and isolated private R2 configuration/storage primitives | No log submission, proof serving, publication, records or average UI yet |
-| Engagement handshake (PRD-F9) | PR21 implements explicit consent receipts, single-use invites and client responses; dev SQL0008 applied with preservation/no-op | Final-head CI, dev merge/automatic publication and exact live version are recorded on PR21; real engagement acceptance remains pending |
+| Engagement handshake (PRD-F9) | PR21 implements explicit consent receipts, single-use invites and client responses; dev SQL0008 applied with preservation/no-op | Final-head CI, dev merge/automatic publication and exact live version pass in section6; real engagement acceptance remains pending |
 | Correction, retention and closure (PRD-F12, PRD-F13) | Approved intended behavior; no complete automation | CORRECTION_REQUEST/DATA_REQUEST, safe lifecycle schema, holds, purge/closure and log freeze/proof gates remain later work |
 | Release and recovery | Dev release controls, local D1 rehearsal, isolated remote D1/synthetic R2 recovery and verified production SQL through0007 | OPS section7 records fresh paused backup, preserved data and safe reopen; application promotion, cost/device and authenticated workflow gates remain separate |
 

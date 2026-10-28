@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/server/db";
 import { getViewer, requireViewer, requireVerifiedFreelancer } from "@/server/auth/guards";
-import { loadInviteLanding } from "@/server/db/queries/engagements";
+import { loadInviteForClient, loadInviteLanding } from "@/server/db/queries/engagements";
 import { acceptInvitation, cancelInvitation, createInvitation, declineInvitation } from "./handlers";
-import { failed, hashInvite, INVITE_CONTINUATION_SECONDS, INVITE_RETURN_PATH, PENDING_INVITE_COOKIE, tokenInput, type EngagementResult } from "./schema";
+import { failed, hashInvite, INVITE_CONTINUATION_SECONDS, INVITE_RETURN_PATH, PENDING_INVITE_COOKIE, idInput, tokenInput, type EngagementResult } from "./schema";
 
 export async function createEngagement(_previous: EngagementResult<{ invitePath: string }> | null, data: FormData): Promise<EngagementResult<{ invitePath: string }>> {
   const viewer = await requireVerifiedFreelancer().catch(() => null);
@@ -46,8 +46,9 @@ async function pendingHash() {
 export async function acceptEngagement(_previous: EngagementResult | null, data: FormData): Promise<EngagementResult> {
   const viewer = await requireViewer().catch(() => null);
   if (!viewer) return failed("Sign in again to continue.");
-  if (!validForm(data, ["consent", "associate", "displayName", "kind", "city", "registrationNo"])) return failed("Check the supplied fields.");
+  if (!validForm(data, ["engagementId", "consent", "associate", "displayName", "kind", "city", "registrationNo"])) return failed("Check the supplied fields.");
   const hash = await pendingHash();
+  if (!await matchesRenderedInvite(viewer.id, hash, data)) return failed();
   const result = await acceptInvitation(await getDb(), viewer.id, hash, {
     consent: data.get("consent"), associate: data.get("associate"),
     ...(data.has("displayName") ? { displayName: data.get("displayName"), kind: data.get("kind"), city: data.get("city") ?? undefined, registrationNo: data.get("registrationNo") ?? undefined } : {}),
@@ -62,11 +63,14 @@ export async function acceptEngagement(_previous: EngagementResult | null, data:
   return result;
 }
 
-export async function declineEngagement(_previous: EngagementResult | null): Promise<EngagementResult> {
+export async function declineEngagement(_previous: EngagementResult | null, data: FormData): Promise<EngagementResult> {
   const viewer = await requireViewer().catch(() => null);
   void _previous;
   if (!viewer) return failed("Sign in again to continue.");
-  const result = await declineInvitation(await getDb(), viewer.id, await pendingHash());
+  if (!validForm(data, ["engagementId"])) return failed();
+  const hash = await pendingHash();
+  if (!await matchesRenderedInvite(viewer.id, hash, data)) return failed();
+  const result = await declineInvitation(await getDb(), viewer.id, hash);
   await clearInvite();
   if (result.ok) {
     revalidatePath("/engagements");
@@ -82,6 +86,15 @@ export async function cancelEngagement(_previous: EngagementResult | null, data:
   const result = await cancelInvitation(await getDb(), viewer.id, data.get("id"));
   if (result.ok) revalidatePath("/engagements");
   return result;
+}
+
+// The rendered ID is only a target check; the HttpOnly capability and live actor
+// checks remain authoritative. Reject stale forms without clearing a newer cookie.
+async function matchesRenderedInvite(actorId: string, hash: string, data: FormData) {
+  const target = idInput.safeParse(data.get("engagementId"));
+  if (!target.success || !hash) return false;
+  const invite = await loadInviteForClient(await getDb(), actorId, hash);
+  return invite?.id === target.data;
 }
 
 function validForm(data: FormData, fields: string[]) {

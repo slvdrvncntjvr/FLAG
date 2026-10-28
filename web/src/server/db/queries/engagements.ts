@@ -40,7 +40,7 @@ export async function loadInviteForClient(db: Db, actorId: string, hash: string)
   if (!tokenInput.safeParse(hash).success) return null;
   const viewer = await loadViewer(db, actorId);
   if (!viewer || viewer.banned || viewer.role !== "client" || !isOnboarded(viewer)) return null;
-  const [invite] = await db.select({ title: engagement.title, inviter: freelancerProfile.displayName })
+  const [invite] = await db.select({ id: engagement.id, title: engagement.title, inviter: freelancerProfile.displayName })
     .from(engagement).innerJoin(freelancerProfile, eq(freelancerProfile.userId, engagement.freelancerId))
     .where(and(eq(engagement.inviteTokenHash, hash), eq(engagement.status, "invited"),
       sql`${engagement.inviteExpiresAt}>strftime('%Y-%m-%dT%H:%M:%fZ','now')`, sql`${engagement.freelancerId}!=${actorId}`)).limit(1);
