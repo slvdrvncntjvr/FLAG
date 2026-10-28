@@ -66,9 +66,12 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
       await page.getByLabel("Engagement title", { exact: true }).fill(title);
       await page.getByLabel("Client name as you know it", { exact: true }).fill("Private client hint");
       await page.getByLabel("Start date", { exact: true }).fill("2026-10-01");
+      const link = page.getByLabel("Invite link", { exact: true });
+      const previousLink = await link.count() ? await link.inputValue() : "";
       await page.getByRole("button", { name: "Create invitation", exact: true }).click();
-      await expect(page.getByLabel("Invite link", { exact: true })).toHaveValue(/\/invite\/[a-f0-9]{64}$/);
-      return page.getByLabel("Invite link", { exact: true }).inputValue();
+      await expect(link).toHaveValue(/\/invite\/[a-f0-9]{64}$/);
+      await expect(link).not.toHaveValue(previousLink);
+      return link.inputValue();
     });
   }
   const acceptedLink = await create("Synthetic design work");
@@ -126,6 +129,47 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
     await client.goto(acceptedLink);
     await expect(client.getByRole("heading", { name: "This invitation is unavailable" })).toBeVisible();
 
+    await test.step("Two tabs cannot respond to a different pending invitation", async () => {
+      const linkA = await create("Cross-tab invitation A");
+      const linkB = await create("Cross-tab invitation B");
+      await client.goto(linkA);
+      await client.getByRole("button", { name: "Continue to sign in or respond" }).click();
+      await expect(client).toHaveURL(/\/invite\/continue$/);
+      await expect(client.getByText("Cross-tab invitation A", { exact: true })).toBeVisible();
+      const cookieA = (await clientContext.cookies()).find(c => c.name === "flag-pending-invite")!.value;
+      const otherTab = await clientContext.newPage();
+      try {
+        await otherTab.goto(linkB);
+        await otherTab.getByRole("button", { name: "Continue to sign in or respond" }).click();
+        await expect(otherTab).toHaveURL(/\/invite\/continue$/);
+        await expect(otherTab.getByText("Cross-tab invitation B", { exact: true })).toBeVisible();
+        const cookieB = (await clientContext.cookies()).find(c => c.name === "flag-pending-invite")!.value;
+        expect(cookieB).not.toBe(cookieA);
+        const target = client.locator('input[name="engagementId"]');
+        await expect(target).toHaveCount(2);
+        expect(await target.first().inputValue()).not.toBe(cookieB);
+        expect(await client.content()).not.toContain(cookieB);
+        const responseForms = await client.locator("form").evaluateAll(forms => forms.map(form => form.outerHTML).join(""));
+        for (const link of [linkA, linkB]) expect(responseForms).not.toContain(link.split("/").at(-1)!);
+        for (const checkbox of await client.getByRole("checkbox").all()) await checkbox.check();
+        await client.getByRole("button", { name: "Accept engagement", exact: true }).click();
+        await expect(client.locator('form [role="alert"]')).toContainText("Reload and try again");
+        await client.getByRole("button", { name: "Decline invitation", exact: true }).click();
+        await expect(client.locator('form [role="alert"]')).toHaveCount(2);
+        expect((await clientContext.cookies()).find(c => c.name === "flag-pending-invite")!.value).toBe(cookieB);
+        // Both links remain live after both stale responses; B can still be
+        // accepted from its matching tab using the preserved capability.
+        await page.reload();
+        for (const title of ["Cross-tab invitation A", "Cross-tab invitation B"]) {
+          const card = page.getByRole("heading", { name: title, exact: true }).locator("..");
+          await expect(card.getByText("Invited", { exact: true })).toBeVisible();
+        }
+        for (const checkbox of await otherTab.getByRole("checkbox").all()) await checkbox.check();
+        await otherTab.getByRole("button", { name: "Accept engagement", exact: true }).click();
+        await expect(otherTab).toHaveURL(/\/engagements\?response=accepted$/);
+      } finally { await otherTab.close(); }
+    });
+
     const declineLink = await create("Synthetic second engagement");
     console.info("[F9] client decline and replay");
     await client.goto(declineLink);
@@ -136,7 +180,7 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
     await expect(client).toHaveURL(/\/engagements\?response=declined$/);
     await expect(client.getByText("Review your engagements below.", { exact: true })).toBeVisible();
     await expect(client.getByRole("heading", { name: "Synthetic second engagement", exact: true })).toHaveCount(0);
-    await expect(client.getByText(/^Consent recorded/)).toHaveCount(1);
+    await expect(client.getByText(/^Consent recorded/)).toHaveCount(2);
     await client.goto(declineLink);
     await expect(client.getByRole("heading", { name: "This invitation is unavailable" })).toBeVisible();
     await page.reload();

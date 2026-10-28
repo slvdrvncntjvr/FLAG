@@ -20,6 +20,6 @@ export default async function ContinueInvite() {
   return <>
     <h1 className="font-serif text-2xl">Respond to invitation</h1>
     <p className="mt-4 break-words"><strong>{invite.inviter}</strong> invited you to <strong>{invite.title}</strong>.</p>
-    <RespondInviteForm profile={invite.profile} />
+    <RespondInviteForm engagementId={invite.id} profile={invite.profile} />
   </>;
 }
