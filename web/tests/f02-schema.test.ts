@@ -64,7 +64,10 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
     const other = await seedLog();
     const original = await env.DB.prepare("SELECT ref FROM engagement_log WHERE id = ?").bind(fixture.logId).first<{ ref: string }>();
     await expect(env.DB.prepare("UPDATE engagement_log SET ref = ? WHERE id = ?").bind(original!.ref, other.logId).run())
-      .rejects.toThrow(/unique constraint/i);
+      .rejects.toThrow(/log identity and anchor are immutable/i);
+    // References are immutable after 0009; test uniqueness on a fresh insert instead.
+    await env.DB.prepare("DELETE FROM engagement_log WHERE id = ?").bind(other.logId).run();
+    await expect(insert(other.engagementId, original!.ref)).rejects.toThrow(/unique constraint/i);
   });
 
   it("keeps revision numbers unique within a log and requires a positive integer", async () => {
@@ -78,7 +81,8 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
     await expect(insertRevision({ log_id: "missing" })).rejects.toThrow(/foreign key constraint/i);
     await expect(insertRevision({ submitted_by: "missing" })).rejects.toThrow(/foreign key constraint/i);
     const revisionId = await insertRevision();
-    await env.DB.prepare("UPDATE engagement_log SET current_revision_id = ? WHERE id = ?").bind(revisionId, fixture.logId).run();
+    // A retained tag exercises the revision FK without fabricating a publication pointer.
+    await env.DB.prepare("INSERT INTO log_tag (revision_id, tag) VALUES (?, 'Clear Scope')").bind(revisionId).run();
     await expect(env.DB.prepare("DELETE FROM log_revision WHERE id = ?").bind(revisionId).run()).rejects.toThrow(/foreign key constraint/i);
     await expect(env.DB.prepare("DELETE FROM engagement_log WHERE id = ?").bind(fixture.logId).run()).rejects.toThrow(/foreign key constraint/i);
     await expect(env.DB.prepare("DELETE FROM user WHERE id = ?").bind(fixture.freelancerId).run()).rejects.toThrow(/foreign key constraint/i);
@@ -104,7 +108,9 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
     await expect(insert(other.freelancerId, fixture.clientId)).rejects.toThrow(/foreign key constraint/i);
     await expect(insert(fixture.freelancerId, other.clientId)).rejects.toThrow(/foreign key constraint/i);
     await expect(env.DB.prepare("UPDATE engagement_log SET client_id = ? WHERE id = ?").bind(other.clientId, fixture.logId).run())
-      .rejects.toThrow(/foreign key constraint/i);
+      .rejects.toThrow(/log identity and anchor are immutable/i);
+    expect(await env.DB.prepare("SELECT client_id FROM engagement_log WHERE id = ?").bind(fixture.logId).first())
+      .toEqual({ client_id: fixture.clientId });
     await insert(other.freelancerId, other.clientId);
   });
 
@@ -112,7 +118,9 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
     const revisionId = await insertRevision();
     const other = await seedLog();
     await expect(env.DB.prepare("UPDATE engagement_log SET current_revision_id = ? WHERE id = ?").bind(revisionId, other.logId).run())
-      .rejects.toThrow(/foreign key constraint/i);
+      .rejects.toThrow(/publication is not supported by private intake/i);
+    expect(await env.DB.prepare("SELECT current_revision_id FROM engagement_log WHERE id = ?").bind(other.logId).first())
+      .toEqual({ current_revision_id: null });
   });
 
   it("INV-5 schema permits the rating without additional reputation fields", async () => {
@@ -157,23 +165,31 @@ describe("PRD-F3 proof metadata foundation", () => {
   it("accepts the exact 10 MiB limit", async () => { await insertProof({ size_bytes: 10485760 }); });
 
   it.each([
-    { owner_kind: "stranger" }, { kind: "government_id" }, { mime: "text/html" }, { status: "public" },
+    { owner_kind: "stranger" }, { kind: "government_id" }, { mime: "text/html" },
   ])("rejects unsupported proof metadata %j", async (overrides) => {
     const metadata: Partial<Record<"owner_kind" | "kind" | "mime" | "status", string>> = overrides;
     await expect(insertProof(metadata)).rejects.toThrow(/check constraint/i);
   });
 
+  it("rejects a public proof before any metadata can be persisted", async () => {
+    const id = crypto.randomUUID();
+    await expect(insertProof({ id, status: "public" })).rejects.toThrow(/proof must begin unbound uploading/i);
+    expect(await env.DB.prepare("SELECT id FROM proof_file WHERE id = ?").bind(id).first()).toBeNull();
+  });
+
   it("requires unique object keys and existing log, revision, and uploader", async () => {
     const proof = await insertProof();
     await expect(insertProof({ object_key: proof.object_key })).rejects.toThrow(/unique constraint/i);
-    for (const field of ["log_id", "revision_id", "uploaded_by"]) {
-      await expect(insertProof({ [field]: "missing" })).rejects.toThrow(/foreign key constraint/i);
-    }
+    await expect(insertProof({ log_id: "missing" })).rejects.toThrow(/proof requires editable draft/i);
+    await expect(insertProof({ uploaded_by: "missing" })).rejects.toThrow(/foreign key constraint/i);
+    // Tracked purge reservations permit a revision reference; use that legal lifecycle
+    // state to reach the composite FK rather than the unbound-upload entry guard.
+    await expect(insertProof({ status: "pending_purge", revision_id: "missing" })).rejects.toThrow(/foreign key constraint/i);
   });
 
   it("rejects binding proof metadata to another log's revision", async () => {
     const other = await seedLog();
     const revisionId = await insertRevision({ log_id: other.logId });
-    await expect(insertProof({ revision_id: revisionId })).rejects.toThrow(/foreign key constraint/i);
+    await expect(insertProof({ status: "pending_purge", revision_id: revisionId })).rejects.toThrow(/foreign key constraint/i);
   });
 });

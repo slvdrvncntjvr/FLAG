@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { viewerOrRedirect } from "@/server/auth/guards";
+import { isPrivateIntakeEnabled } from "@/features/logs/rollout";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -8,6 +9,7 @@ export default async function Home() {
   const viewer = await viewerOrRedirect();
   const isClient = viewer.role === "client";
   const isFreelancer = viewer.role === "freelancer";
+  const intakeEnabled = isFreelancer && await isPrivateIntakeEnabled();
   const accountType = isClient ? "Client" : isFreelancer ? "Freelancer" : viewer.role === "moderator" ? "Moderator" : "Admin";
   return (
     <>
@@ -20,7 +22,7 @@ export default async function Home() {
       <p className="mt-6 text-sm text-muted">
         {isClient
           ? "Open an invite link from your freelancer to accept or decline an engagement."
-          : "Client search and engagement logs are planned for later releases."}
+          : isFreelancer ? intakeEnabled ? "Open your engagements to create or view a private engagement log." : "Open your engagements to manage invitations and view accepted work." : "Use the available account tools below."}
       </p>
       {(isClient || isFreelancer) && <p className="mt-6"><Link href="/engagements" className="underline underline-offset-2">View engagements</Link></p>}
       {isFreelancer && <p className="mt-6"><Link href="/verification" className="underline underline-offset-2">View verification or request an identity check</Link></p>}

@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, join, resolve } from "node:path";
+import { isolateOtpIp } from "./network";
 
 function diagnostics(page: Page, label: "owner" | "client") {
   page.on("pageerror", () => console.info(`[F9 ${label}] browser script error (details withheld)`));
@@ -14,6 +15,7 @@ function diagnostics(page: Page, label: "owner" | "client") {
 }
 
 async function enterCode(page: Page, email: string) {
+  await isolateOtpIp(page);
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByRole("button", { name: "Send code", exact: true }).click();
   let code = "";

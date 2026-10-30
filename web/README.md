@@ -18,31 +18,20 @@ python scripts/spine.py checkpoint verify
 The runner uses the local engine's `v0.3.0` tag without changing the shared
 checkout, even if that checkout has been upgraded. `SPINE_HOME` can point at a
 local clone containing that tag. No application or documentation command needs
-the repo's disposable `temporary/` folder. Other features require their own
-scope/authorization; passing the baseline checks does not make the full product
-implemented. Accounts/onboarding and manual verification/review are deployed to dev through migration 0007. PR17 repairs auth profile privacy, numeric portfolio URLs and historical request attribution; its immutable snapshots preserve new case inputs and mark legacy originals unavailable. Local checkpoint spine-cp-2026-10-26-1 captures the verified integrated application. See INDEX section 6 for current candidate/release evidence and OPS section 7 for production prerequisites. Main/production promotion remains held; a scoped dev checkpoint is not full-product acceptance.
+the repo's disposable `temporary/` folder.
+
+[INDEX §6–7](../docs/index.md#6-current-development-baseline) is the current status and remaining-work map. Private log intake is off unless `PRIVATE_INTAKE_ENABLED` is exactly `"true"` (`src/features/logs/rollout.ts`); `wrangler.jsonc` sets it to `"false"` for dev and production.
 
 ## Local development
 
 Use Node **24.22.1**, pinned in the repository and `web/` `.nvmrc` files. With
 nvm (including nvm-windows), run `nvm install 24.22.1` and `nvm use 24.22.1`
 before installing dependencies. `web/.npmrc` enforces the Node 24 requirement in
-`package.json`; it rejects older runtimes during installation. `nvm use` changes
-the shared Windows symlink: wait for other workers to finish before switching.
-Until then, select the verified portable runtime for this PowerShell session:
+`package.json`; it rejects older runtimes during installation. Verify with
+`node --version` (must print `v24.22.1`) in a fresh terminal.
 
-```powershell
-$flagNodeDir = Join-Path $env:TEMP 'flag-review-node-v24.22.1/node-v24.22.1-win-x64'
-$env:Path = "$flagNodeDir;$env:Path"
-node --version # must print v24.22.1
-npm --version
-$env:CLOUDFLARE_ACCOUNT_ID = '1af65da586efd62d6f6d429240395f28'
-```
-
-The portable directory is an existing local review runtime, not a permanent
-installation. For durable setup, install with `nvm install 24.22.1`, then run
-`nvm use 24.22.1` once shared workers finish; verify in a fresh terminal.
-Set the approved account explicitly in each development shell (Bash:
+Set the approved Cloudflare account explicitly in each development shell
+(PowerShell: `$env:CLOUDFLARE_ACCOUNT_ID = '1af65da586efd62d6f6d429240395f28'`; Bash:
 `export CLOUDFLARE_ACCOUNT_ID=1af65da586efd62d6f6d429240395f28`). Remove a
 conflicting legacy `CF_ACCOUNT_ID` from that shell. Account IDs are identifiers,
 not API credentials; keep tokens in the existing Wrangler login/secret store.
@@ -95,13 +84,11 @@ dependencies, generates a synthetic secret, and applies migrations to a fresh
 local D1 with isolated local R2. It never reads developer `.dev.vars`, `.env`
 files, or existing `.wrangler` data; mail/Google credentials are absent. Port
 3000 must be free. It starts the server automatically and stops its process tree
-and deletes temporary data after the finite suite, including failure.
+and deletes temporary data after the finite suite only after owned-process exit is proven. Unproven termination retains the owned state for diagnosis.
 
-The suite runs on desktop and 360px Chromium. Accounts scenarios cover anonymous redirects/noindex, real localhost console OTP and D1 sessions, both roles, required policy/freelancer acknowledgments, network recovery, failed sign-out retaining the session and successful revocation. Verification scenarios cover role boundaries, request/queue/claim/inspection/approval, and rejection followed by corrected resubmission with the original review retaining its own name/city/portfolio. Numeric project URLs are exercised through the actual form. The runner uses Next development mode and isolated local D1/R2; it does not prove real mail, Google OAuth, authenticated packaged/deployed workerd or physical-device behavior.
+The suite runs on desktop and 360px Chromium. Scenarios cover accounts/onboarding, manual verification/reject/resubmit/history, consent-first engagements and synthetic private draft/upload/pending intake, including actual OTP limits with scenario-local synthetic networks (`e2e/accounts.spec.ts`, `e2e/verification.spec.ts`, `e2e/engagements.spec.ts`, `e2e/log-intake.spec.ts`). The runner uses Next development mode and isolated local D1/R2; it does not prove real mail, Google OAuth, deployed behavior or physical devices.
 
-OTPs stay in a restricted temporary file and are removed at teardown. Traces and
-screenshots are disabled to avoid retaining codes/cookies. Failure reports are
-ignored by Git and may contain synthetic account details; do not publish them.
+OTPs stay in a restricted temporary file and are removed at teardown. Playwright disables traces and automatic screenshots (`playwright.config.ts`), but the log-intake scenario captures one synthetic pending-page screenshot. Failure reports and test output are ignored by Git and may contain synthetic account details; do not publish them.
 
 To exercise the real Workers runtime instead of the Next dev server:
 
@@ -116,8 +103,8 @@ are included in public/font-licenses/.
 ## Checks
 
 ```bash
-npm run test        # Vitest in the Workers pool; current results in QAD
-npm run test:deploy # Deployment isolation, release identity and R2 audit policy
+npm run test        # Vitest in the Workers pool
+npm run test:deploy # Deploy guard, invite-return and browser-harness tests
 node --test scripts/setup-local.test.mjs # Local setup safety
 npm run build:worker:dev
 npm run test:worker:smoke # Built artifact in local workerd, synthetic D1/R2
@@ -211,7 +198,7 @@ npx wrangler secret put BREVO_API_KEY --env dev
 
 ### Database migrations
 
-Apply migrations before code that needs them. Dev has 0000-0007 applied; nullable immutable request snapshots in 0007 preserve new inputs without inventing legacy evidence or rewriting published files. Production has only 0000-0002. OPS section 7 requires recovery/preflight and the complete reviewed pending sequence before a main merge triggers deployment; populated dependent logs can prevent 0005 from rebuilding safely. Never delete real data to make that migration pass. Deployment commands do not migrate databases.
+Apply migrations before the code that needs them, dev first, then production. Take a `wrangler d1 export` backup of the target first. Migrations are forward-only; never edit a published one. Migration 0005 rebuilds `engagement_log` and can fail on populated tables, so check row counts before applying it anywhere new. Deploy commands do not migrate databases. Current schema state per environment is in [INDEX §6](../docs/index.md#6-current-development-baseline).
 
 ```bash
 npm run db:migrate:remote   # production flag-db
@@ -238,27 +225,9 @@ scripts. Incorrect dashboard commands produce a failed check until corrected.
 Wrangler's custom build also checks the target before upload, covering a
 plain default `wrangler deploy` that bypasses the adapter configuration.
 
-After a separately authorized dev deployment, capture its full Worker version
-UUID and verify that candidate explicitly:
+After every deploy, check that CI is green and run the manual smoke check (sign in, accept current policies, open /home; signed-out /home and /onboarding redirect to /sign-in).
 
-```bash
-npm run verify:dev -- --expected-version <full Worker UUID>
-# Explicit current-health inspection only; does not verify a candidate:
-npm run verify:dev -- --health-only
-```
-
-Missing/malformed/duplicate/unknown arguments fail before authentication or
-requests. A historical candidate, split traffic, ambiguous/missing metadata or
-wrong active version fails closed. The verifier checks actual bindings,
-anonymous routes, policy/noindex boundaries and invalid-code throttling without
-sending mail or creating an account. It rechecks the original active version
-before invalid-code probes and after the run; an observed deployment change
-fails without release-success output. Health-only mode always reports identity
-unverified. Metadata observations cannot lock deployment, prove every request's
-version or establish source-SHA provenance. Existing Wrangler login supplies
-read-only deployment metadata; this local candidate does not deploy.
-
-The released privacy and terms versions are `2026-10-26`; existing accounts must accept those policies again after release. Legal pages describe current manual verification/profile/review collection and distinguish planned engagement/log/correction workflows. Freelancer acknowledgment and per-engagement client-consent versions are unchanged.
+Dev and source privacy and terms versions are `2026-10-27`; existing accounts must reaccept them. Freelancer acknowledgment and per-engagement client consent remain `2026-10-12` (`src/lib/policies.ts`).
 
 ## Not yet enabled (optional, also free when configured)
 
@@ -266,45 +235,9 @@ The released privacy and terms versions are `2026-10-26`; existing accounts must
   Cloud OAuth). Email-code sign-in works without it.
 - **Turnstile bot check** — needs site/secret keys (requires a domain). Sign-in
   uses durable D1 rate limits meanwhile (`cf-connecting-ip` plus email).
-Manual freelancer verification is implemented; future engagement, log, proof-serving, publication, records, corrections and retention workflows remain separate milestones. The verified-freelancer guard checks the live profile plus current acknowledgments rather than granting access from a cached label.
 
-## Dependency audit evidence
+Moderator and admin roles have no admin screen yet. Set `user.role` directly in D1.
 
-Historical pre-repair evidence on 2026-10-26: the isolated baseline's clean `npm ci` passed under Node
-24.22.1/npm 11.19.1. Fresh `npm audit --json` and
-`npm audit --omit=dev --json` both returned zero findings. The manifest and lock
-select OpenNext Cloudflare 1.20.12 with AWS adapter 4.1.11 and retain Next 16.4.3;
-no unsupported-version bypass, forced downgrade or advisory suppression is used.
-This supersedes the historical October 14 braces finding for the current lock;
-CI rechecks the graph as advisories change. Other local/hosted/release evidence
-and remaining limitations are recorded separately in QAD/OPS.
+## Local evidence
 
-## Offline recovery preparation
-
-From the repository root:
-
-```bash
-python -m unittest discover -s scripts -p 'test_*.py'
-python scripts/recovery_rehearsal.py
-```
-
-The rehearsal reads only hash-reviewed migrations through 0005, allocates fresh
-synthetic native SQLite databases, compares original rows/schema, exercises
-binary snapshots and pre/post SQL export/import, checks integrity/FKs and fourteen
-constraint rejections, then removes all owned databases/exports. Its only report
-is ignored `temporary/recovery-rehearsal-report.md`. It refuses existing database
-paths, arbitrary CLI targets and redirected report paths. No developer database,
-credential, remote service, real account or proof content is read.
-
-Native SQLite success does not prove D1 migration or recovery safety. The
-populated transaction probe exposes migration 0005's existing foreign-key
-hazard and preserves rollback; published migration SQL is unchanged. Real D1
-export/import, Time Travel, R2 recovery, Worker rollback, encrypted backup/access,
-write-pause/data-loss acceptance and production promotion remain separate owner
-gates in OPS. Canonical SPINE validation remains a local release gate because
-the pinned engine repository is private; hosted CI runs application and
-self-contained runner/recovery tests without copying private engine source.
-
-## Local evidence and cleanup
-
-The old `temporary/` reports/handoffs were removed after all 51 files were hash-verified in ignored `.local-evidence/flag-pre-audit-2026-10-26.zip` with its receipt. They are historical evidence, not current instructions. The offline recovery command may generate a fresh bounded report under `temporary/`; no runtime workflow reads that folder. LOG/INDEX/SDD are the authoritative context.
+`.local-evidence/` at the repo root is ignored by Git. It holds past run receipts and is never needed to build, test or deploy.

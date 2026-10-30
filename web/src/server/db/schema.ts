@@ -314,6 +314,8 @@ export const engagementLog = sqliteTable(
     status: text("status", { enum: LOG_STATUSES }).notNull().default("draft"),
     anchorKind: text("anchor_kind", { enum: ANCHOR_KINDS }).notNull(),
     anchorDate: text("anchor_date").notNull(),
+    // Legacy NULL falls back to createdAt for the approved 30-day idle-draft cleanup.
+    draftUpdatedAt: isoTime("draft_updated_at"),
     firstSubmittedAt: isoTime("first_submitted_at"),
     submittedAt: isoTime("submitted_at"),
     publishedAt: isoTime("published_at"),
@@ -402,6 +404,8 @@ export const proofFile = sqliteTable(
     mime: text("mime", { enum: PROOF_MIMES }).notNull(),
     sizeBytes: integer("size_bytes").notNull(),
     sha256: text("sha256").notNull(),
+    purgeAttempts: integer("purge_attempts").notNull().default(0),
+    purgeInflight: integer("purge_inflight").notNull().default(0),
     status: text("status", { enum: PROOF_STATUSES }).notNull().default("uploading"),
     uploadedAt: isoTime("uploaded_at").notNull().default(isoNow),
   },
@@ -414,6 +418,8 @@ export const proofFile = sqliteTable(
     check("proof_file_kind_check", sql`${t.kind} IN ('screenshot','invoice','agreement','chat','other')`),
     check("proof_file_mime_check", sql`${t.mime} IN ('image/jpeg','image/png','image/webp','application/pdf')`),
     check("proof_file_size_check", sql`typeof(${t.sizeBytes}) = 'integer' AND ${t.sizeBytes} BETWEEN 1 AND 10485760`),
+    check("proof_file_purge_attempts_check", sql`typeof(${t.purgeAttempts}) = 'integer' AND ${t.purgeAttempts} BETWEEN 0 AND 9007199254740991`),
+    check("proof_file_purge_inflight_check", sql`typeof(${t.purgeInflight}) = 'integer' AND ${t.purgeInflight} IN (0,1)`),
     check("proof_file_status_check", sql`${t.status} IN ('uploading','attached','abandoned','pending_purge','purged')`),
   ],
 );
