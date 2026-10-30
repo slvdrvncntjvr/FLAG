@@ -16,6 +16,7 @@ const governmentNumberMarker = String.raw`(?:[\s\p{P}]+(?:numbers?|nos?|identifi
 const fullGovernmentIdLabel = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:` + [
   String.raw`social[\s\p{P}]+security(?:[\s\p{P}]+(?:system|account))?${governmentNumberMarker}`,
   String.raw`tax(?:[\s\p{P}]*payer)?[\s\p{P}]+(?:identification|identity|identifier|id)`,
+  String.raw`(?:pag[\s\p{P}]*ibig|home[\s\p{P}]+development[\s\p{P}]+mutual[\s\p{P}]+fund)${governmentNumberMarker}`,
   String.raw`(?:government|national)[\s\p{P}]+(?:identification|identity|identifier|id)`,
   String.raw`(?:philippine[\s\p{P}]+(?:identification|identity)(?:[\s\p{P}]+system)?|government[\s\p{P}]+service[\s\p{P}]+insurance[\s\p{P}]+system|philippine[\s\p{P}]+health[\s\p{P}]+insurance(?:[\s\p{P}]+corporation)?|philsys[\s\p{P}]+card)${governmentNumberMarker}`,
 ].join("|") + String.raw`)(?![\p{L}\p{N}])`, "iu");

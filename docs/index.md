@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.76
+doc_version: 0.77
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,7 +31,7 @@ Built on SPINE 0.3.0
 | SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.23 | Review | 2026-10-30 | 2026-10-13 |
 | QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.45 | Review | 2026-10-30 | 2026-10-13 |
 | OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.36 | Review | 2026-10-30 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.66 | Draft | 2026-10-30 | 2026-09-14 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.67 | Draft | 2026-10-30 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -120,9 +120,11 @@ This section is the only current-status map. Other docs describe design and proc
 |-------|--------------|--------|
 | Dev (`flag-dev`, branch `dev`) | PR22 merge `0bd505f`: sign-in, onboarding, manual verification with moderator review, consent-first engagement invites | Migrations 0000–0008 |
 | Production (`flag`, branch `main`) | Older app at `3582f7e`: sign-in and onboarding only. It predates the PROOFS binding | Migrations 0000–0007 |
-| Branch `f2-private-log-proof-intake` (not pushed) | Private log drafts, proof upload and submission to pending (PRD-F2, PRD-F3, per-log PRD-F14). Off by default: `PRIVATE_INTAKE_ENABLED` is `"false"` for dev and production in `web/wrangler.jsonc` | Adds migration 0009, applied nowhere remote |
+| Branch `f2-private-log-proof-intake` (dev integration candidate) | Private log drafts, proof upload and submission to pending (PRD-F2, PRD-F3, per-log PRD-F14). Off by default: `PRIVATE_INTAKE_ENABLED` is `"false"` for dev and production in `web/wrangler.jsonc` | Adds migration 0009, applied nowhere remote |
 
 Dev legal versions: privacy and terms `2026-10-27`; freelancer acknowledgment and per-engagement client consent `2026-10-12` (`web/src/lib/policies.ts`).
+
+The owner authorized integrating the disabled intake source into dev on 2026-10-30. This integration remains compatible with migration 0008 and does not activate intake or apply migration 0009. The deployed baseline above is the last verified release; activation still follows §7 step 1 and Q28 remains open.
 
 What a user can do on dev today: sign in, accept the policies, request verification, have a moderator verify them, invite a client, and have the client accept or decline. A logged experience cannot be published or read by other freelancers yet.
 
