@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.28
+doc_version: 2.34
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-27
+updated: 2026-10-30
 reconciled: 2026-10-13
 ---
 
@@ -21,15 +21,7 @@ reconciled: 2026-10-13
 
 ## 1. How to build from these docs
 
-Current release observation,2026-10-27 at14:49–14:55UTC: [INDEX section6](index.md#6-current-development-baseline) records merged dev `b647a81d` / Worker `270fd47e-9bdc-4a7e-8cd6-9f4b14a0fa35`, both cited source/merge CI passes and exact read-only live verification. Dev serves privacy/terms2026-10-27 and consent-first engagements; documented migration evidence is dev0008 versus production0007, not a fresh SQL query. Full-product and production acceptance remain incomplete; use [QAD section7.1](qad-flag.md#71-owner-manual-acceptance-worksheet-prepared-2026-10-27) for remaining human checks. Earlier dated measurements below retain their original scope. Coordinator-confirmed P1 engagement cross-tab invite-target confusion is an unresolved current-dev blocker; INDEX section6 records the reproduction sequence and provenance, with no repaired release claimed.
-
-Current owner-directed branch policy, 2026-10-26: dev now requires zero approving reviews and require_last_push_approval is false. This is the requested persistent change, not a temporary exception. Strict current-base verify/dependency-audit checks pinned to GitHub Actions app15368, administrator enforcement, stale-review dismissal and force-push/deletion prohibitions remain unchanged. Main retains one approving developer review and independent last-push approval; its complete protection configuration is unchanged. Agent code/scope review and required CI remain part of the development workflow.
-
-Historical scoped baseline,2026-10-26: PR17 is merged into dev 45540d8, migration0007 and exact dev release verification pass, and local checkpoint spine-cp-2026-10-26-1 captures that application. INDEX section 6/QAD section 1/OPS section 7 hold the actual gate evidence and remaining main prerequisites. This documentation-only follow-up introduces no application/migration/policy/dependency change.
-
-Later owner-approved production SQL operation, 2026-10-26: production now has0000-0007 with exact original auth preservation, eight ledger rows, fourteen permanent triggers, clean FKs and no pending migration in that dated0000-0007 set; later documented dev0008 still requires fresh production-target inspection before promotion. The unchanged main application remains Worker9b1fdc1d at100percent. OPS section7 records verified remote recovery, fresh encrypted paused backup, the single7minute36second write pause, exact reapplication/no temporary guards, and seven anonymous live checks. Main/code promotion remains separate; published migration bytes, application source, dependencies, policy versions, invariants and reconciled dates are unchanged.
-
-Historical repair scope,2026-10-26 (current release is INDEX section6 receipt): see INDEX section 6 for the observed dev release and LOG's 2026-10-26 owner authorization for the three audit repairs, current copy/docs, gated dev integration and local checkpoint. The repair includes additive migration 0007 for immutable case input snapshots and privacy/terms reacknowledgment at versions 2026-10-26. Product meaning, invariants, SPINE 0.3.0, published migration history and reconciled dates stay fixed. Review-state technical implementation is explicitly authorized within this scope; main/production remains gated by OPS section 7.
+[INDEX §6–7](index.md#6-current-development-baseline) owns the current deployed/local boundary, remaining gates and deferred requirements. The current request is documentation cleanup only. Local disabled-intake source checks are recorded in [QAD §1](qad-flag.md#1-strategy); they do not authorize another implementation milestone or a release.
 
 Read in this order before writing code:
 
@@ -41,11 +33,9 @@ Read in this order before writing code:
 6. This guide
 7. `QAD` - before calling anything done
 
-**Only build against `Locked` docs or an explicit owner implementation override.** IDEA remains Locked; PRD 2.0 is Review under owner-approved cr-002. cr-001 authorized the audit repairs while BUILD, SDD, QAD and OPS are Review; the latest 2026-10-25 LOG authorization additionally permits the recommended milestone sequence after each ERD/lifecycle gap is designed. Earlier narrower task approvals remain historical. Implement each dispatched scope against its named technical contract and QAD gates; do not infer full-product completion from a foundation delivery.
+**Only build against `Locked` docs or an explicit owner implementation override for the named task.** IDEA remains Locked; PRD 2.0 is Review under cr-002, and technical docs remain Review under the recorded overrides. LOG preserves the earlier bounded authorizations and implementation sequences. Apply the latest task boundary; a deferred requirement or completed foundation is not automatic authority to start the next feature.
 
-2026-10-15 task-specific owner override (LOG): issue #5 may implement the existing Review-state design for the PRD-F2/PRD-F3 database and R2 foundation. Later workflows remain separately scoped.
-
-cr-001 aligns privacy/terms with the approved scope and bumps both versions to 2026-10-14, requiring reacceptance. The pages distinguish available accounts/onboarding from planned workflows. Dev deployed and verified on 2026-10-14; production remains on its previous release.
+Historical authorization/release details remain in [LOG decisions](log-flag.md#1-decisions), [QAD §1](qad-flag.md#1-strategy) and [OPS §7](ops-flag.md#7-production-readiness-gate), including cr-001, the 2026-10-15 foundation, 2026-10-26 repairs/production SQL, PR21/0008, PR22 and the 2026-10-28/30 local intake/browser work. Policy, schema, source-review, human acceptance and release gates remain distinct.
 
 ### To build X, read Y
 
@@ -186,7 +176,7 @@ Push protection: web/open-next.config.ts:2 loads the CI check before adapter ope
 
 When schema changes, run these three steps in order, from `web/`:
 
-1. Generate the migration: `npm run db:generate` (writes the next `drizzle/000X_*.sql`).
+1. Review the ERD and migration provenance before generation. The current Drizzle journal ends at 0007 (`web/drizzle/meta/_journal.json:58`), while manual 0008 and local 0009 SQL exist. `npm run db:generate` must not be used to reconstruct that history or generate against the stale snapshot; resolve the guarded generation path first, preserving published SQL and existing IDs.
 2. Apply backward-compatible migrations to the database BEFORE the code that needs them goes live:
    - preview DB: `npm run db:migrate:dev` (`wrangler d1 migrations apply flag-db-dev --remote --env dev`)
    - production DB: `npm run db:migrate:remote` (`wrangler d1 migrations apply flag-db --remote`)
@@ -198,7 +188,7 @@ Current migration/release state is INDEX section 6 and OPS section 7. Published 
 
 | Area | Convention |
 |------|-----------|
-| Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with one review from another developer. Production promotion waits for the owner's explicit signal |
+| Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with independent agent review and required CI; dev has zero required human approvals under the owner policy below. Main retains its independent developer/last-push approval and separate production signal |
 | Enforced branch controls (API readback, 2026-10-26) | Dev: zero required approving reviews and no last-push approval, per explicit owner instruction. Main: one approving developer review and independent last-push approval. Both: strict current-base verify/dependency-audit pinned to Actions app15368, administrator enforcement, stale-review dismissal and no force pushes/deletion. Agent review and CI remain required working practice; main/production promotion still needs its separate owner signal |
 | Commit format | Short imperative subject naming the feature ID when there is one: `PRD-F8 add policy acceptance gate` |
 | Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright. The retired `prototype/` static mock was deleted on 2026-10-14 |
@@ -270,7 +260,7 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 - Design at 360 px first. Primary action anchored at the bottom on forms.
 - Use `dvh`/`svh`, never `100vh`.
 - Keep the session in cookies, never localStorage.
-- Detect the Facebook and Messenger in-app browser and, before the proof upload step, offer "Open in Chrome".
+- Messenger helper scope wording is unresolved (LOG Q27): PRD §6 lists "Open in Chrome" as an undecided candidate, while the former BUILD rule mandated it and the local disabled-intake UI includes it (`web/src/features/logs/proof-upload.tsx:74`). Preserve that behavior pending scope reconciliation; this discrepancy adds no release gate.
 - JavaScript budget for task routes: under 150 KB compressed. Target LCP 2.5 s or less and INP 200 ms or less on a mid-range Android phone.
 
 **Checklist for any screen**
@@ -281,27 +271,13 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 - [ ] Copy follows §5 copy rules
 - [ ] Outcome never conveyed by color alone
 
-## 8. Baseline boundary and next development milestones
+## 8. Scope references and technical boundaries
 
-Historical pre-publication boundary at2026-10-27T14:30UTC (superseded for current release by INDEX section6): dev Worker41a5c046-06df-43cb-88fb-348a953553c2 still serves auth/onboarding/manual verification; dev SQL0008 is now applied, preserving observed old rows/schema with ledger9/21triggers/cleanFK/zero fabricated receipts/exact no-op. Historical release/checkpoint evidence stays in INDEX section6 and LOG. The owner-authorized feat/dev-readiness-and-engagements/PR21 source implements passwordless hardening, release-verifier repairs and consent-first PRD-F9, with privacy/terms27 and unchanged freelancer_ack/client_consent12. Focused notice/auth/F9 checks and independent source/recovery review pass. Owner authorizes dev merge after final-head CI; PR21 carries the resulting merge/build/exact-Worker verification. Synthetic QA and a dev merge do not establish genuine ID inspection, human reconciliation, a checkpoint or production acceptance.
+Use [INDEX §6–7](index.md#6-current-development-baseline) for implemented scope and remaining gates, [SDD §3](sdd-flag.md#3-data-model) for the schema/technical contracts, [QAD §1](qad-flag.md#1-strategy) for observed checks and [OPS §5/§7](ops-flag.md#5-runbooks) for operational/release procedures. This guide does not maintain a second milestone queue.
 
-The sequence below organizes existing owner-approved requirements under the recorded implementation override; it introduces no new requirements. Read SDD §3 before every migration. Each implementation milestone needs its named scope and the relevant QAD happy, sad, abuse and invariant tests.
+- Review the ERD before any new schema work. CORRECTION_REQUEST, DATA_REQUEST and lifecycle/closure fields remain design-first dependencies; their presence in the target design is not implementation evidence.
+- The disabled-intake contract specifically verifies actual 0008 compatibility before deferring remote 0009. Migration-before-code still applies to behavior that needs new fields. Source-only review does not require activation prerequisites; accepting real material does.
+- Local draft cleanup is not full retention or assessed account closure. Current cascades and append-only consent triggers must not be used to simulate those future workflows. Correction/lifecycle safeguards precede real publication.
+- D1 and R2 never become one cross-store atomic transaction. Preserve held/submitted evidence and quarantine unproven purge owners; operational gaps are recorded in OPS, not a new implementation assignment here.
 
-| Milestone | Existing scope | Required dependency / release gate |
-|-----------|----------------|------------------------------------|
-| Current baseline | PRD-F7, PRD-F8: patched dependencies, reliable sign-in/sign-out, acknowledgment, reproducible local setup and CI | Clean install, audits, actual app/test/E2E typechecks, lint, Workers/Node/Python tests, browser cases, dev Worker build/dry run, independent review and verified dev release; real mail and physical-device evidence remain distinct |
-| Verification and shared review foundation | PRD-F1 and verification part of PRD-F4 | Implement SDD §3.5 and its ERD first: nullable inspection tuple, one undecided request, shared claim/decision/audit rows, owner name/profile/portfolio capture; role/conflict/reason/atomic rollback gates H-24/H-25, S-32–S-35/S-38, AB-26–AB-28/AB-31 and NT-05/NT-10 before replacing the fail-closed guard |
-| Consented engagement handshake | PRD-F9 | Verified/current-policy freelancer gate; atomic single-use invite consumption, client account/profile association and engagement-specific consent receipt; decline creates no reputation signal |
-| Private log and proof intake | PRD-F2, PRD-F3 and per-log PRD-F14 | Accepted relationship, correct parties, approved filing clock, proof authorization/validation, submission/freeze constraints, quotas and draft/upload cleanup before accepting real material; intake never publishes |
-| Correction and lifecycle prerequisites | PRD-F13, PRD-F12 | Build private correction/filer-update review, assessed closure, visibility expiry, finite holds and idempotent purge alongside intake/publication development; required correction and retention behavior must exist before the first real publication |
-| Publication, records and averages | Remaining PRD-F4, PRD-F6, aggregate PRD-F14 | Human approval and immutable review history; signed-in relationship-scoped reads; approved eligibility/average rules; correction and lifecycle prerequisites above; no publication without those boundaries |
-
-Resolved design contracts and remaining implementation dependencies:
-
-- Local migration 0006 and `web/src/server/db/schema.ts:154` implement SDD §3.5's nullable request evidence; a completed inspection tuple and current moderator lease gate the eventual decision. Focused backend/privacy/migration tests exist; complete integrated and browser/review gates before release. No separate name approval or automated ID scanning.
-- `POLICY_ACCEPTANCE` stores user/policy/version/time; additive0008 now links `ENGAGEMENT_CONSENT` to one fresh per-engagement acceptance, and the PR21 handler commits profile association, acceptance and receipt in one batch. Legacy rows receive no invented receipt. Onboarding remains independent of engagement consent; SDD section3.6 and QAD F9 cases define the contract.
-- MODERATION_CASE and AUDIT_EVENT now exist locally in 0006, with only verification handlers active. CORRECTION_REQUEST and DATA_REQUEST remain later dependencies; their presence in the ERD is not implemented evidence. Preserve IDs and approved product meaning.
-- Plan the existing design-first closure/retirement fields and preservation migration before account closure or retention work. Current account/profile cascades and append-only consent triggers are not an implemented retention system; do not delete accounts to simulate assessed closure.
-- Add the SDD submission/proof/freeze/maintenance constraints with their workflows. D1/R2 foundation tests do not prove upload authorization, publication safety or cross-store atomicity.
-
-QR automation remains deferred; paid SMS, public replies, corroboration, refusal signals, ranks and marketplace/payment work are not introduced by this plan. PRD-F11 notifications remain Should-Have, separate from email authentication.
+QR automation remains deferred; PRD-F11 notifications remain Should-Have and separate from email sign-in. Exclusions and all eight invariants remain governed by Locked IDEA.

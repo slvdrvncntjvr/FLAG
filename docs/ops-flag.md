@@ -3,15 +3,19 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.32
+doc_version: 2.35
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-10-27
+updated: 2026-10-30
 reconciled: 2026-10-13
 ---
 
 # Ops & Observability: FLAG
+
+[INDEX §6–7](index.md#6-current-development-baseline) owns current deployed/local scope and the remaining gate map. This document retains operational procedures and dated observations; [QAD §1](qad-flag.md#1-strategy) retains test receipts. The current task is documentation cleanup. Operational prerequisites below do not start another implementation milestone.
+
+**Historical operational-state receipt, 2026-10-27; superseded by INDEX §6:**
 
 Current operational state is [INDEX section6](index.md#6-current-development-baseline): observed2026-10-27 at14:49–14:55UTC, merged dev `b647a81d` maps to stable100percent Worker `270fd47e-9bdc-4a7e-8cd6-9f4b14a0fa35`; both cited CI runs and exact read-only dev verification pass. Documented SQL evidence is dev0008 versus production0007, not a fresh SQL query. Production remains main3582f7e/Worker9b1fdc1d and fails the current PROOFS binding gate before route probes. Remaining acceptance and main/application promotion gates stay in section7 and QAD section7.1; dated observations below are historical, not a newer release claim. Coordinator-confirmed P1 engagement cross-tab invite-target confusion remains an unresolved dev readiness blocker (INDEX section6).
 
@@ -23,7 +27,7 @@ Current operational state is [INDEX section6](index.md#6-current-development-bas
 | Preview | https://flag-dev.factsfirst.workers.dev | `dev` | `flag-dev` / `flag-db-dev` | Workers Builds with separate dev build/deploy commands; manual npm run deploy:dev remains a fallback; no environment named preview exists | slvdrvncntjvr |
 | Local | http://localhost:3000 | any | local D1/R2 via `initOpenNextCloudflareForDev` | `npm run dev` | each developer |
 
-Each environment has its own D1 database, per-environment secrets and configured private PROOFS R2 bucket (flag-proofs for production, flag-proofs-dev for dev). Local development uses emulated R2. The last recorded bucket inspection found Standard storage, public r2.dev disabled, no custom domains/imports and only multipart-abort cleanup; refresh privacy/cost checks before release. Dev's observed active Worker binds flag-proofs-dev; the old production Worker predates PROOFS and lacks it. Upload/streaming, quotas and retention workflows remain planned. A configuration guard checks selected account/resource identifiers, not remote privacy settings or spending limits.
+Each environment has its own D1 database, per-environment secrets and configured private PROOFS R2 bucket (flag-proofs for production, flag-proofs-dev for dev). Local development uses emulated R2. The 2026-10-30 metadata read confirms both proof buckets are Standard, with public r2.dev disabled and no custom domains; imports/lifecycle safety remain dated inspection evidence and must be refreshed before release. Dev's recorded active Worker binds flag-proofs-dev; the old production Worker predates PROOFS and lacks it. Local candidate upload/attachment delivery, atomic per-user quotas and hold-aware draft cleanup exist (`web/src/features/logs/proofs.ts:80`, `web/src/features/logs/cleanup.ts:7`); independent operational invocation/recovery and full retention remain incomplete. A configuration guard checks selected account/resource identifiers, not remote privacy settings or spending limits.
 
 ## 2. Deploy
 
@@ -41,12 +45,12 @@ Scripts copied from `web/package.json` (run from `web/`). Migration order: previ
 | Manual deploy (dev) | `npm run deploy:dev` | Builds then runs the guarded dev deploy |
 | Smoke check (current release) | Sign in, accept current policies, open /home; verify signed-out /home and /onboarding redirect to /sign-in | Manual verification/moderation routes are current; client records remain future work |
 | Binding types | `npm run cf-typegen` | After binding changes; --strict-vars false permits both deployed and local URLs |
-| Verify exact dev release | `npm run verify:dev -- --expected-version <full-candidate-version-uuid>` | Independently map the candidate to a full version UUID first; require that version at 100 percent traffic before binding/route/policy/OTP checks; no mail/signup; see BUILD §3 |
+| Verify exact dev release | `npm run verify:dev -- --expected-version <full-candidate-version-uuid>` | Independently map the candidate to a full version UUID first; require that version at 100 percent traffic before read-only binding/route/policy checks; optional dev throttle writes are separate below; no mail/signup; see BUILD §3 |
 | Diagnose active dev health | `npm run verify:dev -- --health-only` | Explicitly releaseIdentityVerified false; passing diagnostic health cannot satisfy the candidate gate |
 | Verify exact production release | `npm run verify:dev -- --target production --expected-version <full-candidate-version-uuid>` | Metadata and nine-page GETs only; actual DB/auth/private PROOFS and current policy/access must match; old production is expected to fail missing PROOFS/current-copy gates until separately approved rollout |
 | Explicit dev throttle diagnostic | `npm run verify:dev -- --expected-version <full-candidate-version-uuid> --otp-throttle` | Up to six invalid-code POSTs write durable AUTH_RATE_LIMIT counters; no email/account request. Strict sequence 400/400/400/400/400/429 and valid Retry-After required; alternate header alone cannot pass. Forbidden on production |
 
-Deployment guards load actual selected Wrangler environment and validate account/Worker/DB/auth/PROOFS identifiers. Workers Builds branch/name mismatches fail before upload, including plain Wrangler custom-build entry points; local deliberate deploy commands still need operator authorization. Exact live binding/version verification remains required after any release. INDEX section 6 and this document's section 7 own current migration state; previous releases in LOG are dated observations.
+Deployment guards load actual selected Wrangler environment and validate account/Worker/DB/auth/PROOFS identifiers. Workers Builds branch/name mismatches fail before upload, including plain Wrangler custom-build entry points; local deliberate deploy commands still need operator authorization. Exact live binding/version verification remains required after any release. INDEX section 6 owns recorded current migration state; this document's section 7 and LOG retain dated operation/recovery evidence.
 
 **Rollback:** `npx wrangler rollback` returns the default production Worker to the previous version (`--env dev` for preview). D1 migrations are not rolled back; they are forward-only. Procedure approved by owner 2026-10-13; a rollback dry-run on the `dev`/preview Worker is scheduled as part of pre-pilot readiness and this note is stamped verified once that run passes.
 
@@ -65,7 +69,7 @@ Current runtime code (web/src/server/auth/config.ts, web/src/server/mail/index.t
 | `GOOGLE_CLIENT_SECRET` | Google sign-in (optional) | Wrangler secret | no — currently disabled without keys |
 | `DB` | D1 binding | wrangler.jsonc | yes |
 
-PROOFS R2 is configured and bound on current dev. Planned: upload/search burst bindings, TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY, and retention Cron wiring. cr-001 authentication limits use D1 AUTH_RATE_LIMIT and the existing BETTER_AUTH_SECRET for hashed keys. No SMS or ID-vendor key is required; pilot verification is manual live inspection per PRD-F1 and RFC 001 automatic checking remains deferred.
+PROOFS R2 is configured and bound on the recorded dev release. The local default-disabled rollout is implemented and has recorded source/composition/packaged-0008 checks (QAD §1): only exact server-owned `true` enables new intake (`web/src/features/logs/rollout.ts:6`), with checked-in dev/production false (`web/wrangler.jsonc:34`, `:63`). Disposable synthetic harnesses opt in explicitly; no remote activation is established. Upload/search burst bindings, TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY and retention Cron wiring remain planned. cr-001 authentication limits use D1 AUTH_RATE_LIMIT and the existing BETTER_AUTH_SECRET for hashed keys. No SMS or ID-vendor key is required; pilot verification is manual live inspection per PRD-F1 and RFC 001 automatic checking remains deferred.
 
 Current PROOFS and documented schema state is INDEX section6's dated release receipt. A native R2 binding is not a spending cap; remote:false selects local emulation and does not disable the deployed binding. The isolated accounts/verification browser harness uses synthetic credentials and fresh local D1/R2 with no mail keys, refuses an occupied port and cleans its owned process tree/data. QAD records results; this is distinct from provider delivery, deployed authenticated F1 and device evidence.
 
@@ -73,15 +77,15 @@ Current PROOFS and documented schema state is INDEX section6's dated release rec
 
 | Signal | Source | Threshold | Alert |
 |--------|--------|-----------|-------|
-| Overdue moderation cases | Queue page header count | Any case open over 36 hours; 48-hour decision target (FLAG-M3) | Shown to moderators in the queue; checked at the daily team stand-up |
-| Overdue correction requests | Correction queue count | Any request open past the 48-hour independent-moderator target (FLAG-M11) | Shown to moderators; checked at stand-up |
-| Worker errors | Workers Observability | More than 1 percent of requests over 15 minutes | Cloudflare notification email to the owner |
-| Email delivery failures | Brevo dashboard first, Resend dashboard as fallback | Any bounce on invites, codes, or decision mail | Checked weekly |
-| D1 storage | Cloudflare dashboard | 400 MB (free tier limit 500 MB) | Checked weekly |
+| Overdue moderation cases | Implemented verification queue; log-review queue remains later work | Any case open over 36 hours; 48-hour decision target (FLAG-M3) | Verification waiting time shown to moderators; checked at the daily team stand-up |
+| Overdue correction requests | Planned correction queue count | Any request open past the 48-hour independent-moderator target (FLAG-M11) | Planned moderator/stand-up check; not an implemented signal |
+| Worker errors | Workers Observability | More than 1 percent of requests over 15 minutes | Target owner notification; configuration not established by this review |
+| Email delivery failures | Brevo dashboard first, Resend dashboard as fallback | Current sign-in code failures; invite/decision mail applies only if optional PRD-F11 is implemented | Checked weekly |
+| D1 storage | Cloudflare dashboard | 400 MB per database warning; refresh applicable account and per-database limits | Checked weekly; storage alone does not establish daily query headroom |
 | Shared R2 account usage | `npm run audit:r2` | Operational warning at 80% of included Standard storage/operations, conservatively counting unknown operations against both classes | Manual CLI report; no email alert or automatic cutoff is claimed configured |
-| Retention compliance | Retention job log plus hold register | 100 percent of expired published records removed from visible history and rating on schedule; 100 percent of holds documented (FLAG-M12) | Reviewed weekly |
+| Retention compliance | Planned retention job log plus hold register | 100 percent of expired published records removed from visible history and rating on schedule; 100 percent of holds documented (FLAG-M12) | Planned weekly review; local draft cleanup does not establish full lifecycle compliance |
 
-No public-reply queue metric and no corroboration metric exist: PRD-F5 and PRD-F10 are Retired, so there is nothing to count. No forever-retention signal exists: expiry is enforced.
+No public-reply queue metric and no corroboration metric exist: PRD-F5 and PRD-F10 are Retired, so there is nothing to count. Expiry is required policy; full publication/correction/retention enforcement remains a later implementation gate.
 
 ### 4.1 Logging
 
@@ -100,9 +104,27 @@ Never log secrets, tokens, request bodies, names, contact data, ID data, proof c
 
 Run `npm run audit:r2` from web/ with the approved account. It checks Standard storage, disabled public access/custom domains/imports, lifecycle safety, live Worker environment isolation, and account-wide analytics. A rolling 31-day lookback avoids undercounting caused by a calendar-month reset when the subscription anniversary is unknown; per-bucket storage peaks are summed conservatively, including deleted buckets and metadata. Unknown operation types remain warnings and count against both operation allowances for the warning calculation. Samples can lag; this is an inspection, not runtime enforcement or an invoice.
 
-Exit 1 means a resource/config/analytics check failed or a safety violation exists. Exit 2 means warnings or incomplete billing/alert verification; do not describe it as a clean billing review. The current OAuth token returns 403 for subscriptions and notification policies. More appropriately scoped API access is needed for those account settings, not a dashboard requirement for bucket provisioning. Cloudflare's `usage_model: standard` metadata alone does not prove the Workers Free or Paid subscription. No budget alert has been configured or verified in this task.
+Exit 1 means a resource/config/analytics check failed or a safety violation exists. Exit 2 means warnings or incomplete billing/alert verification; do not describe it as a clean billing review. The Wrangler-based audit's subscription/notification reads returned403 in the dated receipts. Separately, the connected Cloudflare API verified an enabled budget policy on2026-10-30; its account-subscription GET still returned403. These access paths must not be conflated. Actual Workers tier remains unverified, and `default_usage_model: standard` is not subscription proof. Billing read evidence is needed before tier assurance; no subscription change or upgrade is authorized by a failed read.
 
-Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 million Class A and 10 million Class B operations, not one allowance per Worker/bucket. Other projects and prior/deleted data in the billing cycle also count. Infrequent Access has no free tier. Budget alerts notify after a spend threshold and do not stop usage. Source: https://developers.cloudflare.com/r2/pricing/ and https://developers.cloudflare.com/billing/manage/budget-alerts/ (verified 2026-10-21). Do not claim a guaranteed $0 invoice. Keep proof uploads unlaunched until the future upload implementation enforces the approved per-user limits and account-level capacity controls are reviewed; never delete held evidence or shorten approved retention just to lower storage. Current application code has no proof upload or serving endpoint.
+Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 million Class A and 10 million Class B operations, not one allowance per Worker/bucket. Other projects and prior/deleted data in the billing cycle also count. Infrequent Access has no free tier. Budget alerts notify after a spend threshold and do not stop usage ([R2 pricing](https://developers.cloudflare.com/r2/pricing/), [budget alerts](https://developers.cloudflare.com/billing/manage/budget-alerts/), checked2026-10-30). Do not claim a guaranteed $0 invoice. Local candidate proof upload and serving endpoints now exist (`web/src/app/api/logs/[id]/proofs/route.ts:6`, `web/src/app/api/proofs/[id]/route.ts:6`), with atomic per-user limits (`web/src/features/logs/proofs.ts:107`); those limits do not enforce account capacity. Keep real intake disabled until the gates below pass; never delete held evidence or shorten approved retention to lower storage.
+
+### Sanitized account observations, 2026-10-30
+
+Connected reads at09:44–09:46UTC found one enabled `billing_budget_alert`, threshold USD10 and one email recipient; addresses are omitted. This verifies configuration, not notification delivery, recipient ownership, a pre-free-cap warning or a cutoff. Account subscriptions remain403 and the actual tier is unknown. No budget/subscription setting was changed. The Wrangler audit's separate403 receipts remain historical evidence.
+
+The complete account D1 metadata list contains two databases: dev339968bytes and production315392bytes, total655360bytes. This is observed storage, not fresh SQL/migration verification or daily read/write headroom. Rolling31-day R2 analytics ending09:46:35UTC contain nine operation groups and836 storage samples from two buckets, with zero observed per-bucket peak payload/metadata bytes. The repository classifier (`web/scripts/r2-audit-policy.mjs:1`) gives known ClassA18/ClassB78/free2/unknown64, conservatively A82/B142 when unknown operations count against both. No10000-row threshold was reached. Analytics may lag, metadata inspection itself can add operations, and these samples establish neither complete billing-cycle usage nor an invoice, Workers CPU allowance or spending cap. Sanitized source/read/probe evidence is retained in ignored `.local-evidence/orca-product-20261030/operations-review.md`.
+
+### Private-intake operational prerequisites, 2026-10-30
+
+The gate map is [INDEX §7](index.md#7-implemented-scope-and-remaining-work). Disabled source review is separate from accepting real material: it does not require remote 0009, independent cleanup or account-capacity readiness. Recorded local checks are in QAD §1; any auto-deploying dev merge still needs current hosted CI and its concrete release decision. The items below describe unresolved operational evidence, not an ordered implementation assignment.
+
+- **Independent cleanup/recovery:** reliable invocation independent of uploads, bounded total work with awaited completion, protected resumable cursors and safe outcome/backlog receipts. Resume beyond tracked-only/young/held first pages and preserve failed-page retry. Current upload callers omit orphan scanning (`web/src/features/logs/proofs.ts:86`, `:90`; pagination at `web/src/features/logs/cleanup.ts:51`). Diagnose mismatch/HEAD/delete/D1/busy-owner failures without content logs. Unproven `purge_inflight` owners remain quarantined/frozen (`web/src/features/logs/proof-storage.ts:20`, `:39`); recovery must establish settled ownership and fence the exact claim generation. Age, process absence or a fresh HEAD is insufficient. No generic remote crashed-owner recovery or deployed independent schedule is established.
+- **Free-tier constraint:** actual account tier and fresh shared Workers/D1/R2 headroom remain unverified, together with effective warning/stop behavior before a cap. Assess both environments, other writers, operations/reads/queries, in-flight/failure/tombstone bytes and retained evidence. Per-user quotas and the enabled USD10 notification do not prove account capacity or a cutoff. The sufficient admission/operating controls remain an unresolved activation design/evidence question; this does not prescribe a new automated budget service or dashboard.
+- **Activation/release evidence:** separately reviewed target-specific 0009 preservation and recovery point, dependable maintenance/retry/recovery, applicable notices/reacceptance, authenticated packaged runtime and changed-candidate human/device acceptance in QAD §7.1. Local synthetic checks do not establish remote operation, physical devices or real-material acceptance. Production retains its separate §7 approvals.
+
+Before first real publication, correction and complete lifecycle/retention safeguards remain required by PRD-F12/PRD-F13 (INDEX §7). The pending-only draft cleaner does not supply those safeguards; optional PRD-F11 notifications remain deferred.
+
+Cleanup's accepted `limit:25` is not a proven Free-runtime budget: the review's actual-source **in-memory binding-facade probe**, on25 successful missing-object claims, counted103 individual D1 calls before orphan/draft work; it was not a live Cloudflare failure. Bound and test the whole invocation, including framework/R2 work and partial-progress reporting, against current platform constraints. Cloudflare documents50D1 queries per Free Worker invocation, with a batch counting as one request for that limit ([official D1 limits](https://developers.cloudflare.com/d1/platform/limits/), checked2026-10-30). Neither this published limit nor the local probe proves the account's subscription.
 
 ### Overdue moderation cases
 
@@ -112,7 +134,7 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 **Fix:** project manager assigns an authorized moderator; an expired thirty-minute lease can be reclaimed atomically. Expiry alone does not release the stored claim or decide the case.
 **Escalate to:** project manager.
 
-### Overdue correction requests (private review)
+### Overdue correction requests (private review, planned)
 
 **Symptom:** a correction request is open past the 48-hour independent-moderator target.
 **Likely cause:** no independent unconflicted moderator available; request needs new-evidence check.
@@ -172,6 +194,8 @@ Both Workers share the account's R2 allowance: 10 GB-month Standard storage, 1 m
 
 ## 7. Production readiness gate
 
+[INDEX §6–7](index.md#6-current-development-baseline) is the current status/gate map. Dated release and recovery receipts below preserve what was checked at that time; they are not instructions to repeat completed operations.
+
 A main merge triggers production deployment; it is a release operation. Deployment does not apply SQL. Historical2026-10-26 SQL baseline: dev then had0000-0007 including immutable request snapshots. Production reached0000-0007 after the owner-approved2026-10-26 SQL operation below: eight ledger rows, fourteen permanent triggers, preserved original auth values and clean FKs; no migration in that historical0000-0007 set remained pending. Later documented dev0008 requires fresh target/pending-set inspection before application promotion. The production Worker/application is unchanged at9b1fdc1d-c4cb-495c-a343-fb042cbaae68,100percent. Refresh the target state before any later mutation; never replay this historical migration sequence.
 
 ### Completed scoped dev repair release
@@ -188,7 +212,7 @@ Independent operational review,2026-10-27: GitHub's Cloudflare integration summa
 
 Application promotion preparation,2026-10-27 (Asia/Manila): the owner directed the next recommended steps after SQL completion. Publish the reviewed recovery tooling/evidence through dev, verify any resulting exact dev release, and prepare a draft dev-to-main PR. Fresh local checks of the unchanged application pass the actual production build, production binding guard, no-upload packaging and ten-route isolated packaged-Worker smoke, including the invalid-code throttle with no mail. All seventeen Python tests pass; fresh full/omit-dev audits report zero vulnerabilities. These checks do not establish a deployed production candidate or physical-device/inbox/authenticated acceptance. Main's required independent developer/last-push approval, strict verify/dependency-audit checks pinned to app15368 and administrator enforcement were freshly read back unchanged. Intermittent GitHub connectivity and Orca account-routing startup failures are recorded in LOG; failed starts are not completed reviews.
 
-The promotion candidate must keep the remaining checklist visible: real dev inbox receipt, physical Android/iPhone and Messenger checks, actual live-inspection acceptance for verification, and verified account-tier/headroom/budget alerts. Existing subscription/notification HTTP403 limitations cannot be treated as an alert configuration. Production rollout of the current candidate must require privacy/terms2026-10-27 reacceptance (freelancer_ack/client_consent remain2026-10-12) and independently map the exact resulting version/100percent traffic, DB/auth/private PROOFS bindings and route boundaries. SQL0000-0007 is already complete; app promotion never replays that historical operation. Worker rollback retains the forward schema and legitimate subsequent data; restoring D1 remains a separate incident decision.
+The promotion candidate must keep the remaining checklist visible: real dev inbox receipt, physical Android/iPhone and Messenger checks, actual live-inspection acceptance for verification, and verified account-tier/headroom/admission/warning controls. The2026-10-30 connector budget-policy observation in section5 supersedes the earlier unknown alert-configuration claim; subscription403 and the actual-tier gate remain unresolved, and that dollar notification is no cutoff. Production rollout of the current candidate must require privacy/terms2026-10-27 reacceptance (freelancer_ack/client_consent remain2026-10-12) and independently map the exact resulting version/100percent traffic, DB/auth/private PROOFS bindings and route boundaries. SQL0000-0007 is already complete; app promotion never replays that historical operation. Worker rollback retains the forward schema and legitimate subsequent data; restoring D1 remains a separate incident decision.
 
 - Obtain the separate production signal and main's required independent developer review/last-push approval; retain verify/dependency-audit, administrator enforcement and no-force-push/deletion protections. Dev's zero required human approvals is the persistent owner policy, not authority to bypass main.
 - Establish the accepted encrypted backup destination/access, write-pause/data-loss window, real isolated D1 export/import and Time Travel restoration evidence and R2 recovery/rollback evidence. Native SQLite rehearsal and local D1 atomic rollback are distinct, insufficient proof of remote recovery. scripts/recovery_rehearsal.py covers the published 0000-0005 native boundary, not a complete 0007/production restore drill.
@@ -197,7 +221,7 @@ The promotion candidate must keep the remaining checklist visible: real dev inbo
 - Published 0005 attempts foreign_keys=OFF then rebuilds engagement_log. D1 cannot disable foreign keys inside its transaction; populated dependent logs/revisions/proofs can make the drop fail. web/tests/migration-preservation.test.ts proves exact local-D1 rollback and empty-log success. The currently observed production shape creates empty log tables in 0004, so this conditional hazard is not a demonstrated production failure. Unexpected populated data requires a separately reviewed preservation plan; never delete real rows or rewrite published migrations to pass it.
 - 0006 intentionally rejects invalid legacy inspection/decision/time data and duplicate undecided requests, preserving rollback rather than inventing evidence. 0007 retains legacy snapshots as NULL. Check these preconditions and preserve migration provenance before proceeding.
 - Verify production-specific build/guard/no-upload packaging and private flag-proofs safety, budget/alerts and physical-device/Messenger evidence. The old production Worker lacks PROOFS; correct target configuration alone does not retrofit its live binding. After an authorized release, verify independently mapped exact production version/traffic, DB/auth/PROOFS and route/current-policy boundaries plus authorized authenticated F1 acceptance.
-- Worker rollback leaves forward D1 schema/data in place; any database restore is a separate incident operation with its own data-loss decision. Account closure, holds/purge, proof/log publication and correction/retention workflows remain unimplemented; engagement consent is now implemented on dev, with real engagement acceptance still pending.
+- Worker rollback leaves forward D1 schema/data in place; any database restore is a separate incident operation with its own data-loss decision. Account closure, full lifecycle holds/purge, proof/log publication and correction/retention workflows remain unimplemented; local private draft/proof handling does not complete them. Engagement consent is implemented on dev, with real engagement acceptance still pending.
 
 The PR17 dev-repair task performed no production operation. The subsequent owner-approved production SQL migration is recorded below; application deployment and main merge remain separate.
 
