@@ -18,7 +18,7 @@
     "deploy:worker:dev": "node scripts/check-deploy.mjs dev && opennextjs-cloudflare deploy --env dev",
     "verify:dev": "node scripts/verify-dev-release.mjs",
     "test": "vitest run",
-    "test:deploy": "node --test scripts/check-ci-target.test.mjs scripts/r2-audit.test.mjs scripts/release-identity.test.mjs scripts/invite-return.test.mjs",
+    "test:deploy": "node --test scripts/check-ci-target.test.mjs scripts/r2-audit.test.mjs scripts/release-identity.test.mjs scripts/invite-return.test.mjs scripts/e2e-isolation.test.mjs",
     "test:worker:smoke": "node scripts/smoke-built-worker.mjs",
     "audit:r2": "node scripts/audit-r2.mjs",
     "lint": "eslint",

@@ -31,6 +31,7 @@
 		{ "binding": "PROOFS", "bucket_name": "flag-proofs", "remote": false }
 	],
 	"vars": {
+		"PRIVATE_INTAKE_ENABLED": "false",
 		"BETTER_AUTH_URL": "https://flag.factsfirst.workers.dev",
 		"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
 	},
@@ -59,6 +60,7 @@
 				{ "binding": "PROOFS", "bucket_name": "flag-proofs-dev", "remote": false }
 			],
 			"vars": {
+				"PRIVATE_INTAKE_ENABLED": "false",
 				"BETTER_AUTH_URL": "https://flag-dev.factsfirst.workers.dev",
 				"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
 			}

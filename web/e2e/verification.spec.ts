@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { basename, dirname, join, resolve } from "node:path";
+import { isolateOtpIp } from "./network";
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/*", route => {
@@ -12,6 +13,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function signIn(page: Page, email: string, role: "freelancer" | "client") {
+  await isolateOtpIp(page);
   await page.goto("/sign-in");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByRole("button", { name: "Send code", exact: true }).click();

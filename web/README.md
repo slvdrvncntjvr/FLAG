@@ -18,9 +18,9 @@ python scripts/spine.py checkpoint verify
 The runner uses the local engine's `v0.3.0` tag without changing the shared
 checkout, even if that checkout has been upgraded. `SPINE_HOME` can point at a
 local clone containing that tag. No application or documentation command needs
-the repo's disposable `temporary/` folder. Other features require their own
-scope/authorization; passing the baseline checks does not make the full product
-implemented. Accounts/onboarding and manual verification/review are deployed to dev through migration 0007. PR17 repairs auth profile privacy, numeric portfolio URLs and historical request attribution; its immutable snapshots preserve new case inputs and mark legacy originals unavailable. Local checkpoint spine-cp-2026-10-26-1 captures the verified integrated application. See INDEX section 6 for current candidate/release evidence and OPS section 7 for production prerequisites. Main/production promotion remains held; a scoped dev checkpoint is not full-product acceptance.
+the repo's disposable `temporary/` folder.
+
+[INDEX §6–7](../docs/index.md#6-current-development-baseline) is the single current scope/gate map. Recorded dev includes accounts/onboarding, manual verification/shared review and consent-first engagements through 0008, including PR22's invitation-target repair. Private draft/proof intake and 0009 are local unpublished work; checked-in dev/production settings disable intake (`wrangler.jsonc:34`, `:63`; `src/features/logs/rollout.ts:6`). QAD §1 holds the local disabled-0008 compatibility and other test receipts. The current task is documentation cleanup; deferred Must-Haves do not automatically authorize the next implementation or release. [OPS §7](../docs/ops-flag.md#7-production-readiness-gate) retains production prerequisites.
 
 ## Local development
 
@@ -95,13 +95,11 @@ dependencies, generates a synthetic secret, and applies migrations to a fresh
 local D1 with isolated local R2. It never reads developer `.dev.vars`, `.env`
 files, or existing `.wrangler` data; mail/Google credentials are absent. Port
 3000 must be free. It starts the server automatically and stops its process tree
-and deletes temporary data after the finite suite, including failure.
+and deletes temporary data after the finite suite only after owned-process exit is proven. Unproven termination retains the owned state for diagnosis.
 
-The suite runs on desktop and 360px Chromium. Accounts scenarios cover anonymous redirects/noindex, real localhost console OTP and D1 sessions, both roles, required policy/freelancer acknowledgments, network recovery, failed sign-out retaining the session and successful revocation. Verification scenarios cover role boundaries, request/queue/claim/inspection/approval, and rejection followed by corrected resubmission with the original review retaining its own name/city/portfolio. Numeric project URLs are exercised through the actual form. The runner uses Next development mode and isolated local D1/R2; it does not prove real mail, Google OAuth, authenticated packaged/deployed workerd or physical-device behavior.
+The suite runs on desktop and 360px Chromium. Scenarios cover accounts/onboarding, manual verification/reject/resubmit/history, consent-first engagements and synthetic private draft/upload/pending intake, including actual OTP limits with scenario-local synthetic networks (`e2e/accounts.spec.ts`, `e2e/verification.spec.ts`, `e2e/engagements.spec.ts`, `e2e/log-intake.spec.ts`). The runner uses Next development mode and isolated local D1/R2; it does not prove real mail, Google OAuth, authenticated packaged/deployed workerd or physical devices. QAD §1 records separate packaged-workerd evidence and its limits.
 
-OTPs stay in a restricted temporary file and are removed at teardown. Traces and
-screenshots are disabled to avoid retaining codes/cookies. Failure reports are
-ignored by Git and may contain synthetic account details; do not publish them.
+OTPs stay in a restricted temporary file and are removed at teardown. Observed 2026-10-30: Playwright disables traces and automatic screenshots (`playwright.config.ts:5`), but the log-intake scenario explicitly captures a synthetic pending-page screenshot (`e2e/log-intake.spec.ts:230`); capture is not globally disabled. Failure reports and test output are ignored by Git and may contain synthetic account details; do not publish them.
 
 To exercise the real Workers runtime instead of the Next dev server:
 
@@ -211,7 +209,7 @@ npx wrangler secret put BREVO_API_KEY --env dev
 
 ### Database migrations
 
-Apply migrations before code that needs them. Dev has 0000-0007 applied; nullable immutable request snapshots in 0007 preserve new inputs without inventing legacy evidence or rewriting published files. Production has only 0000-0002. OPS section 7 requires recovery/preflight and the complete reviewed pending sequence before a main merge triggers deployment; populated dependent logs can prevent 0005 from rebuilding safely. Never delete real data to make that migration pass. Deployment commands do not migrate databases.
+Apply migrations before code that needs them. [INDEX §6](../docs/index.md#6-current-development-baseline) records dated dev 0000–0008 and production 0000–0007 receipts; local 0009 is unpublished. The disabled-intake candidate has specific actual-0008 compatibility evidence and does not require remote 0009 for source-only review. Remote activation is separate and needs reviewed migration/recovery, operational and acceptance gates. Refresh the actual target ledger/schema and genuinely pending set before any authorized operation; never replay historical migration receipts. Populated dependent logs can prevent historical 0005 from rebuilding safely; preserve real data and published migration bytes. Deployment commands do not migrate databases.
 
 ```bash
 npm run db:migrate:remote   # production flag-db
@@ -249,16 +247,9 @@ npm run verify:dev -- --health-only
 
 Missing/malformed/duplicate/unknown arguments fail before authentication or
 requests. A historical candidate, split traffic, ambiguous/missing metadata or
-wrong active version fails closed. The verifier checks actual bindings,
-anonymous routes, policy/noindex boundaries and invalid-code throttling without
-sending mail or creating an account. It rechecks the original active version
-before invalid-code probes and after the run; an observed deployment change
-fails without release-success output. Health-only mode always reports identity
-unverified. Metadata observations cannot lock deployment, prove every request's
-version or establish source-SHA provenance. Existing Wrangler login supplies
-read-only deployment metadata; this local candidate does not deploy.
+wrong active version fails closed. By default, the verifier reads deployment metadata and nine anonymous page routes, checks actual bindings/current legal versions/noindex, and skips the counter-writing `/api/auth/get-session` endpoint (`scripts/verify-dev-release.mjs:59`). It rechecks the original active version and reports failure if it changes. Explicit dev-only `--otp-throttle` adds up to six invalid-code POSTs and durable counter writes; production rejects that option before authentication/network. Neither mode requests email or signup. Health-only mode always reports identity unverified. Metadata cannot lock a deployment, prove every request's version or establish source-SHA provenance; independently map the candidate first. Existing Wrangler login supplies metadata access; verification does not deploy.
 
-The released privacy and terms versions are `2026-10-26`; existing accounts must accept those policies again after release. Legal pages describe current manual verification/profile/review collection and distinguish planned engagement/log/correction workflows. Freelancer acknowledgment and per-engagement client-consent versions are unchanged.
+Dev/source privacy and terms versions are `2026-10-27`; existing accounts must reaccept them. Freelancer acknowledgment and per-engagement client consent remain `2026-10-12` (`src/lib/policies.ts:8`). Legal pages describe implemented verification and engagements while keeping log/publication/correction workflows distinct from availability. The older production application retains its separately recorded release state in INDEX.
 
 ## Not yet enabled (optional, also free when configured)
 
@@ -266,7 +257,8 @@ The released privacy and terms versions are `2026-10-26`; existing accounts must
   Cloud OAuth). Email-code sign-in works without it.
 - **Turnstile bot check** — needs site/secret keys (requires a domain). Sign-in
   uses durable D1 rate limits meanwhile (`cf-connecting-ip` plus email).
-Manual freelancer verification is implemented; future engagement, log, proof-serving, publication, records, corrections and retention workflows remain separate milestones. The verified-freelancer guard checks the live profile plus current acknowledgments rather than granting access from a cached label.
+
+Manual verification and consent-first engagements are implemented on dev. The local disabled-intake candidate includes private draft/proof/read/pending routes; publication, records/averages, corrections and full retention remain deferred Must-Haves (INDEX §7). The verified-freelancer guard checks the live profile and current acknowledgments. Optional setup here is not a new implementation assignment.
 
 ## Dependency audit evidence
 

@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { isolateOtpIp } from './network';
+import { scenarioIp } from '../scripts/e2e-isolation.mjs';
 
 test.beforeEach(async ({ page }) => {
+  await isolateOtpIp(page);
   page.on('pageerror', error => console.error(`Browser error: ${error.message.replace(/\b\d{6}\b/g, '[redacted]')}`));
   await page.route('**/*', route => {
     if (new URL(route.request().url()).hostname !== 'localhost') throw new Error('E2E request escaped localhost');
@@ -19,6 +22,21 @@ test('anonymous routes redirect and deny indexing (INV-7)', async ({ page, reque
     expect(response.headers()['x-robots-tag']).toBe('noindex, nofollow');
   }
   expect(await (await request.get('/robots.txt')).text()).toContain('Disallow: /');
+});
+
+test('real OTP sending caps remain active within each isolated scenario', async ({ page, request }, info) => {
+  const ip = await isolateOtpIp(page);
+  const stamp = Date.now();
+  const send = (index: number, address = ip) => request.post('/api/auth/email-otp/send-verification-otp', {
+    headers: { origin: 'http://localhost:3000', 'cf-connecting-ip': address },
+    data: { email: `e2e-throttle-${stamp}-${index}@example.invalid`, type: 'sign-in' },
+  });
+  for (let index = 0; index < 20; index++) expect((await send(index)).status()).toBe(200);
+  const blocked = await send(20);
+  expect(blocked.status()).toBe(429);
+  expect(Number(blocked.headers()['retry-after'])).toBeGreaterThan(0);
+  const other = scenarioIp(info.project.name, `${info.testId}:other-network`, info.retry);
+  expect((await send(21, other)).status()).toBe(200);
 });
 
 for (const role of ['freelancer', 'client'] as const) {
