@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.34
+doc_version: 2.35
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -21,7 +21,7 @@ reconciled: 2026-10-13
 
 ## 1. How to build from these docs
 
-[INDEX §6–7](index.md#6-current-development-baseline) owns the current deployed/local boundary, remaining gates and deferred requirements. The current request is documentation cleanup only. Local disabled-intake source checks are recorded in [QAD §1](qad-flag.md#1-strategy); they do not authorize another implementation milestone or a release.
+[INDEX §6–7](index.md#6-current-development-baseline) owns the current deployed/local boundary, remaining gates and deferred requirements. Local disabled-intake source checks are recorded in [QAD §1](qad-flag.md#1-strategy). They do not authorize another implementation milestone or a release.
 
 Read in this order before writing code:
 
@@ -33,9 +33,9 @@ Read in this order before writing code:
 6. This guide
 7. `QAD` - before calling anything done
 
-**Only build against `Locked` docs or an explicit owner implementation override for the named task.** IDEA remains Locked; PRD 2.0 is Review under cr-002, and technical docs remain Review under the recorded overrides. LOG preserves the earlier bounded authorizations and implementation sequences. Apply the latest task boundary; a deferred requirement or completed foundation is not automatic authority to start the next feature.
+**Only build against `Locked` docs or an explicit owner implementation override for the named task.** IDEA is 2.0 Review after the wording-only cr-003; its scope, exclusions and invariants are unchanged. PRD 2.0 is Review under cr-002, and technical docs remain Review under the recorded overrides. LOG preserves the earlier bounded authorizations and implementation sequences. Apply the latest task boundary; a deferred requirement or completed foundation is not automatic authority to start the next feature.
 
-Historical authorization/release details remain in [LOG decisions](log-flag.md#1-decisions), [QAD §1](qad-flag.md#1-strategy) and [OPS §7](ops-flag.md#7-production-readiness-gate), including cr-001, the 2026-10-15 foundation, 2026-10-26 repairs/production SQL, PR21/0008, PR22 and the 2026-10-28/30 local intake/browser work. Policy, schema, source-review, human acceptance and release gates remain distinct.
+Past authorizations and releases are recorded in [LOG decisions](log-flag.md#1-decisions), [QAD §1](qad-flag.md#1-strategy) and [OPS §7](ops-flag.md#7-production-readiness-gate). Policy, schema, source review, human acceptance and release are separate gates.
 
 ### To build X, read Y
 
@@ -50,7 +50,7 @@ Historical authorization/release details remain in [LOG decisions](log-flag.md#1
 
 ## 2. Pinned stack
 
-Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges. No versions bumped in this alignment (2026-10-13).
+Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges.
 
 QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pilot verification is manual live inspection, and no paid-SMS or QR-scan dependency is required for v1. They are not in `web/package.json` as installed deps. Brevo is preferred at runtime via fetch (no npm dep); Resend is the fallback provider via direct fetch too (`web/src/server/mail/index.ts:45`). The resend SDK remains installed but unused by the mail helper.
 
@@ -87,17 +87,17 @@ QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pi
 | Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/local | @fontsource-variable/source-serif-4 5.3.1, @fontsource-variable/inter 5.3.0, @fontsource/ibm-plex-mono 5.3.0 | 2026-10-14 | https://www.npmjs.com/package/@fontsource-variable/source-serif-4/v/5.3.1 , https://www.npmjs.com/package/@fontsource-variable/inter/v/5.3.0 , https://www.npmjs.com/package/@fontsource/ibm-plex-mono/v/5.3.0 |
 
 Version notes:
-- 2026-10-26 authorized baseline runtime repair: OpenNext Cloudflare 1.20.12 and its exact AWS 4.1.11 dependency replace 1.20.10/4.1.9 in the manifest/lock only. Both registry peer ranges are >=15.5.28 <16 or >=16.4.1, admitting pinned Next 16.4.3; no unsupported-version bypass is used. Registry metadata was read on this date. No product route, schema, policy, Worker compatibility setting or F1 design changes are included. Local gates are recorded separately in QAD.
-- 2026-10-25 authorized security refresh: Next and its ESLint configuration move together to 16.4.3; Vitest moves to 4.1.12. OpenNext 1.20.10 and the Cloudflare test plugin 1.4.2 remain pinned; their declared peers admit the selected versions. The Next Server Actions denial-of-service advisory applies to the onboarding Server Action; separate cache/image RCE advisory conditions were not established as reachable on this Worker. Sources: https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r , https://github.com/vitest-dev/vitest/security/advisories/GHSA-xp26-3454-mjgp . This security repair qualifies for the seven-day pin-update exception. Clean installation and fresh full/omit-dev audits pass with zero findings; combined app/build/browser evidence is recorded in QAD after the logout repair settles.
-- The same refresh uses version-scoped Undici overrides 6.29.1 and 7.30.1, Express-scoped body-parser 2.4.0 and test-plugin-scoped Zod 4.6.6. Existing major APIs and direct application Zod remain unchanged. These repair affected build/test dependency copies rather than accepting audit-suggested incompatible downgrades. Verified registry sources: https://registry.npmjs.org/undici/6.29.1 , https://registry.npmjs.org/undici/7.30.1 , https://registry.npmjs.org/body-parser/2.4.0 , https://registry.npmjs.org/zod/4.6.6 . The lock retains unrelated Vite/Rolldown/PostCSS versions; npm populated optional Tailwind WASI metadata during regeneration. A package in the production dependency graph is not by itself proof of an exposed deployed runtime path.
-- 2026-10-21 owner-approved Node 24 migration: `.nvmrc` at the repository root and `web/.nvmrc` pin 24.22.1; `web/package.json` requires >=24.22.1 <25 and `web/.npmrc` enables engine-strict. The exact pin selects the reproducible local/build version; the engine range admits later Node 24 security patches. This is a security release, qualifying for the seven-day wait exception below. The official Windows archive was SHA-256 verified before execution. Clean installation under this exact version passes, together with all 85 Workers cases, 25 Node checks, three Python runner tests, app/test/E2E typechecks, lint, dev Worker build and deployment dry run. The copied strict-engine settings reject 24.8.0 in an isolated offline probe; the full-project offline probe first stopped on an uncached optional archive. All six desktop/360px Chromium cases also pass on Node 24.22.1; the complete runner exits zero and leaves no port-3000 listener, owned server process, or test temporary directory.
-- Cloudflare Workers Builds supports `.nvmrc` in its configured build root (`web/`). A dashboard NODE_VERSION override must be absent or match 24.22.1; adding NODE_VERSION to Wrangler runtime vars does not select the build tool. The deployed app runs in workerd with nodejs_compat, separately controlled by compatibility_date 2026-10-01 and existing flags. This Node migration does not change that date or flags. Sources: https://developers.cloudflare.com/workers/ci-cd/builds/build-image/ and https://developers.cloudflare.com/workers/runtime-apis/nodejs/ .
-- 2026-10-21 baseline cleanup replaces the three @types ranges with the exact versions already resolved in the lockfile; npm registry verification matches them. No installed/resolved package version changes.
-- Fonts retain the same faces and Latin subsets but are pinned npm assets, loaded locally because Google Fonts requests failed during Worker build verification. No Google Fonts network fetch is needed at build time. OFL licenses are distributed under web/public/font-licenses/.
-- Historical 2026-10-12 compatibility evidence used Next 16.3.8 while the adapter's 16.4 support work was open. The current security pin above supersedes that historical selection; declared peer compatibility is checked separately from the actual Worker build.
+- OpenNext Cloudflare 1.20.12 with its exact AWS 4.1.11 dependency (registry read 2026-10-26). Its peer range admits Next >=16.4.1, so pinned Next 16.4.3 needs no unsupported-version bypass.
+- Next and eslint-config-next move together; both are 16.4.3. Vitest is 4.1.12. These were security updates (2026-10-25), so they skipped the seven-day wait. Sources: https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r , https://github.com/vitest-dev/vitest/security/advisories/GHSA-xp26-3454-mjgp .
+- Security overrides, scoped by version or parent: Undici 6.29.1 and 7.30.1, body-parser 2.4.0 under Express, and Zod 4.6.6 under the test plugin. Direct application Zod is unchanged. Do not accept audit-suggested incompatible downgrades. Sources: https://registry.npmjs.org/undici/6.29.1 , https://registry.npmjs.org/undici/7.30.1 , https://registry.npmjs.org/body-parser/2.4.0 , https://registry.npmjs.org/zod/4.6.6 .
+- Node 24 (owner-approved 2026-10-21): `.nvmrc` at the repo root and `web/.nvmrc` pin 24.22.1. `web/package.json` requires >=24.22.1 <25 and `web/.npmrc` enables engine-strict. The exact pin fixes the local/build version; the range admits later Node 24 security patches.
+- Cloudflare Workers Builds reads `.nvmrc` from its build root (`web/`). A dashboard NODE_VERSION override must be absent or match 24.22.1. NODE_VERSION in Wrangler runtime vars does not select the build tool. The deployed app runs in workerd with nodejs_compat, controlled by compatibility_date 2026-10-01 and the existing flags. Sources: https://developers.cloudflare.com/workers/ci-cd/builds/build-image/ and https://developers.cloudflare.com/workers/runtime-apis/nodejs/ .
+- The three @types packages are exact pins matching the lockfile.
+- Fonts are pinned npm assets loaded locally with the same faces and Latin subsets. The build makes no Google Fonts network fetch. OFL licenses are in web/public/font-licenses/.
+- Declared peer compatibility is checked separately from an actual Worker build.
 - better-auth below 1.7.7 has a critical magic-link account takeover (GHSA-965c-763c-88jm). Never downgrade.
-- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin`. cr-001 updates the plugin to 1.4.2 for security fixes; npm verified 2026-10-14, peer vitest ^4.1.0 or ^5.0.0. That historical change used Vitest 4.1.11; the current manifest pins 4.1.12.
-- cr-001 pins compatible transitive tool overrides: @node-minify/core's glob 10.5.0 and @esbuild-kit/core-utils' esbuild 0.25.12. Verified through installation/audit on 2026-10-14; sources https://www.npmjs.com/package/glob/v/10.5.0 and https://www.npmjs.com/package/esbuild/v/0.25.12 . The audit falls from 17 entries to five high entries from the same braces advisory through ESLint. braces 3.0.3 remains npm's latest on 2026-10-14; no compatible patched release exists. Do not run audit fix --force to downgrade the Next 16 lint configuration.
+- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin`. The plugin is 1.4.2 for security fixes (npm verified 2026-10-14; peer vitest ^4.1.0 or ^5.0.0).
+- cr-001 transitive tool overrides: glob 10.5.0 under @node-minify/core and esbuild 0.25.12 under @esbuild-kit/core-utils (verified 2026-10-14). Sources: https://www.npmjs.com/package/glob/v/10.5.0 and https://www.npmjs.com/package/esbuild/v/0.25.12 . A braces advisory through ESLint had no compatible patched release on 2026-10-14. Do not run `npm audit fix --force` to downgrade the Next 16 lint configuration.
 - TypeScript stays on 5.x and ESLint on 9.x until Next's tooling confirms the new majors.
 - Wait 7 days after a release before bumping a pin, unless the release fixes a security advisory.
 
@@ -121,9 +121,9 @@ APIs in this stack that look correct but are not, with the current replacement.
 
 ## 3. Commands
 
-Commands below are copied from web/package.json. The isolated browser harness exercises accounts and manual verification on desktop/360px, including corrected-request history; QAD section 1 records actual candidate counts/results separately.
+Commands below are copied from web/package.json.
 
-The credential-free baseline workflow retains verify/dependency-audit for PRs to dev/main and branch pushes. It uses pinned Node, app/test/E2E checks, integration/browser tests, Python runner/recovery fixtures, audits and packaged Worker gates. The repair extends anonymous live F1 probes and adds production-target no-upload coverage for main; exact workflow behavior lives in .github/workflows/baseline.yml. Canonical SPINE is private, so docs/checkpoint checks remain mandatory local release gates. Local setup helpers preserve existing credentials and reject malformed/duplicate/multiline settings; README documents the explicit approved account selection.
+The baseline CI workflow (`.github/workflows/baseline.yml`) runs on pull requests to dev and main and on branch pushes. It uses pinned Node and runs typechecks, lint, integration tests, deploy-guard tests, packaged Worker smoke tests, browser tests and dependency audits. The workflow file is the source of truth for what CI runs. Canonical SPINE is private, so run the docs and checkpoint checks locally before any release. Local setup helpers keep existing credentials and reject malformed, duplicate or multiline settings. README documents how to select the approved Cloudflare account.
 
 | Task | Command |
 |------|---------|
@@ -136,15 +136,13 @@ The credential-free baseline workflow retains verify/dependency-audit for PRs to
 | Deploy already-built Worker (production) | `npm run deploy:worker` (configuration guard then `opennextjs-cloudflare deploy`) |
 | Deploy already-built Worker (dev) | `npm run deploy:worker:dev` (configuration guard then `opennextjs-cloudflare deploy --env dev`) |
 | Manual build and deploy | `npm run deploy` (production), `npm run deploy:dev` (dev) |
-| Verify selected release | `npm run verify:dev -- --expected-version <full Worker UUID>` defaults to dev, exact candidate metadata and nine anonymous page GETs; `--target production` selects production explicitly; `--health-only` opts out of candidate identity. Default skips the counter-writing auth-session endpoint. `--otp-throttle` explicitly adds six invalid-code POSTs and durable counter writes on dev only; production rejects it before authentication/network. No mail/signup is requested |
 | Test | `npm test` (`vitest run`) |
-| Deployment boundary, release identity and R2 audit tests | `npm run test:deploy` (branch/environment/account checks, active candidate identity, live binding validation and conservative R2 audit policy) |
+| Deploy guard tests | `npm run test:deploy` (branch, environment, account and binding checks) |
 | Packaged Worker smoke | `npm run test:worker:smoke` after `npm run build:worker:dev`; executes the built artifact in local workerd with synthetic isolated D1/R2 |
-| Inspect R2 resources and usage | `npm run audit:r2` (read-only API inspection; exit 1 unsafe/incomplete resource inspection, exit 2 warnings/incomplete billing access; never a spending cap) |
 | End-to-end | `npm run test:e2e` (`node scripts/e2e.mjs`); desktop and 360px Chromium |
 | Lint | `npm run lint` (`eslint`) |
 | Typecheck | `npm run typecheck` (`tsc --noEmit && tsc --noEmit -p tests/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json`) |
-| Generate migration | `npm run db:generate` (`drizzle-kit generate`) |
+| Generate migration | `npm run db:generate` (`drizzle-kit generate`). Do not run until the Drizzle journal is brought up to date; see §3.1 |
 | Apply migrations locally | `npm run db:migrate:local` (`wrangler d1 migrations apply flag-db --local`) |
 | Apply migrations remote | `npm run db:migrate:remote` (production), `npm run db:migrate:dev` (dev); no environment named preview exists |
 | Cloudflare binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv --strict-vars false`) |
@@ -152,46 +150,45 @@ The credential-free baseline workflow retains verify/dependency-audit for PRs to
 | Read pinned template | `python scripts/spine.py template CODE` (repo root) |
 | Docs validator | `python scripts/spine.py check docs/` (repo root) |
 | Checkpoint verification | `python scripts/spine.py checkpoint verify` (repo root) |
-| Python runner and recovery safety tests | `python -m unittest discover -s scripts -p 'test_*.py'` (repo root) |
-| Offline recovery rehearsal | `python scripts/recovery_rehearsal.py` (repo root); hash-reviewed migrations through 0005, synthetic native SQLite only; report in ignored `temporary/recovery-rehearsal-report.md` |
-| Production-shape local D1 rehearsal | `python scripts/production_migration_rehearsal.py` (repo root); existing pinned Node/Wrangler dependencies required; unchanged 0000-0007, synthetic auth-only fixtures, staged preservation, exact local export/import and reapplication; report in ignored `.local-evidence/production-rehearsal/report.json` |
+| Python runner tests | `python -m unittest discover -s scripts -p 'test_*.py'` (repo root) |
 
-The retained183-command rehearsal measures original sourced7805bfa on the observed Windows checkout. Publication review later reproduced a portability defect: its raw migration hash pins reject unchanged canonical Git LF files. The narrow repair is limited to explicitly reviewed per-file LF/CRLF input hashes, retaining original execution bytes and rejection before dependencies; published migrations and execution/schema comparisons must never be normalized to satisfy this guard. Focused repair results are recorded separately in QAD/LOG rather than relabeling the historical full rehearsal as a new-source run.
-
-Local browser infrastructure uses fresh OS-temporary app/D1/R2 state, synthetic credentials and no provider keys. It refuses an occupied port 3000, captures localhost OTP privately, and cleans up its owned server/process tree and dependency link after a finite run. No real mail, OAuth, physical-device or authenticated deployed-runtime acceptance follows from this suite. Packaged smoke separately exercises the built artifact in local workerd. LOG preserves the earlier cold-start, fixture, logout and runtime repair evidence.
+Local browser tests use fresh OS-temporary app/D1/R2 state, synthetic credentials and no provider keys. The runner refuses an occupied port 3000, captures the localhost OTP privately, and cleans up its own server, processes and dependency link when it finishes. Passing it does not prove real mail, OAuth, physical-device or deployed-runtime behavior. The packaged smoke test separately runs the built artifact in local workerd.
 
 ### 3.1 Deploy and migrations (read before any schema change)
 
 Cloudflare Workers Builds is intended to deploy `flag` from `main` and `flag-dev` from `dev`, with root directory `web` for both. Configure separate build and deploy commands: production uses `npm run build:worker` then `npm run deploy:worker`; dev uses `npm run build:worker:dev` then `npm run deploy:worker:dev`. Each service's production branch must match its intended branch. Non-production branch builds are optional and need explicit preview/upload commands and environments; do not use the full deploy scripts as the build command. Set watch paths to application changes if documentation-only builds are unwanted.
 
-Evidence from the 2026-10-14 audit: supplied build log ran a deployment during the build and then a second deployment without --env dev, overriding only the Worker name. Historical flag-dev version a9393ce2 used production DB/auth values; active version 222b8b96 used the correct dev values. A green build alone does not prove isolation. After deployment verify the actual version's DB binding and BETTER_AUTH_URL. GitHub's original flag-dev failure had no inline error and its build API required unavailable Workers CI permissions. Only the checks for deliberately configured branches should run; do not dismiss unexpected checks without inspecting their commands.
+A green build alone does not prove isolation. A misconfigured build command can deploy the dev Worker with production DB and auth values. Only checks for deliberately configured branches should run; inspect the command behind any unexpected check before dismissing it.
 
-Reference, checked 2026-10-14: https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/#wrangler-environments and https://opennext.js.org/cloudflare/howtos/dev-deploy . Dashboard settings remain external configuration and must be verified separately from the repository scripts.
+Reference, checked 2026-10-14: https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/#wrangler-environments and https://opennext.js.org/cloudflare/howtos/dev-deploy . Dashboard settings are external configuration and must be checked separately from the repository scripts.
 
-Push protection: web/open-next.config.ts:2 loads the CI check before adapter operations and propagates the selected environment to child commands. Plain Wrangler can bypass adapter config, so web/wrangler.jsonc:12 also invokes web/scripts/check-wrangler-build.mjs:1 before Wrangler uploads. web/scripts/check-ci-target.mjs:16 rejects a CI Worker-name/environment mismatch and rejects flag operations outside main or flag-dev operations outside dev. This prevents the old commands from promoting a dev commit to production or overriding only the dev Worker name while selecting production bindings. Correct dashboard commands are still required; incorrect commands deliberately fail. Cloudflare exposes WORKERS_CI_BRANCH per https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#default-variables .
+Push protection: web/open-next.config.ts:2 loads the CI check before adapter operations and passes the selected environment to child commands. Plain Wrangler can bypass adapter config, so web/wrangler.jsonc:12 also runs web/scripts/check-wrangler-build.mjs before Wrangler uploads. web/scripts/check-ci-target.mjs rejects a CI Worker-name/environment mismatch, `flag` operations outside main, and `flag-dev` operations outside dev. Incorrect dashboard commands deliberately fail. Cloudflare exposes WORKERS_CI_BRANCH per https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#default-variables .
 
-2026-10-21 local guard follow-up: `web/scripts/check-ci-target.mjs:5` resolves explicit `--env`/`-e` before CLOUDFLARE_ENV and rejects missing flag values; `web/scripts/check-deploy.mjs:6` uses the same resolver while preserving the npm scripts' positional dev argument. Wrangler does not forward its CLI arguments to a custom-build child, so `web/wrangler.jsonc:16` passes `--env=` in the default build command and the dev override passes `--env=dev`. These commands validate the environment Wrangler actually selected even when an inherited variable differs. Deployment target mapping and live DB/auth/PROOFS checks share `web/scripts/check-resource-bindings.mjs:4`; local configuration checks pin both the database name and ID, rejecting a production ID hidden behind a dev name. The audit and dev release verifier now reject missing, duplicate, incorrectly typed, or mismatched bindings; an older Worker with no PROOFS is a release-readiness error. References: [Wrangler custom builds](https://developers.cloudflare.com/workers/wrangler/custom-builds/) and [environment selection](https://developers.cloudflare.com/workers/wrangler/system-environment-variables/). This is local audit repair under cr-001; no remote release is implied.
+Environment selection: `check-ci-target.mjs` resolves an explicit `--env`/`-e` before CLOUDFLARE_ENV and rejects a missing flag value. `web/scripts/check-deploy.mjs` uses the same resolver and keeps the npm scripts' positional dev argument. Wrangler does not forward its CLI arguments to a custom-build child, so the default build command in `web/wrangler.jsonc` passes `--env=` and the dev override passes `--env=dev`. Before deploy, `check-deploy.mjs` and `web/scripts/check-resource-bindings.mjs` check the selected account, Worker, D1 database (name and ID) and PROOFS bucket, and reject missing, duplicate, wrongly typed or mismatched bindings. References: [Wrangler custom builds](https://developers.cloudflare.com/workers/wrangler/custom-builds/) and [environment selection](https://developers.cloudflare.com/workers/wrangler/system-environment-variables/).
 
-**Database migrations are NOT automatic, and this is deliberate.** Auto-deploy ships code only. D1 migrations are forward-only with no automatic rollback, so they are applied by hand, preview before production. The trigger is mechanical: any change that adds or edits a file under `web/drizzle/` — i.e. any structural change to `web/src/server/db/schema.ts` (new table, new/renamed/removed column, index, constraint, CHECK, type, or default change) — needs a migration. Pure code, copy, styling, routing, or logic changes that use existing tables do NOT.
+After a deploy, confirm CI is green, then do a manual smoke check of the deployed site.
 
-When schema changes, run these three steps in order, from `web/`:
+**Database migrations are NOT automatic, and this is deliberate.** Auto-deploy ships code only. D1 migrations are forward-only with no automatic rollback, so they are applied by hand, dev before production. The trigger is mechanical: any change that adds or edits a file under `web/drizzle/` (any structural change to `web/src/server/db/schema.ts`: new table, new/renamed/removed column, index, constraint, CHECK, type, or default change) needs a migration. Pure code, copy, styling, routing, or logic changes that use existing tables do NOT.
 
-1. Review the ERD and migration provenance before generation. The current Drizzle journal ends at 0007 (`web/drizzle/meta/_journal.json:58`), while manual 0008 and local 0009 SQL exist. `npm run db:generate` must not be used to reconstruct that history or generate against the stale snapshot; resolve the guarded generation path first, preserving published SQL and existing IDs.
-2. Apply backward-compatible migrations to the database BEFORE the code that needs them goes live:
-   - preview DB: `npm run db:migrate:dev` (`wrangler d1 migrations apply flag-db-dev --remote --env dev`)
+When schema changes, run these steps in order, from `web/`:
+
+1. Review the ERD, then hand-write the migration as the next numbered SQL file in `web/drizzle/`. The Drizzle journal (`web/drizzle/meta/_journal.json`) ends at 0007, while 0008 and 0009 are hand-written. Do not run `npm run db:generate` until the journal is brought up to date. Keep `schema.ts` in sync by hand and cover the change with tests. Never edit a published migration.
+2. Back up the target database with `wrangler d1 export` before any remote migration.
+3. Apply backward-compatible migrations BEFORE the code that needs them goes live, dev first, then production:
+   - dev DB: `npm run db:migrate:dev` (`wrangler d1 migrations apply flag-db-dev --remote --env dev`)
    - production DB: `npm run db:migrate:remote` (`wrangler d1 migrations apply flag-db --remote`)
-3. Push the code only after the corresponding database is ready and the build commands above are verified; auto-deploy ships it. A destructive/renaming change needs an expand-and-contract rollout, not a blind migration ahead of running code.
+4. Push the code only after the matching database is ready; auto-deploy ships it. A destructive or renaming change needs an expand-and-contract rollout, not a blind migration ahead of running code.
 
-Current migration/release state is INDEX section 6 and OPS section 7. Published 0000-0006 remain unchanged; repair migration 0007 adds the immutable submitted-profile snapshot and leaves original legacy inputs unknown. Dev migration readiness precedes the repair's auto-deploying merge; production must complete all its pending migrations and recovery gates before any main merge. 0005 has a documented populated foreign-key rebuild hazard, so a passing empty local fixture is not permission to delete or rewrite production data. Freshly inspect each target's ledger, schema, counts and FKs and capture the accepted recovery point first. Failed later migrations do not undo earlier successful migration files.
+Current migration and release state is in INDEX §6 and OPS §7. Published migrations stay unchanged. 0005 has a known foreign-key rebuild hazard on populated tables, so a passing empty local run is not permission to delete or rewrite production data. Check each target's migration ledger, schema, row counts and foreign keys before migrating. A failed later migration does not undo earlier successful ones.
 
 ## 4. Repo conventions
 
 | Area | Convention |
 |------|-----------|
-| Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with independent agent review and required CI; dev has zero required human approvals under the owner policy below. Main retains its independent developer/last-push approval and separate production signal |
-| Enforced branch controls (API readback, 2026-10-26) | Dev: zero required approving reviews and no last-push approval, per explicit owner instruction. Main: one approving developer review and independent last-push approval. Both: strict current-base verify/dependency-audit pinned to Actions app15368, administrator enforcement, stale-review dismissal and no force pushes/deletion. Agent review and CI remain required working practice; main/production promotion still needs its separate owner signal |
+| Branch policy | `main` is graded and deployed to production (`flag`). `dev` integrates and deploys to the dev Worker (`flag-dev`). Feature branches `f<n>-<short-name>` branch off `dev` and merge by pull request with independent agent review and green CI; dev needs no human approval under owner policy. Promoting to main needs green CI and the owner's explicit go-ahead |
+| Branch protection | `main` has GitHub branch protection, configured in GitHub. That configuration is the source of truth; this guide does not mirror it |
 | Commit format | Short imperative subject naming the feature ID when there is one: `PRD-F8 add policy acceptance gate` |
-| Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright. The retired `prototype/` static mock was deleted on 2026-10-14 |
+| Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright |
 | Module ownership | One developer owns each `src/features/<module>` folder and reviews every change to it. Assignments (owner 2026-10-13, LOG Q14): Dev A owns `verification`; Dev B owns `engagements` and `logs` (`src/features` log intake/proof); Dev C owns `moderation` and retention/maintenance. Shared `server/{auth,db,mail}` and `components` changes need the owning dev of the consuming module plus one reviewer |
 | Naming | Files kebab-case; React components PascalCase; server actions verbNoun; DB tables snake_case singular |
 | Error handling | Server actions return `{ ok: true, data }` or `{ ok: false, fieldErrors?, message }` and never throw to the client. Route handlers return JSON `{ error: code }` with the status codes in SDD §5. Another party's data is 404, not 403 |
@@ -205,7 +202,7 @@ Current migration/release state is INDEX section 6 and OPS section 7. Published 
 Repo-specific prohibitions. These are enforced like engine §8 Hard Rules.
 
 - Never commit secrets. Secrets live in Wrangler secrets per environment and in `web/.dev.vars` locally, which is gitignored. `group_context/` holds course files with member names; it stays out of git unless the team agrees otherwise.
-- **INV-1:** only `decideCase` sets a log to `published` (no public reply path exists; PRD-F5 Retired). Reader queries select the current revision of `status = 'published'` non-expired logs unless the viewer is the filer, the named client, or a moderator.
+- **INV-1:** only the moderator decision server action `decideReview` (`web/src/features/moderation/actions.ts:53`) may set a log to `published`. Its handling of log-kind cases is planned. No public reply path exists (PRD-F5 Retired). Reader queries select the current revision of `status = 'published'` non-expired logs unless the viewer is the filer, the named client, or a moderator.
 - **INV-2:** `submitLog` checks the engagement is `accepted`, at least one attached PROOF_FILE exists, the anchor is valid, and the 15-calendar-day filing window holds, inside the same `db.batch()`; the D1 trigger is the backstop.
 - **INV-3:** pilot verification is manual live inspection only. Never add a column, R2 prefix, log line, or analytics event that can hold an ID image, a full ID number, a QR payload, a phone proof, or any required ID-derived value. No ID hash is declared or stored in v1; future QR-derived hashing requires the deferred RFC and an ERD update before implementation. No paid-SMS step exists for v1. The verification handler is excluded from request logging.
 - **INV-4:** proof bytes are served only by `/api/proofs/[id]` after the relationship check (moderator, filer, or named client; an admin only under a moderator permission or persona). No public bucket, no custom domain on the bucket, no presigned GET. `Cache-Control: private, no-store`; everyone else gets 404.
@@ -260,7 +257,7 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 - Design at 360 px first. Primary action anchored at the bottom on forms.
 - Use `dvh`/`svh`, never `100vh`.
 - Keep the session in cookies, never localStorage.
-- Messenger helper scope wording is unresolved (LOG Q27): PRD §6 lists "Open in Chrome" as an undecided candidate, while the former BUILD rule mandated it and the local disabled-intake UI includes it (`web/src/features/logs/proof-upload.tsx:74`). Preserve that behavior pending scope reconciliation; this discrepancy adds no release gate.
+- Messenger: the existing "Open in Chrome" helper in `web/src/features/logs/proof-upload.tsx` is an undecided PRD §6 candidate (LOG Q27). It stays as is until the owner decides, and it is not a release gate.
 - JavaScript budget for task routes: under 150 KB compressed. Target LCP 2.5 s or less and INP 200 ms or less on a mid-range Android phone.
 
 **Checklist for any screen**
@@ -276,8 +273,8 @@ Direction chosen by the owner on 2026-10-12: civic record. The reference points 
 Use [INDEX §6–7](index.md#6-current-development-baseline) for implemented scope and remaining gates, [SDD §3](sdd-flag.md#3-data-model) for the schema/technical contracts, [QAD §1](qad-flag.md#1-strategy) for observed checks and [OPS §5/§7](ops-flag.md#5-runbooks) for operational/release procedures. This guide does not maintain a second milestone queue.
 
 - Review the ERD before any new schema work. CORRECTION_REQUEST, DATA_REQUEST and lifecycle/closure fields remain design-first dependencies; their presence in the target design is not implementation evidence.
-- The disabled-intake contract specifically verifies actual 0008 compatibility before deferring remote 0009. Migration-before-code still applies to behavior that needs new fields. Source-only review does not require activation prerequisites; accepting real material does.
-- Local draft cleanup is not full retention or assessed account closure. Current cascades and append-only consent triggers must not be used to simulate those future workflows. Correction/lifecycle safeguards precede real publication.
-- D1 and R2 never become one cross-store atomic transaction. Preserve held/submitted evidence and quarantine unproven purge owners; operational gaps are recorded in OPS, not a new implementation assignment here.
+- With intake disabled, the app must still work on the 0008 schema. Behavior that needs 0009 fields needs 0009 applied first. The steps to enable intake on dev are in [OPS §5](ops-flag.md#5-runbooks).
+- Local draft cleanup is not full retention or assessed account closure. Current cascades and append-only consent triggers must not be used to simulate those future workflows. Whether correction and lifecycle work must precede the first real publication is open (LOG Q28).
+- D1 and R2 never become one cross-store atomic transaction. Preserve held and submitted evidence. A cleanup claim whose owner is unknown stays frozen rather than being taken over on a timer (SDD §3.7).
 
-QR automation remains deferred; PRD-F11 notifications remain Should-Have and separate from email sign-in. Exclusions and all eight invariants remain governed by Locked IDEA.
+QR automation remains deferred; PRD-F11 notifications remain Should-Have and separate from email sign-in. Exclusions and all eight invariants remain governed by IDEA.
