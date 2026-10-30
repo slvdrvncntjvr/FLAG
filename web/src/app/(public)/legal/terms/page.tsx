@@ -19,16 +19,59 @@ export default function Terms() {
         a client; this cannot be changed later. Staff roles are assigned by FLAG, never chosen at sign-up.
       </p>
 
+      <h2 className="font-serif text-lg">Verification and feature availability</h2>
+      <p>
+        Accounts, onboarding, manual freelancer verification, and moderator review of verification requests are
+        available. To request verification, provide your account/profile name and portfolio links. A moderator
+        inspects a supported government ID live and records the inspection result and a reasoned approval or
+        rejection. Do not submit ID images, full ID numbers, recordings, or QR data. After rejection, you may submit
+        a corrected new request; the previous request and decision remain in the review history.
+        Verification means identity checked, not a guarantee of trustworthiness. Engagement invitations, client
+        profiles, and accepting or declining invitations are available. Logs, proof uploads, client records,
+        and private correction workflows remain planned.
+      </p>
+
+      <h2 className="font-serif text-lg">Engagement invitations and consent</h2>
+      <p>
+        Only verified freelancers who have accepted the current policies and freelancer acknowledgment can create an
+        invitation. Provide the engagement title, the client&apos;s name as you know it, and the start date. Send the invite
+        link to the intended client; anyone holding a live link can see the title and your freelancer display name.
+        The link expires after fourteen days and can be used for one acceptance or decline.
+      </p>
+      <p>
+        Clients sign in or register to respond. On acceptance, create a client profile with your display name and
+        individual or business type, or use the profile already linked to your account. City and DTI or SEC business
+        registration number are optional. Explicitly confirm the association of your signed-in account and profile
+        with this engagement, and separately consent to this engagement being logged with a 1 to 5 rating and
+        supporting proof subject to moderator review. These are separate, initially unchecked choices; opening an
+        invite, signing in, and accepting these terms do not accept the engagement. Each acceptance records a separate
+        engagement-specific consent receipt with its text version and time. Profiles are never automatically merged
+        on matching names.
+      </p>
+      <p>
+        Accept only if you have agreed to work with this freelancer on this engagement. You may decline without
+        creating a client profile or giving engagement consent. Declining closes the invitation, prevents a log on
+        that engagement, and produces no warning or negative signal. Each party&apos;s engagement list and any consent
+        receipt are private to the signed-in freelancer and associated client.
+      </p>
+
       <h2 className="font-serif text-lg">Filing a log</h2>
       <p>
-        Every log must be truthful and supported by proof. A log without proof is not accepted. A log is reviewed by a
-        moderator and is not visible to anyone else until it is approved. A log that is false, misleading, or filed
+        When logging launches, a log requires a registered client who accepted the engagement, a rating from 1 to 5,
+        and proof supporting the facts. File within fifteen calendar days of completion or termination, or the first
+        missed agreed payment or milestone during ongoing work. One log is allowed per engagement. A moderator reviews
+        every log before other readers see it; private evidence is restricted to the parties and moderators. A false, misleading log or one filed
         without a genuine engagement is removed, and the account that filed it may be suspended.
+      </p>
+      <p>
+        Approved publications expire twelve months after original publication; later updates do not extend retention.
+        Declining an engagement produces no warning or negative rating.
       </p>
 
       <h2 className="font-serif text-lg">Clients and reviews</h2>
       <p>
-        A client named in a published log may privately request a review or correction with supporting evidence. Published logs cannot be directly edited or deleted by the client,
+        When logging and private corrections launch, a client named in a published log may privately request a review
+        or correction with supporting evidence. Published logs cannot be directly edited or deleted by the client,
         and FLAG displays only the approved 1 to 5 rating and client average.
       </p>
 

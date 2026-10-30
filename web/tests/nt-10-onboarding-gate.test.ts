@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import { acceptOnboarding } from "@/features/onboarding/accept";
 import { POLICY_VERSIONS } from "@/lib/policies";
 import { AccessError, assertVerifiedFreelancer } from "@/server/auth/guards-core";
 import { isOnboarded, loadViewer } from "@/server/db/queries/viewer";
-import { policyAcceptance, user } from "@/server/db/schema";
+import { authVerification, freelancerProfile, policyAcceptance, user } from "@/server/db/schema";
 import { setup } from "./helpers";
 
 const FREELANCER_FORM = { role: "freelancer", privacy: "on", terms: "on", ack_proof: "on", ack_not_legal: "on", ack_false_logs: "on" };
@@ -22,11 +22,23 @@ describe("PRD-F7 accounts and sign-in", () => {
     expect((await loadViewer(db, userId!))?.role).toBe("freelancer");
   });
 
-  it("S-11: a wrong code is rejected and the account is not created", async () => {
-    const { post } = setup();
+  it("a wrong code is rejected and the account is not created", async () => {
+    const { db, post, codes } = setup();
     await post("/email-otp/send-verification-otp", { email: "s11@example.com", type: "sign-in" });
-    const res = await post("/sign-in/email-otp", { email: "s11@example.com", otp: "000000" });
+    const wrong = codes.get("s11@example.com") === "000000" ? "111111" : "000000";
+    const res = await post("/sign-in/email-otp", { email: "s11@example.com", otp: wrong });
     expect(res.status).toBe(400);
+    expect(await db.query.user.findFirst({ where: eq(user.email, "s11@example.com") })).toBeUndefined();
+  });
+
+  it("S-11: expired code is rejected without creating an account", async () => {
+    const { db, post, codes } = setup();
+    const email = "expired@example.com";
+    await post("/email-otp/send-verification-otp", { email, type: "sign-in" });
+    await db.update(authVerification).set({ expiresAt: "2000-01-01T00:00:00.000Z" })
+      .where(like(authVerification.identifier, `%${email}%`));
+    expect((await post("/sign-in/email-otp", { email, otp: codes.get(email) })).status).toBe(400);
+    expect(await db.query.user.findFirst({ where: eq(user.email, email) })).toBeUndefined();
   });
 
   it("AB-12: role in the sign-up payload is refused", async () => {
@@ -86,7 +98,10 @@ describe("PRD-F8 onboarding and legal acknowledgment", () => {
     const result = await acceptOnboarding(db, userId!, { ...FREELANCER_FORM, ack_false_logs: undefined });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.fieldErrors?.ack_false_logs).toBeDefined();
+    expect((await loadViewer(db, userId!))?.role).toBeNull();
     expect(await db.select().from(policyAcceptance).where(eq(policyAcceptance.userId, userId!))).toHaveLength(0);
+    expect(await acceptOnboarding(db, userId!, { role: "client", privacy: "on", terms: "on" })).toEqual({ ok: true });
+    expect((await loadViewer(db, userId!))?.role).toBe("client");
   });
 
   it("client does not need the freelancer statements", async () => {
@@ -120,7 +135,7 @@ describe("PRD-F8 onboarding and legal acknowledgment", () => {
   });
 });
 
-describe("NT-10 (INV-8) and AB-13", () => {
+describe("NT-10 (INV-8)", () => {
   it("an unonboarded or unverified freelancer is refused", async () => {
     const { db, signIn } = setup();
     const { userId } = await signIn("nt10@example.com");
@@ -134,13 +149,50 @@ describe("NT-10 (INV-8) and AB-13", () => {
   });
 });
 
-describe("S-01 style limit on sign-in codes", () => {
-  it("a fourth code request from one IP within a minute is rate limited", async () => {
+describe("NT-10 (INV-8) real verification status", () => {
+  it("only verified current-policy non-banned freelancers pass the shared guard", async () => {
+    const { db, signIn } = setup();
+    const { userId } = await signIn("nt10-real-profile@example.com");
+    await acceptOnboarding(db, userId!, FREELANCER_FORM);
+    await db.insert(freelancerProfile).values({ userId: userId!, displayName: "Owner Name" });
+    for (const status of ["unverified", "pending", "rejected", "suspended", "verified"] as const) {
+      await db.update(freelancerProfile).set({ status }).where(eq(freelancerProfile.userId, userId!));
+      const viewer = await loadViewer(db, userId!);
+      if (status === "verified") expect(() => assertVerifiedFreelancer(viewer)).not.toThrow();
+      else expect(() => assertVerifiedFreelancer(viewer)).toThrow(AccessError);
+    }
+    await db.update(user).set({ banned: true }).where(eq(user.id, userId!));
+    const banned = await loadViewer(db, userId!);
+    expect(() => assertVerifiedFreelancer(banned)).toThrow(AccessError);
+  });
+
+  it("verified status never bypasses stale or missing policies or a different role", async () => {
+    const { db, signIn } = setup();
+    const { userId } = await signIn("nt10-stale-verified@example.com");
+    await db.update(user).set({ role: "freelancer" }).where(eq(user.id, userId!));
+    await db.insert(freelancerProfile).values({ userId: userId!, displayName: "Owner Name", status: "verified" });
+    await db.insert(policyAcceptance).values([
+      { id: crypto.randomUUID(), userId: userId!, policy: "privacy", version: "old" },
+      { id: crypto.randomUUID(), userId: userId!, policy: "terms", version: POLICY_VERSIONS.terms },
+      { id: crypto.randomUUID(), userId: userId!, policy: "freelancer_ack", version: POLICY_VERSIONS.freelancer_ack },
+    ]);
+    const stale = await loadViewer(db, userId!);
+    expect(stale?.freelancerStatus).toBe("verified");
+    expect(() => assertVerifiedFreelancer(stale)).toThrow(AccessError);
+    await acceptOnboarding(db, userId!, FREELANCER_FORM);
+    await db.update(user).set({ role: "client" }).where(eq(user.id, userId!));
+    const client = await loadViewer(db, userId!);
+    expect(() => assertVerifiedFreelancer(client)).toThrow(AccessError);
+  });
+});
+
+describe("PRD-F7 sign-in code limits", () => {
+  it("a sixth code request for one IP+email is rate limited", async () => {
     const { post } = setup();
     const statuses: number[] = [];
-    for (let i = 0; i < 4; i++) {
-      statuses.push((await post("/email-otp/send-verification-otp", { email: `rl${i}@example.com`, type: "sign-in" })).status);
+    for (let i = 0; i < 6; i++) {
+      statuses.push((await post("/email-otp/send-verification-otp", { email: "rate-limit@example.com", type: "sign-in" })).status);
     }
-    expect(statuses).toEqual([200, 200, 200, 429]);
+    expect(statuses).toEqual([200, 200, 200, 200, 200, 429]);
   });
 });

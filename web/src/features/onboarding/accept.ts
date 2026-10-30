@@ -1,5 +1,6 @@
 import type { Db } from "@/server/db";
-import { chooseRole, loadViewer, recordAcceptances } from "@/server/db/queries/viewer";
+import { commitOnboarding, loadViewer } from "@/server/db/queries/viewer";
+import { requiredPolicies } from "@/lib/policies";
 import { onboardingInput, type ActionResult } from "./schema";
 
 const ACK_FIELDS = ["ack_proof", "ack_not_legal", "ack_false_logs"] as const;
@@ -16,12 +17,8 @@ export async function acceptOnboarding(db: Db, userId: string, form: Record<stri
     return { ok: false, message: "Some items are not accepted yet", fieldErrors };
   }
 
-  let role = viewer.role;
-  if (role === null) {
-    if (!parsed.data.role) return { ok: false, message: "Choose freelancer or client", fieldErrors: { role: "Choose one" } };
-    if (!(await chooseRole(db, userId, parsed.data.role))) return { ok: false, message: "Your account type is already set" };
-    role = parsed.data.role;
-  }
+  const role = viewer.role ?? parsed.data.role;
+  if (!role) return { ok: false, message: "Choose freelancer or client", fieldErrors: { role: "Choose one" } };
 
   if (role === "freelancer") {
     const fieldErrors: Record<string, string> = {};
@@ -29,7 +26,15 @@ export async function acceptOnboarding(db: Db, userId: string, form: Record<stri
     if (Object.keys(fieldErrors).length > 0) return { ok: false, message: "Confirm all three statements", fieldErrors };
   }
 
+  try {
+    await commitOnboarding(db, userId, role, requiredPolicies(role));
+  } catch {
+    return { ok: false, message: "Could not save your choices. Try again." };
+  }
   const refreshed = await loadViewer(db, userId);
-  await recordAcceptances(db, userId, refreshed?.missingPolicies ?? []);
+  if (!refreshed || refreshed.banned) return { ok: false, message: "Sign in again to continue" };
+  if (refreshed.role !== role || refreshed.missingPolicies.length > 0) {
+    return { ok: false, message: "Your account changed. Reload this page and try again." };
+  }
   return { ok: true };
 }

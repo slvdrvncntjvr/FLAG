@@ -9,8 +9,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <PageShell
       aside={
-        <div className="flex items-center gap-4 text-sm">
-          <Link href="/home" className="font-mono text-muted">
+        <div className="min-w-0 flex flex-wrap items-center justify-end gap-x-4 gap-y-2 pl-4 text-sm">
+          <Link href="/home" className="min-w-0 break-all font-mono text-muted">
             {viewer.email}
           </Link>
           <SignOutButton />

@@ -6,8 +6,8 @@ export const CONTACT_EMAIL = "slvdrvncntjvr@gmail.com";
 
 // Bump a version to make every user accept that policy again (PRD-F8, QAD S-12).
 export const POLICY_VERSIONS = {
-  privacy: "2026-10-12",
-  terms: "2026-10-12",
+  privacy: "2026-10-27",
+  terms: "2026-10-27",
   freelancer_ack: "2026-10-12",
   client_consent: "2026-10-12",
 } as const satisfies Record<Policy, string>;

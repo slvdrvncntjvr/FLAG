@@ -1,0 +1,122 @@
+name: Baseline verification
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baseline-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+  WRANGLER_SEND_METRICS: 'false'
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Retain full project history and tags.
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # The canonical engine is private; public CI must remain credential-free.
+      - name: Notice - canonical SPINE validation is a LOCAL release gate
+        run: |
+          echo '::notice::Canonical SPINE 0.3.0 documentation and checkpoint validation requires the owner-installed pinned engine and is a LOCAL release gate. Hosted CI does not run or claim these checks passed. Locally run: python scripts/spine.py check docs/ and python scripts/spine.py checkpoint verify.'
+      - name: Pinned SPINE runner tests
+        working-directory: .
+        run: python -m unittest discover -s scripts -p 'test_*.py'
+      - name: Install exact lockfile
+        run: npm ci
+      - name: Check application, integration-test, and E2E TypeScript
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Workers integration tests
+        run: npm test
+      - name: Deployment guard unit tests
+        run: npm run test:deploy
+      - name: Local setup safety regression tests
+        run: node --test scripts/setup-local.test.mjs
+      - name: Build dev Worker
+        run: npm run build:worker:dev
+      - name: Run packaged Worker with isolated local bindings
+        run: npm run test:worker:smoke
+      - name: Validate dev bindings and package Worker without uploading
+        run: |
+          node scripts/check-deploy.mjs dev
+          npx --no-install wrangler deploy --env dev --dry-run --outdir "$RUNNER_TEMP/flag-worker-dry-run"
+      - name: Configure bounded Ubuntu package downloads
+        timeout-minutes: 1
+        run: |
+          # The previous PR run stalled on the Azure mirror until the job expired.
+          # Use official HTTPS mirrors on this disposable hosted runner only.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          printf '%s\n' 'Acquire::Retries "1";' 'Acquire::http::Timeout "30";' 'Acquire::https::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/80flag-network-timeouts >/dev/null
+      - name: Install Chromium and Linux browser dependencies
+        timeout-minutes: 8
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '60000'
+        run: |
+          for attempt in 1 2; do
+            if npx --no-install playwright install --with-deps --only-shell chromium; then
+              exit 0
+            fi
+            echo "Browser dependency installation attempt $attempt failed."
+          done
+          exit 1
+      - name: Local auth and onboarding browser tests
+        run: npm run test:e2e
+      - name: Build production Worker locally
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: npm run build:worker
+      - name: Validate production bindings and package Worker without uploading
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: |
+          node scripts/check-deploy.mjs --env=
+          npx --no-install wrangler deploy --env= --dry-run --outdir "$RUNNER_TEMP/flag-production-worker-dry-run"
+      - name: Run production package with isolated local bindings
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: node scripts/smoke-built-worker.mjs --env=
+
+  dependency-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+      # Audit the complete locked graph, including build/test dependencies.
+      # High/critical findings fail this job; lower findings remain visible in its log.
+      # No audit fix, omission, severity suppression, or continue-on-error exception.
+      - name: Reject high or critical dependency advisories
+        run: npm audit --audit-level=high
+      - name: Audit production dependency graph
+        run: npm audit --omit=dev --audit-level=high

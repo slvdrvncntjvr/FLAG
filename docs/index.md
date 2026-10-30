@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.13
+doc_version: 0.77
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-13
+updated: 2026-10-30
 reconciled: 2026-09-14
 ---
 
@@ -25,13 +25,13 @@ Built on SPINE 0.3.0
 
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
-| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 1.0 | Locked | 2026-10-13 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.2 | Draft | 2026-10-13 | 2026-09-14 |
+| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 2.0 | Review | 2026-10-30 | 2026-10-13 |
+| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.35 | Review | 2026-10-30 | 2026-10-13 |
+| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
+| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.23 | Review | 2026-10-30 | 2026-10-13 |
+| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.45 | Review | 2026-10-30 | 2026-10-13 |
+| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.36 | Review | 2026-10-30 | 2026-10-13 |
+| LOG · Session Log | [log-flag.md](log-flag.md) | 1.67 | Draft | 2026-10-30 | 2026-09-14 |
 
 **Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
 
@@ -41,7 +41,7 @@ Built on SPINE 0.3.0
 |--------|------|---------|--------|---------|
 | flag-rfc-001 | [rfc-flag-id-check.md](rfc-flag-id-check.md) | Government ID check without storing the ID (PRD-F1) | Draft | 2026-10-13 |
 
-RFC flag-rfc-001 stays `Draft` on purpose: it holds the deferred PhilID QR cryptographic-check design (LOG Q13), which is unproven and out of the v1 launch scope. The pilot verifies by manual live inspection, so the launch suite locks without it. Its two remaining open owner-markers are future spike work, not launch blockers.
+RFC flag-rfc-001 stays `Draft` on purpose: it holds the deferred PhilID QR cryptographic-check design (LOG Q13), which is unproven and out of the v1 launch scope. The pilot verifies by manual live inspection. Its two open owner-markers are future spike work, not launch blockers.
 
 ---
 
@@ -51,7 +51,9 @@ Change records against `Locked` documents. See engine §7.3.
 
 | CR ID | Date | Summary | Trigger doc | Docs touched | File |
 |-------|------|---------|-------------|--------------|------|
-| none | | No CRs yet. As of 2026-10-13 the launch suite (IDEA, BUILD, PRD, SDD, QAD, OPS) is `Locked` v1.0; any further change to these docs now requires a change record (engine §7.3). LOG and INDEX stay living; RFC flag-rfc-001 stays Draft/deferred | | | |
+| cr-001 | 2026-10-14 | Owner-approved audit repairs, retained build-guide edits, and durable authentication throttling; implementation authorized while changed docs are Review | BUILD, SDD | build-flag.md, sdd-flag.md, qad-flag.md, ops-flag.md | [cr-001-flag-audit-fixes.md](cr-001-flag-audit-fixes.md) |
+| cr-002 | 2026-10-26 | Owner-approved verification approve/reject with corrected new-request resubmission preserving history; applied, CR 0.2 Review, LOG Q25 resolved | PRD | prd-flag.md 2.0 Review, sdd-flag.md 2.12 Review, qad-flag.md 2.23 Review | [cr-002-flag-verification-decisions.md](cr-002-flag-verification-decisions.md) |
+| cr-003 | 2026-10-30 | Owner-approved wording fixes: remove the stale as-built sentence from IDEA §6 and correct the Q7 cap wording to match the approved weekly log quota; no scope or invariant change | IDEA | idea-flag.md 2.0 Review, build-flag.md, index.md, log-flag.md | [cr-003-flag-idea-status-cleanup.md](cr-003-flag-idea-status-cleanup.md) |
 
 ---
 
@@ -71,15 +73,15 @@ Change records against `Locked` documents. See engine §7.3.
 | PRD-F13 | Private review and correction | Must-Have | yes | yes | N/A |
 | PRD-F14 | Engagement and client ratings | Must-Have | yes | yes | N/A |
 
-Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD H-05/S-09/AB-09 reserved) and PRD-F10 (corroboration, Dropped; QAD H-10/S-15/AB-16 reserved). IDs retained, never reused. flag-rfc-001 tracks the manual-inspection update as a deferred design reference, not a launch requirement.
+Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD H-05/S-09/AB-09 reserved) and PRD-F10 (corroboration, Dropped; QAD H-10/S-15/AB-16 reserved). IDs retained, never reused. flag-rfc-001 is a deferred design reference, not a launch requirement.
 
 ### 3.1 Invariant Matrix
 
 | INV-# | Rule | Status | Enforced in | Negative test |
 |-------|------|--------|-------------|---------------|
-| INV-1 | Never publish a log a moderator has not approved | Active | SDD §5.1: log queries, `decideCase` | NT-01, NT-02, NT-11 |
+| INV-1 | Never publish a log a moderator has not approved | Active | SDD §5.1: log queries, moderation decision action `decideReview` (log-kind handler planned) | NT-01, NT-02, NT-11 |
 | INV-2 | Never accept a log without proof or without an accepted engagement | Active | SDD §5.1: `submitLog`, trigger `log_requires_proof` | NT-03, NT-04 |
-| INV-3 | Never store a raw ID image or full ID number | Active | SDD §5.1: verification case handler | NT-05 |
+| INV-3 | Never store a raw ID image or full ID number | Active | SDD section 5.1: auth user-write hooks and verification handlers | NT-05 |
 | INV-4 | Never show proof outside moderators, filer, named client | Active | SDD §5.1: `/api/proofs/[id]` | NT-06 |
 | INV-5 | Never compute or show an unapproved reputation signal; only the approved 1-5 rating and client average are permitted | Active | SDD §5.1: schema review, record components | NT-07, NT-12 |
 | INV-6 | Never let a client edit or delete a published log | Active | SDD §5.1: server actions, `log_frozen_*` triggers | NT-08 |
@@ -98,30 +100,48 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 ## 5. Health Check
 
-- [x] Every `Locked` doc's `reconciled` date is newer than the last code change in its area
+- [ ] Every `Locked` doc's `reconciled` date is newer than the last code change in its area
 - [ ] No doc has sat in `Draft` past its expected movement date
-- [x] Every open change record has propagated downstream
+- [ ] Every open change record has propagated downstream
 - [x] Every feature ID referenced by SDD, RFC, or QAD still exists in the PRD
 - [x] §3 Traceability Matrix covers every Must-Have
-- [x] §3.1 Invariant Matrix: every `Active` invariant is enforced and has a negative test
-- [x] Validator green (`python $SPINE_HOME/scripts/check.py docs/`)
-- [x] Latest checkpoint verifies clean (`python $SPINE_HOME/scripts/checkpoint.py verify`)
+- [x] §3.1 Invariant Matrix maps every Active invariant to its designed enforcement and planned negative tests; implemented test coverage is stated separately in QAD §1
+- [x] Validator green in normal mode (`python scripts/spine.py check docs/`)
+- [x] Latest checkpoint verifies clean (`python scripts/spine.py checkpoint verify`)
 - [x] No secrets committed in `docs/`
 
 ---
 
-## 6. Notes
+## 6. Current development baseline
 
-- 2026-10-12 overhaul on branch `foverhaul`: tier raised from 2 to 3; product reshaped around the engagement handshake, eight owner-confirmed invariants, and the course SMART goals in `group_context/`. Feature IDs PRD-F1 to PRD-F6 keep their meaning; PRD-F7 to PRD-F13 are new.
-- 2026-10-12: PRD-F7 and PRD-F8 built on `foverhaul` against Draft docs with owner authorization (LOG); 13 Vitest cases pass in the Workers pool. Verification status (PRD-F1) does not exist yet, so `requireVerifiedFreelancer()` refuses everyone.
-- `prototype/` (the retired static mock, never described by any doc) was deleted on 2026-10-14; the app lives solely in `web/`.
-- `reconciled` dates on carried-over docs stay at 2026-09-14 until the owner confirms them; the agent does not advance them.
-- 2026-10-13 owner-confirmed decisions (LOG §1, ten rows): (1) keep accepted-engagement requirement, refusal out of scope with no negative signals; (2) no PUBLIC replies, keep private "Request a review of this post"; (3) simple 1-5 client rating, no leaderboards/rankings, aggregate mechanics and threshold UNDECIDED; (4) mandatory proof plus human review for positive and negative alike; (5) verification means identity checked, never guaranteed trustworthiness, method/fallback unsettled; (6) role access as built (freelancers browse, clients own record, staff review; proofs filer/named client/moderators); (7) independently submitted reviewed experiences instead of corroboration clicks in v1, coursework imposes no features; (8) approve/ask-changes/reject with reasons and history, private correction can withdraw unsupported publication, client cannot edit/delete; (9) owner wants a specific retention proposal, durations UNDECIDED; (10) both positive and negative experiences, no positivity quota. Seven new open questions LOG Q16-Q22 carry exact proposed rules labelled proposals, not approvals.
-- These 2026-10-13 decisions superseded prior choices in principle (notably INV-5/PRD-F6/PRD-F10/M7/M6 as written); the full suite has since been propagated and the current docs govern: IDEA 0.4, PRD 0.4, SDD 0.3, QAD 0.2, BUILD 0.3, OPS 0.2, RFC 001 0.2. No contract, schema, legal-copy, or code changes follow without owner direction; all docs stay Draft with no lock and no reconciled advance.
-- Clarification 2026-10-13: the logged role-access decision (item 6) is an OWNER-APPROVED TARGET, not as-built behavior. All suite docs are Draft, so revising those Draft contracts to reflect owner answers requires no change record and no extra approval process — CRs govern Locked docs only.
-- LOG §2 carries a COORDINATOR PROPOSAL REVISION note (2026-10-13) correcting the Q16-Q22 proposal wording (contributor-based threshold, filing timing, identity, fallback, correction, alias, retention, optional star-derived outcomes). Coordinator recommendations only; nothing there is approved.
-- 2026-10-13 latest owner approvals (LOG §1 eight rows; §3 six resolved rows Q16/Q18/Q19/Q20/Q21/Q22; §2 Q16-Q22 proposal rows preserved untouched and §3 rows are latest status): CLIENT average is mean of latest approved rating per distinct freelancer/client, visible from first approval with contributor count, Limited record under five contributors; outcome scale 1-2 Negative / 3 Mixed / 4-5 Positive with factual tags kept, star timing and first-eligible-vs-chosen-event anchor remain proposal NOT approved; eligibility after accepted relationship plus completion/termination OR missed agreed payment/milestone with 15-DAY filing deadline approved but anchor/details open as new Q23; match by client account plus moderator verification, never auto-merge names; manual live ID inspection plus portfolio, no saved ID copies/full numbers, no PAID SMS, automatic scan deferred until proven and NOT prohibited/out of scope forever; readers see freelancer NAME superseding alias, no contact/ID visible, exact name form undecided with account professional name verified by moderator as proposal only; correction anytime record exists, one open request, new evidence for followups, independent moderator target 48h, request alone does not hide, real privacy/error may temporarily hide, approve/ask-changes/reject as logged; retention as logged with rolling 12-month empty-record direction (proposed copy: No published experiences in the past 12 months). Q17 remains partly resolved (duration approved, anchor open as Q23); record-naming exact form remains minor recommendation, not definite legal name. No INV defined/changed until downstream propagation; no CR required — all suite docs Draft.
-- 2026-10-13 stage-1 alignment (LOG §1 three rows; §3 four rows Q23/Q17/Q12/Q13): IDEA 0.3 and PRD 0.3 rewritten to the approved contract — awareness-only accepted-engagement scope with refusal out of scope and no signal; no public replies, corroboration clicks, unapproved ranks/leaderboards/endorsements, marketplace, payments, or dispute work; every experience needs proof plus human approval; 1-5 per-log rating with automatic Negative/Mixed/Positive and factual tags; client average as mean of latest eligible approved published rating per distinct pair from the first contributor with count and Limited record under five; 15-calendar-day filing clock anchored at completion/termination or first missed agreed payment/milestone date (submission on time; 1 April to 16 April; no extensions); private correction anytime with one open request, new-evidence repeats, independent 48h-target review, hide only for credible error/privacy risk, uphold/ask-changes/correct/withdraw with history plus moderated filer updates; manual live ID inspection (PhilID/ePhilID, passport, driver licence) plus portfolio with no stored copies, identity-checked wording, no paid SMS, QR deferred until proven; filer names shown to signed-in readers with contact/ID private; client matched by account with moderator evidence checks and no auto-merge; 12-month original-publication retention with 30-day drafts/rejected handling, 12-month consent/moderation history, holds, and 30-day close assessment. PRD-F5 and PRD-F10 Retired/Dropped (IDs retained); PRD-F13 Must-Have private correction; new PRD-F14 Must-Have ratings; PRD-F12 Must-Have retention; FLAG-M4/M7 Retired; FLAG-M6 descriptive; new FLAG-M10/M11/M12. Changed-feature SDD/QAD trace pending stage 3. Latest owner yep-lets-align accepts the filing anchor; Q17/Q23 fully resolved; Q12 needs no provider; Q13 deferred. All docs stay Draft; reconciled never advanced; no CR required.
-- 2026-10-13 final alignment complete (LOG §1 completion row; §3 latest-status rows): QAD 0.2 covers all Must-Haves with H/S/AB plus NT-01–NT-12; F5/F10 retired with old case IDs reserved; metrics M4/M7 retired and M6 descriptive with M10–M12 verified in §5.2. Q9 resolved by the approved qualitative proof rubric; Q7 caps and Q14 module owners stay Open; Q13 QR work deferred. As-built boundary holds at auth/onboarding only. Historical proposals and superseded wording remain in LOG; current docs govern.
-- Build order mapped to the course weeks: Week 1-2 PRD-F7, PRD-F8; Week 3-4 PRD-F1, PRD-F9; Week 4-5 PRD-F2, PRD-F3; Week 5-6 PRD-F4, PRD-F13, PRD-F6, PRD-F14; Week 7-8 pilot.
-- 2026-10-13 five-issue fix pass (LOG §1 completion row): PRD 0.5, SDD 0.4, QAD 0.3, OPS 0.3 — covered work period plus optional amount in centavos on LOG_REVISION with CHECKs; average-fallback wording aligned across PRD/SDD/QAD with no behavior change; withdrawn/abandoned-ask-changes/abandoned-update retention mapped from approved periods only; closure semantics with FK RESTRICT plus stub row and the as-built cascade marked needs-future-migration (docs only, no code change); expired-records wording fixed. All docs stay Draft; reconciled never advanced; no CR required.
+This section is the only current-status map. Other docs describe design and procedures, not status. Dated history is in LOG and git.
+
+| Where | What it runs | Schema |
+|-------|--------------|--------|
+| Dev (`flag-dev`, branch `dev`) | PR22 merge `0bd505f`: sign-in, onboarding, manual verification with moderator review, consent-first engagement invites | Migrations 0000–0008 |
+| Production (`flag`, branch `main`) | Older app at `3582f7e`: sign-in and onboarding only. It predates the PROOFS binding | Migrations 0000–0007 |
+| Branch `f2-private-log-proof-intake` (dev integration candidate) | Private log drafts, proof upload and submission to pending (PRD-F2, PRD-F3, per-log PRD-F14). Off by default: `PRIVATE_INTAKE_ENABLED` is `"false"` for dev and production in `web/wrangler.jsonc` | Adds migration 0009, applied nowhere remote |
+
+Dev legal versions: privacy and terms `2026-10-27`; freelancer acknowledgment and per-engagement client consent `2026-10-12` (`web/src/lib/policies.ts`).
+
+The owner authorized integrating the disabled intake source into dev on 2026-10-30. This integration remains compatible with migration 0008 and does not activate intake or apply migration 0009. The deployed baseline above is the last verified release; activation still follows §7 step 1 and Q28 remains open.
+
+What a user can do on dev today: sign in, accept the policies, request verification, have a moderator verify them, invite a client, and have the client accept or decline. A logged experience cannot be published or read by other freelancers yet.
+
+Moderator and admin roles have no admin screen. The owner sets them directly in the D1 `user.role` column.
+
+## 7. Implemented scope and remaining work
+
+The owner prioritizes Must-Haves before optional PRD-F11 notifications (LOG 2026-10-30). This list is a backlog, not an authorization to implement or release.
+
+| Order | Work | Requirement |
+|-------|------|-------------|
+| 1 | Enable private log intake on dev: back up dev D1, apply 0009, update privacy/terms to describe logs and proofs, set the flag on dev, owner checks on Android Chrome and desktop ([OPS §5](ops-flag.md#5-runbooks)) | PRD-F2, PRD-F3, PRD-F8 |
+| 2 | Log moderation: list log cases, claim, approve / ask-changes / reject with a reason, publish on approval. Needs a migration 0010, because the 0009 triggers only allow the draft-to-pending path | PRD-F4, INV-1 |
+| 3 | Client search and client record page: average with contributor count, Limited-record label under five, outcome counts, tags, published logs | PRD-F6, PRD-F14 |
+| 4 | Pilot-scope decision, open (LOG Q28): whether data requests and account closure, the retention job, and corrections/filer updates are built before the first publication or handled manually during the pilot | PRD-F12, PRD-F13 |
+| 5 | Production promotion when the owner decides ([OPS §7](ops-flag.md#7-production-readiness-gate)) | — |
+
+Release checks are green CI plus the manual smoke check ([QAD §1](qad-flag.md#1-strategy)). Owner acceptance is recorded in the [QAD §7.1 worksheet](qad-flag.md#71-owner-manual-acceptance-worksheet-prepared-2026-10-27). On 2026-10-30 the owner dropped billing-tier proofs, exact release-identity checks, production recovery drills, purge-owner recovery gates, iPhone/Messenger device gates and extra main-approval gates (LOG §1).
+
+CORRECTION_REQUEST and DATA_REQUEST are designed, not built; lifecycle fields need design before migration. Deferred: PRD-F11 notifications, QR automation (RFC 001) and the undecided PRD §6 candidates, including the Messenger helper (LOG Q27). Public replies, corroboration, refusal signals, unapproved reputation signals, marketplace and payment work, and paid upgrades stay outside the approved scope.

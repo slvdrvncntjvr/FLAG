@@ -9,6 +9,14 @@ engine at session start and follow it.
 **Tag:** v0.3.0
 **local_fallback:** `C:/Users/Vincent/spine`
 
+If the shared local checkout is at a different version, use the pinned local tag
+without changing that checkout: `python scripts/spine.py engine` reads this
+repo's exact engine; `python scripts/spine.py template CODE` reads its templates.
+Run validation with `python scripts/spine.py check docs/` and checkpoint
+verification with `python scripts/spine.py checkpoint verify`. The runner uses
+an automatically cleaned OS temporary snapshot, never the repo's `temporary/`
+folder. Keep this project on **SPINE 0.3.0** until the owner requests an upgrade.
+
 ## How to operate SPINE in this repo
 
 1. **Session start — read the engine.** Resolve in this order, stop at first hit:
