@@ -77,6 +77,7 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
     });
   }
   const acceptedLink = await create("Synthetic design work");
+  const profileCreationLink = await create("Profile creation invitation B");
   const clientContext = await browser.newContext({ baseURL: "http://localhost:3000", viewport: info.project.use.viewport });
   const client = await clientContext.newPage();
   diagnostics(client, "client");
@@ -113,21 +114,80 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
       await expect(client.getByText(/Your consent was recorded/)).toHaveCount(0);
       await client.goto("/invite/continue");
     });
-    console.info("[F9] explicit client acceptance");
+    console.info("[F9] stale profile association and fresh explicit acceptance");
     await client.getByLabel("Display name", { exact: true }).fill("Client Entered Name");
-    await client.getByLabel("City (optional)").fill("Quezon City");
+    const city = client.getByLabel("City", { exact: true });
+    await expect(city).toHaveAttribute("required", "");
+    expect(await city.evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
+    await city.fill("Quezon City");
+    await expect(client.getByRole("checkbox")).toHaveCount(2);
     for (const checkbox of await client.getByRole("checkbox").all()) {
       await expect(checkbox).not.toBeChecked();
       await checkbox.check();
     }
     expect(await client.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await test.step("A stale first-profile form cannot silently associate the profile created in tab B", async () => {
+      const otherTab = await clientContext.newPage();
+      diagnostics(otherTab, "client");
+      try {
+        console.info("[F9] profile race: open B with no profile");
+        await otherTab.goto(profileCreationLink);
+        await otherTab.getByRole("button", { name: "Continue to sign in or respond" }).click();
+        await expect(otherTab).toHaveURL(/\/invite\/continue$/);
+        await otherTab.getByLabel("Display name", { exact: true }).fill("Profile B");
+        await otherTab.getByLabel("City", { exact: true }).fill("Makati");
+        // Label text includes the nested select's option text in Playwright.
+        const profileType = otherTab.getByLabel(/^Profile type/);
+        await profileType.selectOption("business");
+        await expect(profileType).toHaveValue("business");
+        await expect(otherTab.getByRole("checkbox")).toHaveCount(2);
+        for (const checkbox of await otherTab.getByRole("checkbox").all()) {
+          await expect(checkbox).not.toBeChecked();
+          await checkbox.check();
+        }
+        await otherTab.getByRole("button", { name: "Accept engagement", exact: true }).click();
+        await expect(otherTab).toHaveURL(/\/engagements\?response=accepted$/);
+        console.info("[F9] profile race: B accepted; restore A capability");
+        // Restore A's cookie through the real continuation flow while keeping
+        // A's original first-profile form and bound expectation intact.
+        await otherTab.goto(acceptedLink);
+        await otherTab.getByRole("button", { name: "Continue to sign in or respond" }).click();
+        await expect(otherTab).toHaveURL(/\/invite\/continue$/);
+        await expect(otherTab.getByText("Profile B", { exact: true })).toBeVisible();
+        console.info("[F9] profile race: submit unchanged stale A");
+        await expect(client.getByLabel("Display name", { exact: true })).toHaveValue("Client Entered Name");
+        await expect(client.getByLabel("City", { exact: true })).toHaveValue("Quezon City");
+        await client.getByRole("button", { name: "Accept engagement", exact: true }).click();
+        await expect(client.locator('form [role="alert"]')).toContainText("Reload and try again");
+        // A resolved React form action resets uncontrolled values. The rejected
+        // form must still show profile creation, without silently adopting B.
+        await expect(client.getByLabel("Display name", { exact: true })).toBeVisible();
+        await expect(client.getByLabel("City", { exact: true })).toBeVisible();
+        await expect(client.getByText("Profile B", { exact: true })).toHaveCount(0);
+        await page.reload();
+        const card = page.getByRole("heading", { name: "Synthetic design work", exact: true }).locator("..");
+        await expect(card.getByText("Invited", { exact: true })).toBeVisible();
+        await expect(card.getByText(/^Consent recorded/)).toHaveCount(0);
+        console.info("[F9] profile race: stale A rejected; reload actual profile");
+        await client.reload();
+        await expect(client.getByText("Profile B", { exact: true })).toBeVisible();
+        await expect(client.getByText("Your client profile:")).toContainText("business");
+        await expect(client.getByLabel("Display name", { exact: true })).toHaveCount(0);
+        await expect(client.getByRole("checkbox")).toHaveCount(2);
+        for (const checkbox of await client.getByRole("checkbox").all()) {
+          await expect(checkbox).not.toBeChecked();
+          await checkbox.check();
+        }
+      } finally { await otherTab.close(); }
+    });
+    console.info("[F9] profile race: accept A with fresh association and consent");
     await client.getByRole("button", { name: "Accept engagement", exact: true }).click();
     await expect(client).toHaveURL(/\/engagements\?response=accepted$/);
-    await expect(client.getByText(/^Consent recorded/)).toBeVisible();
+    await expect(client.getByText(/^Consent recorded/)).toHaveCount(2);
     await expect(client.getByRole("heading", { name: "Synthetic design work", exact: true })).toBeVisible();
     expect((await clientContext.cookies()).find(c => c.name === "flag-pending-invite")).toBeUndefined();
     await page.reload();
-    await expect(page.getByText(/^Consent recorded/)).toBeVisible();
+    await expect(page.getByText(/^Consent recorded/)).toHaveCount(2);
     await client.goto(acceptedLink);
     await expect(client.getByRole("heading", { name: "This invitation is unavailable" })).toBeVisible();
 
@@ -182,7 +242,7 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
     await expect(client).toHaveURL(/\/engagements\?response=declined$/);
     await expect(client.getByText("Review your engagements below.", { exact: true })).toBeVisible();
     await expect(client.getByRole("heading", { name: "Synthetic second engagement", exact: true })).toHaveCount(0);
-    await expect(client.getByText(/^Consent recorded/)).toHaveCount(2);
+    await expect(client.getByText(/^Consent recorded/)).toHaveCount(3);
     await client.goto(declineLink);
     await expect(client.getByRole("heading", { name: "This invitation is unavailable" })).toBeVisible();
     await page.reload();

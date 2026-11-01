@@ -1,0 +1,5 @@
+# Historical documentation stays in Git but outside routine search context.
+/archive/
+/docs/log-flag.md
+/docs/cr-00[1-3]-*.md
+/docs/rfc-flag-id-check.md

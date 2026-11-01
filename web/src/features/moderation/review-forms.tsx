@@ -76,7 +76,7 @@ function DecisionForm({ canApprove, onPending, ...lease }: Lease & { canApprove:
   return <form action={action} className="space-y-5 border-t border-rule pt-5" aria-busy={pending}>
     <LeaseFields {...lease} />
     <h2 className="font-medium">Decide verification</h2>
-    {!canApprove && <p className="text-muted">Approval requires a passing live inspection recorded by you under this claim with a matching name. You may reject an uninspected request with a reason.</p>}
+    {!canApprove && <p className="text-muted">Approval requires a passing live inspection recorded by you with a matching name. You may reject an uninspected request with a reason.</p>}
     <label className="block" htmlFor="review-decision">Decision
       <select id="review-decision" name="decision" required value={decision} onChange={e => setDecision(e.target.value)} className={inputStyle}>
         <option value="" disabled>Choose decision</option><option value="approve" disabled={!canApprove}>Approve identity check</option><option value="reject">Reject request</option>
@@ -96,7 +96,7 @@ function ReleaseForm({ onPending, ...lease }: Lease & { onPending: (pending: boo
   useEffect(() => { onPending(pending); }, [pending, onPending]);
   return <form action={action} className="space-y-3 border-t border-rule pt-5" aria-busy={pending}>
     <LeaseFields {...lease} />
-    <p>Release this claim if another moderator should continue. A new claimant must perform their own live inspection.</p>
+    <p>Release this claim if another moderator should continue. A different moderator must perform their own live inspection.</p>
     <button disabled={pending} className="min-h-11 underline">{pending ? "Releasing…" : "Release claim"}</button>
     <ActionFeedback state={state} success="Claim released." />
   </form>;

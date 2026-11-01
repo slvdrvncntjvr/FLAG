@@ -32,7 +32,7 @@ describe("rendered invite target action boundary", () => {
     async function submit(id: string | null) {
       const data = form(id);
       if (response === "decline") { data.delete("consent"); data.delete("associate"); }
-      return response === "accept" ? acceptEngagement(null, data) : declineEngagement(null, data);
+      return response === "accept" ? acceptEngagement(null, null, data) : declineEngagement(null, data);
     }
     for (const target of ["invite-A", null, "bad target!"]) {
       it(`${response} rejects stale/missing/malformed target ${target} without mutation or cookie clearing`, async () => {
@@ -43,7 +43,7 @@ describe("rendered invite target action boundary", () => {
     }
     it(`${response} allows the matching live target with the cookie capability`, async () => {
       await expect(submit("invite-B")).rejects.toThrow(`redirect:/engagements?response=${response === "accept" ? "accepted" : "declined"}`);
-      expect(response === "accept" ? mocks.accept : mocks.decline).toHaveBeenCalledWith({}, "client", hash, ...(response === "accept" ? [{ consent: "on", associate: "on" }] : []));
+      expect(response === "accept" ? mocks.accept : mocks.decline).toHaveBeenCalledWith({}, "client", hash, ...(response === "accept" ? [{ consent: "on", associate: "on" }, null] : []));
       expect(mocks.cookie.set).toHaveBeenCalledTimes(1);
     });
     it(`${response} cannot use an ID without a live cookie-resolved invite`, async () => {
@@ -64,7 +64,7 @@ describe("rendered invite target action boundary", () => {
     it(`${response} rejects duplicate target fields without mutation`, async () => {
       const data = new FormData();
       data.append("engagementId", "invite-A"); data.append("engagementId", "invite-B");
-      const result = response === "accept" ? await acceptEngagement(null, data) : await declineEngagement(null, data);
+      const result = response === "accept" ? await acceptEngagement(null, null, data) : await declineEngagement(null, data);
       expect(result.ok).toBe(false);
       expect(mocks.accept).not.toHaveBeenCalled(); expect(mocks.decline).not.toHaveBeenCalled();
       expect(mocks.cookie.set).not.toHaveBeenCalled();
@@ -74,8 +74,22 @@ describe("rendered invite target action boundary", () => {
     const data = form("invite-A");
     data.set("displayName", "New client"); data.set("kind", "individual");
     data.set("city", "Quezon City"); data.set("registrationNo", "");
-    expect((await acceptEngagement(null, data)).ok).toBe(false);
+    expect((await acceptEngagement(null, null, data)).ok).toBe(false);
     expect(mocks.accept).not.toHaveBeenCalled(); expect(mocks.decline).not.toHaveBeenCalled();
+    expect(mocks.cookie.set).not.toHaveBeenCalled();
+  });
+  it.each([undefined, "", "bad id!", 12, {}, ["profile-id"]])("rejects missing/malformed bound profile expectation %j before capability lookup", async expected => {
+    expect((await acceptEngagement(expected, null, form("invite-B"))).ok).toBe(false);
+    expect(mocks.cookie.get).not.toHaveBeenCalled();
+    expect(mocks.invite).not.toHaveBeenCalled();
+    expect(mocks.accept).not.toHaveBeenCalled();
+    expect(mocks.cookie.set).not.toHaveBeenCalled();
+  });
+  it("a forged profile expectation in form fields cannot override the server-bound argument", async () => {
+    const data = form("invite-B");
+    data.set("expectedProfileId", "different-profile");
+    expect((await acceptEngagement(null, null, data)).ok).toBe(false);
+    expect(mocks.accept).not.toHaveBeenCalled();
     expect(mocks.cookie.set).not.toHaveBeenCalled();
   });
 });

@@ -1,12 +1,13 @@
-import { cp, mkdtemp, symlink, writeFile, rename, unlink, mkdir, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { cp, symlink, writeFile, rename, mkdir, readFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, ownsReadyServer, stopOwnedChild } from './e2e-isolation.mjs';
+import { assertPortFree, ownsReadyServer } from './e2e-isolation.mjs';
+import { createOwnedDirectory, finishOwnedRun, lifecycleDiagnostic, stopOwnedChildren, trackOwnedChild, unrefFailedOwnedChild, waitOwnedChild } from './process-lifecycle.mjs';
 
 const root = resolve(import.meta.dirname, '..');
-const temp = await mkdtemp(join(tmpdir(), 'flag-e2e-'));
+const directory = await createOwnedDirectory('flag-e2e-');
+const temp = directory.root;
 const app = join(temp, 'app');
 await mkdir(app);
 const otpFile = join(temp, 'codes.json');
@@ -14,10 +15,9 @@ const children = new Set();
 let codes = {};
 let codeWrites = Promise.resolve();
 let writeError;
-let serverLog = '';
-let serverStarted = false;
 let spawnError;
 let stopPromise;
+let completed = false;
 const readyToken = randomBytes(24).toString('hex');
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(BETTER_AUTH|BREVO|RESEND|GOOGLE_|CLOUDFLARE_|CF_|NEXTAUTH|NEXT_PUBLIC_|VERCEL_|NEXT_DEV_WRANGLER_ENV|WRANGLER_)/.test(key)));
@@ -31,30 +31,22 @@ Object.assign(env, {
 });
 function run(file, args, options = {}) {
   if (stopPromise) throw new Error('Local E2E teardown has started');
-  const child = spawn(process.execPath, [file, ...args], { cwd: app, env, windowsHide: true, detached: process.platform !== 'win32', ...options });
+  const child = trackOwnedChild(spawn(process.execPath, [file, ...args], { cwd: app, env, windowsHide: true, detached: process.platform !== 'win32', ...options }));
   children.add(child);
   child.once('error', error => { spawnError = error; });
-  child.once('close', () => children.delete(child));
   return child;
 }
-function done(child) {
-  return new Promise((res, rej) => { child.once('error', rej); child.once('close', code => code === 0 ? res() : rej(new Error(`Process failed (${code})`))); });
+async function done(child, timeoutMs) {
+  const result = await waitOwnedChild(child, timeoutMs);
+  if (result.spawnErrorCode || result.exitCode !== 0) throw new Error('Owned E2E command failed');
 }
 function stop() {
-  return stopPromise ??= Promise.all([...children].map(child => stopOwnedChild(child, () => {
-    if (process.platform === 'win32') {
-      const result = spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore', timeout: 10_000, windowsHide: true });
-      if (result.error) throw result.error;
-      // taskkill can lose a race with a child's normal exit while spawnSync
-      // prevents Node from processing the queued exit event. The bounded wait
-      // below verifies termination after the event loop can observe that exit.
-    } else {
-      try { process.kill(-child.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
-    }
-  })));
+  return stopPromise ??= stopOwnedChildren(children);
 }
-process.once('SIGINT', () => { stop().catch(error => { console.error(error.message); process.exitCode = 1; }); });
-process.once('SIGTERM', () => { stop().catch(error => { console.error(error.message); process.exitCode = 1; }); });
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
+  process.exitCode = 1;
+  stop().catch(() => { console.error('Owned E2E teardown is unverified'); });
+});
 try {
   console.log(`Isolated E2E data: ${temp}`);
   // Refuse an existing listener; never reuse a developer server.
@@ -74,11 +66,10 @@ try {
   }));
   await writeFile(join(app, '.dev.vars'), `BETTER_AUTH_SECRET=${randomBytes(48).toString('base64url')}\n`, { mode: 0o600 });
   await writeFile(otpFile, '{}', { mode: 0o600 });
-  await done(run(join(root, 'node_modules/wrangler/bin/wrangler.js'), ['d1', 'migrations', 'apply', 'flag-e2e', '--local', '--persist-to', join(temp, 'state')], { stdio: 'ignore', timeout: 60_000 }));
+  await done(run(join(root, 'node_modules/wrangler/bin/wrangler.js'), ['d1', 'migrations', 'apply', 'flag-e2e', '--local', '--persist-to', join(temp, 'state')], { stdio: 'ignore' }), 60_000);
   console.log('Fresh local D1 migrated; starting isolated Next server.');
   await assertPortFree();
   const server = run(join(root, 'scripts/e2e-server.mjs'), [], { stdio: ['ignore', 'pipe', 'pipe'] });
-  serverStarted = true;
   let pending = '';
   server.stdout.on('data', chunk => {
     pending += chunk.toString();
@@ -93,10 +84,10 @@ try {
           await rename(otpFile + '.tmp', otpFile);
         }).catch(error => { writeError = error; });
       }
-      else serverLog = (serverLog + line + '\n').slice(-12000);
     }
   });
-  server.stderr.on('data', chunk => { serverLog = (serverLog + chunk.toString().replace(/\b\d{6}\b/g, '[redacted]')).slice(-12000); });
+  // Drain output without printing or retaining raw app diagnostics/OTP data.
+  server.stderr.resume();
   const deadline = Date.now() + 240_000;
   while (true) {
     if (spawnError) throw new Error('Owned local server could not start', { cause: spawnError });
@@ -111,22 +102,33 @@ try {
     await fetch('http://localhost:3000' + path, { signal: AbortSignal.timeout(120_000) });
   }
   console.log('Local routes ready; running browser tests.');
-  await done(run(join(root, 'node_modules/@playwright/test/cli.js'), ['test', ...process.argv.slice(2)], { cwd: root, stdio: 'inherit', timeout: 960_000 }));
-} catch (error) {
-  console.error(error.message);
-  // Codes never enter retained output; only bounded, redacted startup diagnostics.
-  console.error(serverLog.replace(/\[dev\].*/g, '[local OTP redacted]'));
+  await done(run(join(root, 'node_modules/@playwright/test/cli.js'), ['test', ...process.argv.slice(2)], { cwd: root, stdio: 'inherit' }), 960_000);
+  completed = true;
+} catch {
+  console.error('Isolated E2E run failed; owned temporary data will be retained');
   process.exitCode = 1;
 } finally {
-  // Never erase state if process termination/port release cannot be proved.
-  await stop();
-  if (serverStarted) await assertPortFree();
-  {
-    await codeWrites;
-    // Unlink the dependency junction before deleting the verified temporary tree.
-    await unlink(join(app, 'node_modules')).catch(error => { if (error.code !== 'ENOENT') throw error; });
-    if (!resolve(temp).startsWith(resolve(tmpdir()) + '\\') && !resolve(temp).startsWith(resolve(tmpdir()) + '/')) throw new Error('Unsafe temporary path');
-    await rm(temp, { recursive: true, force: true, maxRetries: 12, retryDelay: 500 });
+  const successful = completed && !process.exitCode;
+  let portsVerified = false;
+  let outcome = { teardown: 'unverified', cleanup: 'retained', portFree: null };
+  try {
+    outcome = await finishOwnedRun({ directory, stop: async () => {
+      await stop();
+      // No new writes can arrive after all owned streams close.
+      await codeWrites;
+      if (writeError) throw new Error('Temporary OTP capture failed');
+    }, verifyPorts: async () => { await assertPortFree(); portsVerified = true; },
+    successful, dependencyLink: join(app, 'node_modules') });
+  } catch {
+    process.exitCode = 1;
+    // A filesystem failure after verified teardown may leave a partially
+    // removed successful run. Do not label that state as fully retained.
+    outcome.teardown = portsVerified ? 'verified' : 'unverified';
+    outcome.cleanup = portsVerified && successful ? 'unverified' : 'retained';
+    try { await assertPortFree(); outcome.portFree = true; } catch { outcome.portFree = false; }
+    console.error('Owned E2E finalization failed; inspect temporary data');
   }
-  if (writeError) throw new Error('Temporary OTP capture failed');
+  for (const child of children) console.log(JSON.stringify({ lifecycle: lifecycleDiagnostic(child) }));
+  console.log(JSON.stringify({ ownedRun: 'e2e', ...outcome }));
+  if (process.exitCode) for (const child of children) unrefFailedOwnedChild(child);
 }

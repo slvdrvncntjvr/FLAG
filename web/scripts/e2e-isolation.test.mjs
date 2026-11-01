@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import net from 'node:net';
 import { EventEmitter } from 'node:events';
+import { once } from 'node:events';
+import { spawn } from 'node:child_process';
 import { normalizeIP } from '@better-auth/core/utils/ip';
 import { assertPortFree, ownsReadyServer, scenarioIp, stopOwnedChild } from './e2e-isolation.mjs';
+import { lifecycleDiagnostic } from './process-lifecycle.mjs';
 
 test('actors in one scenario retain one real OTP bucket; other cases, projects and retries separate', () => {
   const ip = scenarioIp('desktop', 'synthetic-case', 0);
@@ -62,6 +65,9 @@ test('teardown accepts observed closure after a Windows kill-command normal-exit
 test('teardown requires actual closure even when termination reports success', async () => {
   const child = new EventEmitter();
   await assert.rejects(stopOwnedChild(child, () => ({ status: 0 }), 10), /did not close/);
+  // Keep one observer for a late close, even after the bounded stop failed.
+  assert.equal(child.listenerCount('close'), 1);
+  child.emit('close', 0);
   assert.equal(child.listenerCount('close'), 0);
 });
 
@@ -71,4 +77,22 @@ test('teardown retains a failed termination when the child remains live', async 
     assert.equal(error.cause.message, 'synthetic kill failure');
     return /did not close/.test(error.message);
   });
+});
+
+test('teardown accepts an already-closed real child without terminating it again', async () => {
+  const child = spawn(process.execPath, ['-e', ''], { windowsHide: true, stdio: 'pipe' });
+  await once(child, 'close');
+  let terminations = 0;
+  await stopOwnedChild(child, () => { terminations++; }, 50);
+  assert.equal(terminations, 0);
+});
+
+test('destroyed output after process exit does not establish stream closure', async () => {
+  const child = Object.assign(new EventEmitter(), { exitCode: 0, signalCode: null, stdout: { destroyed: true, closed: false } });
+  await assert.rejects(stopOwnedChild(child, () => ({ status: 128 }), 20), /did not close/);
+  assert.equal(lifecycleDiagnostic(child).closeObserved, false);
+  assert.equal(lifecycleDiagnostic(child).stdout.closed, false);
+  child.stdout.closed = true;
+  child.emit('close', 0);
+  assert.equal(lifecycleDiagnostic(child).closeObserved, true);
 });

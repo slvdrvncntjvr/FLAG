@@ -1,14 +1,15 @@
 import assert from "node:assert/strict";
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
-import { access, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { access, writeFile } from "node:fs/promises";
 import net from "node:net";
-import { tmpdir } from "node:os";
-import { join, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { unstable_readConfig } from "wrangler";
 import { getCliEnvironment } from "./check-ci-target.mjs";
 import { checkResourceBindings } from "./check-resource-bindings.mjs";
 import { ANONYMOUS_ROUTES, checkAnonymousRoute } from "./release-routes.mjs";
+import { assertPortFree } from "./e2e-isolation.mjs";
+import { createOwnedDirectory, finishOwnedRun, lifecycleDiagnostic, stopOwnedChildren, trackOwnedChild, unrefFailedOwnedChild, waitOwnedChild } from "./process-lifecycle.mjs";
 
 // Run the deployable artifact in workerd, never `next dev`. All mutable state,
 // config and credentials are synthetic and confined to an OS temporary folder.
@@ -20,11 +21,15 @@ await access(worker);
 const environment = getCliEnvironment() ?? "dev";
 const sourceConfig = unstable_readConfig({ config: join(root, "wrangler.jsonc"), env: environment });
 checkResourceBindings(sourceConfig, environment);
-const temporary = await mkdtemp(join(tmpdir(), "flag-worker-smoke-"));
+const directory = await createOwnedDirectory("flag-worker-smoke-");
+const temporary = directory.root;
 const secret = randomBytes(48).toString("base64url");
 const children = new Set();
 let diagnostics = "";
 let spawnError;
+let stopPromise;
+let completed = false;
+let port;
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   /^(path|systemroot|windir|comspec|pathext|temp|tmp|tmpdir|home|userprofile|localappdata|appdata|programdata|programfiles(?:\(x86\))?|number_of_processors)$/i.test(key)));
 Object.assign(env, {
@@ -38,51 +43,32 @@ Object.assign(env, {
 const redact = text => text.replaceAll(secret, "[synthetic secret redacted]")
   .replace(/\[dev\] sign-in code[^\r\n]*/g, "[local code redacted]");
 function run(args) {
-  const child = spawn(process.execPath, [join(root, "node_modules/wrangler/bin/wrangler.js"), ...args], {
+  if (stopPromise) throw new Error("Packaged smoke teardown has started");
+  const child = trackOwnedChild(spawn(process.execPath, [join(root, "node_modules/wrangler/bin/wrangler.js"), ...args], {
     cwd: temporary, env, windowsHide: true, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"],
-  });
+  }));
   children.add(child);
   child.once("error", error => { spawnError = error; });
-  child.once("exit", () => children.delete(child));
   for (const stream of [child.stdout, child.stderr]) stream.on("data", chunk => {
     diagnostics = (diagnostics + redact(chunk.toString())).slice(-16000);
   });
   return child;
 }
-function done(child) {
-  let timer;
-  return new Promise((accept, reject) => {
-    // A stuck local migration must reach the outer process-tree cleanup too.
-    timer = setTimeout(() => reject(new Error("Local Wrangler command timed out")), 120000);
-    child.once("error", reject);
-    child.once("exit", code => code === 0 ? accept() : reject(new Error(`Local Wrangler command failed (${code})`)));
-  }).finally(() => clearTimeout(timer));
+async function done(child) {
+  const result = await waitOwnedChild(child, 120_000);
+  if (result.spawnErrorCode || result.exitCode !== 0) throw new Error("Local Wrangler command failed");
 }
-async function stop() {
-  for (const child of [...children]) {
-    const exited = new Promise(accept => child.once("exit", accept));
-    if (process.platform === "win32") {
-      const result = spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
-        windowsHide: true, stdio: "ignore", timeout: 10000,
-      });
-      if (result.error) throw result.error;
-      if (result.status !== 0 && child.exitCode === null && child.signalCode === null) throw new Error("Owned Wrangler process termination failed");
-    } else {
-      try { process.kill(-child.pid, "SIGTERM"); } catch (error) { if (error.code !== "ESRCH") throw error; }
-    }
-    let timer;
-    try {
-      if (child.exitCode === null && child.signalCode === null) await Promise.race([
-        exited, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Owned Wrangler process did not exit")), 10000); }),
-      ]);
-    } finally { clearTimeout(timer); }
-  }
+function stop() {
+  return stopPromise ??= stopOwnedChildren(children);
 }
-process.once("SIGINT", () => { stop().catch(() => { process.exitCode = 1; }); });
-process.once("SIGTERM", () => { stop().catch(() => { process.exitCode = 1; }); });
+for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => {
+  process.exitCode = 1;
+  stop().catch(() => { console.error("Owned smoke teardown is unverified"); });
+});
 
 try {
-  const port = await new Promise((accept, reject) => {
+  console.log(`Isolated packaged-smoke data: ${temporary}`);
+  port = await new Promise((accept, reject) => {
     const probe = net.createServer();
     probe.once("error", reject);
     probe.listen(0, "127.0.0.1", () => { const { port } = probe.address(); probe.close(() => accept(port)); });
@@ -139,12 +125,28 @@ try {
   }
   assert.deepEqual(statuses, [400, 400, 400, 400, 400, 429]);
   console.log(JSON.stringify({ packagedWorkerVerified: true, routes: paths.length, otpStatuses: statuses, mailSent: false }));
-} catch (error) {
-  console.error(redact(error.message));
-  console.error(redact(diagnostics));
+  completed = true;
+} catch {
+  console.error("Packaged smoke failed; owned temporary data will be retained");
   process.exitCode = 1;
 } finally {
-  await stop();
-  if (!resolve(temporary).startsWith(resolve(tmpdir()) + sep) || !temporary.includes("flag-worker-smoke-")) throw new Error("Unsafe temporary cleanup path");
-  await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 });
+  const successful = completed && !process.exitCode;
+  let portsVerified = false;
+  let outcome = { teardown: "unverified", cleanup: "retained", portFree: null };
+  try {
+    outcome = await finishOwnedRun({ directory, stop, verifyPorts: async () => {
+      if (port) await assertPortFree(port);
+      portsVerified = true;
+    }, successful });
+    if (!port) outcome.portFree = null;
+  } catch {
+    process.exitCode = 1;
+    outcome.teardown = portsVerified ? "verified" : "unverified";
+    outcome.cleanup = portsVerified && successful ? "unverified" : "retained";
+    if (port) { try { await assertPortFree(port); outcome.portFree = true; } catch { outcome.portFree = false; } }
+    console.error("Owned smoke finalization failed; inspect temporary data");
+  }
+  for (const child of children) console.log(JSON.stringify({ lifecycle: lifecycleDiagnostic(child) }));
+  console.log(JSON.stringify({ ownedRun: "packaged-smoke", ...outcome }));
+  if (process.exitCode) for (const child of children) unrefFailedOwnedChild(child);
 }

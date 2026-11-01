@@ -3,11 +3,11 @@ spine_type: IDEA
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.0
+doc_version: 2.1
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-30
+updated: 2026-10-31
 reconciled: 2026-10-13
 ---
 
@@ -90,7 +90,7 @@ Status vocabulary: `Active`, `Retired`.
 
 ## 7. Open questions
 
-Questions blocking downstream docs. Mirrored into `LOG`.
-
-- Resolved 2026-10-13 (LOG Q7): per-account, per-client, and per-network limits that stop praise-stuffing and pile-ons are the approved pilot caps recorded in SDD §5 Rate limiting (daily and weekly invite quotas and a weekly log quota per freelancer, one log per engagement capped at three per 12-month freelancer/client pair, burst limits on sign-in and uploads per IP and user).
-- Technical future deferred: automatic QR/primary-source ID checking (LOG Q13) stays out of primary requirements until technically proven; pilot verifies by manual live inspection.
+No product-scope questions are pending. The approved pilot caps are recorded in
+SDD §3.7 and §5. Automatic QR/primary-source ID checking remains deferred until
+technically proven; the pilot uses manual live inspection. Historical decisions
+remain in the superseded log and are not routine session reading.

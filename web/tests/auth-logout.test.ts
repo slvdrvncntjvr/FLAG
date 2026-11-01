@@ -42,7 +42,7 @@ describe("PRD-F7 durable logout", () => {
       expect(lastResponse?.headers.get("location")).toBeNull();
       expect(lastResponse?.headers.get("set-cookie")).toBeNull();
       expect(await lastResponse?.text()).not.toMatch(/synthetic private|success|logout-failure@/);
-      expect(errorLog.mock.calls).toEqual([["Sign-out session revocation failed"]]);
+      expect(errorLog.mock.calls).toEqual([["AUTH_SESSION_REVOCATION_FAILED"]]);
     } finally {
       errorLog.mockRestore();
       await db.$client.exec("DROP TRIGGER test_logout_failure;");

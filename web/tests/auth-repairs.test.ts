@@ -29,7 +29,7 @@ describe("PRD-F7 email delivery failures", () => {
       const body = await response.json();
       expect(body).toMatchObject({ code: "EMAIL_DELIVERY_FAILED" });
       expect(JSON.stringify(body)).not.toMatch(/private-provider-detail|delivery-failure@|success/);
-      expect(errorLog.mock.calls).toEqual([["Sign-in email delivery failed"]]);
+      expect(errorLog.mock.calls).toEqual([["AUTH_EMAIL_DELIVERY_FAILED"]]);
     } finally {
       errorLog.mockRestore();
     }

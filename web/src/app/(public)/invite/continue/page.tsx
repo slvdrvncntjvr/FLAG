@@ -6,6 +6,7 @@ import { getDb } from "@/server/db";
 import { loadInviteForClient, loadInviteLanding } from "@/server/db/queries/engagements";
 import { INVITE_RETURN_PATH, PENDING_INVITE_COOKIE, tokenInput } from "@/features/engagements/schema";
 import { RespondInviteForm } from "@/features/engagements/forms";
+import { acceptEngagement } from "@/features/engagements/actions";
 
 export default async function ContinueInvite() {
   const value = (await cookies()).get(PENDING_INVITE_COOKIE)?.value;
@@ -20,6 +21,7 @@ export default async function ContinueInvite() {
   return <>
     <h1 className="font-serif text-2xl">Respond to invitation</h1>
     <p className="mt-4 break-words"><strong>{invite.inviter}</strong> invited you to <strong>{invite.title}</strong>.</p>
-    <RespondInviteForm engagementId={invite.id} profile={invite.profile} />
+    <RespondInviteForm engagementId={invite.id} profile={invite.profile}
+      acceptAction={acceptEngagement.bind(null, invite.profile?.id ?? null)} />
   </>;
 }

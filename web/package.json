@@ -17,7 +17,7 @@
     "deploy:worker": "node scripts/check-deploy.mjs && opennextjs-cloudflare deploy",
     "deploy:worker:dev": "node scripts/check-deploy.mjs dev && opennextjs-cloudflare deploy --env dev",
     "test": "vitest run",
-    "test:deploy": "node --test scripts/check-ci-target.test.mjs scripts/invite-return.test.mjs scripts/e2e-isolation.test.mjs",
+    "test:deploy": "node --test scripts/check-ci-target.test.mjs scripts/invite-return.test.mjs scripts/e2e-isolation.test.mjs scripts/observability-safety.test.mjs scripts/migration-metadata.test.mjs scripts/process-lifecycle.test.mjs",
     "test:worker:smoke": "node scripts/smoke-built-worker.mjs",
     "lint": "eslint",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tests/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json",
@@ -68,10 +68,16 @@
       "zod": "4.6.6"
     },
     "@node-minify/core": {
-      "glob": "10.5.0"
+      "glob": "14.0.2"
     },
     "@esbuild-kit/core-utils": {
       "esbuild": "0.25.12"
+    },
+    "@opennextjs/cloudflare": {
+      "glob": "14.0.2"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
     }
   },
   "allowScripts": {
