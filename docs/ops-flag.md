@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.40
+doc_version: 2.41
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -24,7 +24,7 @@ Last recorded live versions and migration ledgers are in INDEX section 6.
 | Production | https://flag.factsfirst.workers.dev | main | flag / flag-db / flag-proofs |
 
 The approved account is fixed in Wrangler configuration and binding guards.
-Each environment has separate data and secrets. dev-2 is a local working branch;
+Each environment has separate data and secrets. dev-2 is a source branch;
 it adds no environment. The pilot stays within free allowances; owner approves
 any spend. No automatic spend cutoff is implemented.
 
@@ -71,7 +71,7 @@ is not proof of inbox delivery.
 | Signal | Current evidence/source | Action |
 |--------|-------------------------|--------|
 | Verification waiting age | Queue shows cases past 36h; 48h target | Daily moderator check, reassign expired leases |
-| Worker errors | Fixed application events emitted; persisted Workers logs/traces disabled; >1%/15min target alert not configured | Owner investigates with bounded content-free diagnostics and platform metrics |
+| Worker errors | Fixed application events emitted; source disables persisted logs/traces; deployed observations in INDEX; >1%/15min target alert not configured | Owner investigates with bounded content-free diagnostics and platform metrics |
 | Mail failures | Generic application 503 and provider dashboards | Check sender/key/provider availability without copying contacts/codes |
 | Free usage/storage | Owner checks dashboard weekly and before intake | Compare Workers/D1/R2 usage and storage with current allowances; stop before paid upgrade |
 | Correction turnaround and full retention | Workflows/signals not implemented | Add actual case-close/hold and deletion evidence with those features |
@@ -95,10 +95,11 @@ real-time diagnosis. Real-time log/tail sessions can expose request metadata;
 do not retain or copy capability URLs. Do not reenable persistence, tracing or
 exports without a verified capability-safe logging design.
 
-These are source settings for a future deployment. Hosted overrides and actual
-logs were not inspected; the repair does not delete previously retained records.
-The owner must assess historical retention/access and any external destinations
-through authorized operations without copying live tokens into reports.
+INDEX records deployment and settings observations per environment. A settings
+check does not inspect retained log content, and deploying the source repair
+does not delete previously retained records. Historical retention/access and any
+external destinations require an authorized assessment without copying live
+tokens into reports.
 
 ## 5. Runbooks
 

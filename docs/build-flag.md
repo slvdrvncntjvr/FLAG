@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.39
+doc_version: 2.40
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -19,8 +19,9 @@ Read INDEX, IDEA scope/invariants and the relevant PRD/SDD sections. QAD owns
 acceptance coverage; OPS owns deployments. Current LOG is log-current-flag.md;
 the Superseded log and archive are not startup reading.
 
-Use Locked requirements or the owner's explicit named-task authorization. This
-consolidation is authorized on dev-2 while docs remain Review. Old grants and
+Use Locked requirements or the owner's explicit named-task authorization. The
+authorized consolidation and repairs are recorded in the current LOG while docs
+remain Review. Old grants and
 next-work tables do not automatically authorize a different implementation.
 
 ## 2. Pinned stack
@@ -126,8 +127,8 @@ on 0008; enabled intake needs 0009 and later prerequisite migrations first.
 - Source: web/src/app routes, features domain/actions/forms, server auth/db/mail.
   Worker integration tests: web/tests; browser tests: web/e2e; Node safety tests:
   web/scripts. Python runner tests: scripts.
-- The current work branch is dev-2, created from dev with pre-existing local
-  changes carried over. dev is the dev deployment branch; main is production.
+- dev is the dev deployment branch; main is production. INDEX records the
+  current source baseline and integration state.
 - Role/session identity comes from the server. Actions return bounded generic
   failures and useful field errors; no submitted content or provider body logs.
 - Parameterize SQL values. Atomic writes recheck live actor/policy/relationship

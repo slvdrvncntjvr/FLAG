@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.88
+doc_version: 0.90
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -28,12 +28,12 @@ verification and OPS for operations. The active decision log is
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
-| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.39 | Review | 2026-11-01 | 2026-10-13 |
+| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.40 | Review | 2026-11-01 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.28 | Review | 2026-11-01 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.50 | Review | 2026-11-01 | 2026-10-13 |
-| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.40 | Review | 2026-11-01 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.8 | Draft | 2026-11-01 | 2026-09-14 |
+| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.41 | Review | 2026-11-01 | 2026-10-13 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.10 | Draft | 2026-11-01 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -128,10 +128,10 @@ history and recorded changes. App correctness needs the checks in QAD. Human
 
 ## 6. Current development baseline
 
-This is the only current delivery-state map. Local source was assessed on
-2026-11-01 during the authorized audit repairs and independent review. The
-revision/schema entries below remain recorded baselines; fresh read-only
-configuration observations are stated separately below.
+This is the only current delivery-state map. The reviewed consolidation and audit
+repairs were integrated into dev through [PR24](https://github.com/slvdrvncntjvr/FLAG/pull/24)
+on 2026-11-01 after green local and hosted checks. Deployment/settings observations
+below were checked separately; no authenticated human acceptance is claimed.
 
 | Capability | Local source | Last recorded dev |
 |------------|--------------|-------------------|
@@ -145,9 +145,11 @@ configuration observations are stated separately below.
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR23 merge `f222efa`; read-only deployment checks recorded 2026-10-30 | 0000-0008; 0009 in source, unapplied |
+| Dev: `flag-dev`, branch `dev` | PR24 application baseline `cde6943`; normal Workers Build deployed and read-only checks passed 2026-11-01 | 0000-0008; 0009 in source, unapplied |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
-| Local: `dev-2` | Consolidation and audit repairs preserved; composed/Unicode-host URL and required new-profile city repairs implemented and independently reviewed; final local packaging/browser and hosted CI gates precede dev integration | Source SQL unchanged; Drizzle generation metadata covers 0008-0009; no city migration/backfill |
+
+PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
+0008-0009; required new-profile city needed no migration or legacy backfill.
 
 `PRIVATE_INTAKE_ENABLED` is `"false"` in both source environments
 (`web/wrangler.jsonc:39`). Enabling it requires the prerequisite below; the flag
@@ -155,10 +157,13 @@ is not a completion signal. Existing authorized private log/proof reads remain
 available while new writes are disabled (`web/src/features/logs/rollout.ts:6`,
 `web/src/app/(app)/logs/[id]/page.tsx:13`).
 
-Privacy/terms versions are `2026-10-27`; freelancer acknowledgment and engagement
-consent are `2026-10-12` (`web/src/lib/policies.ts:8`). Staff roles are assigned
-in D1; no admin screen exists. No new deployment or authenticated human
-acceptance is claimed by this consolidation.
+Source privacy/terms versions are `2026-11-01`; freelancer acknowledgment and
+engagement consent remain `2026-10-12` (`web/src/lib/policies.ts:8`). The notice
+alignment/reacceptance follow-up is delivered through [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25);
+its release requires current privacy/terms acknowledgment under the existing
+PRD-F8 gate. Existing engagement-consent history is unchanged. Staff roles are assigned
+in D1; no admin screen exists. The dev release has automated acceptance and
+read-only hosted checks; new authenticated human acceptance remains unrecorded.
 
 The source blockers from [current LOG section 9](log-current-flag.md#9-independent-readiness-review-2026-11-01)
 are repaired under the owner's follow-up authorization. Composed government-ID
@@ -167,28 +172,38 @@ portfolio URLs retain their original bytes. PRD-F9 city wording and new-profile
 enforcement agree. Existing profiles, including legacy NULL city, remain reusable;
 freelancer verification city remains optional. Independent follow-up reviews found
 no remaining substantive issue within these bounded repairs; see current LOG
-section 11. Integration still requires the remaining checks below.
+section 11. Integration and final verification are recorded in section 12.
 
-Fresh read-only Cloudflare settings checks on 2026-11-01 found invocation logs
-and log persistence enabled on both `flag-dev` and `flag`, with no Tail consumers
-or Logpush configured. The source logging protection remains undeployed; no
-retained log content was inspected or changed. Fresh migration checks confirm
-dev at 0000-0008 and production at 0000-0007. Dev bindings include PROOFS and
-intake is false; production still lacks PROOFS. No new remote migration or
-deployment occurred. OPS owns the release procedures.
+Post-release Cloudflare checks on 2026-11-01 confirm dev invocation logging and
+log/trace persistence disabled, tracing off, no Tail consumers or Logpush, correct
+DB/PROOFS/auth URL bindings and intake false. Nine established read-only page
+probes pass; anonymous proof access returns 404/no-store. The HTTP session probe
+was omitted because its limiter writes counters. No retained log content was
+inspected or deleted, and no remote migration ran.
+
+Production remains unchanged with invocation logging/persistence enabled, schema
+0000-0007 and no Worker PROOFS binding. Its named private bucket exists. Before
+promoting this baseline to main, follow OPS section 7: back up and apply the
+compatible reviewed migrations, bind private proofs and perform the intended
+shipped-slice acceptance. Keep intake disabled and the lifecycle prerequisite.
 
 Final source verification passes 1,047 Workers tests across 35 files, typecheck,
-lint, 61 tooling tests, five setup tests and three runner tests. The final dev
-build/package, isolated packaged smoke and full browser command are running;
-hosted candidate CI and dev integration are not yet claimed. Production audit
+lint, 61 tooling tests, five setup tests and three runner tests. Dev build,
+no-upload packaging, packaged smoke and all 18 desktop/mobile browser scenarios
+pass. Both complete local harnesses exit 0 with verified teardown, free ports
+and removed owned data. Required [hosted CI](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41314347205)
+passes for candidate `e20d450`. Production audit
 reports zero advisories; the full graph retains 15 moderate development-package
 entries and no high/critical findings. This does not establish dependency
 non-exploitability.
 
-Earlier 885-test, 18-browser and dual-target build/package successes remain
-dated evidence in current LOG section 8. They are not fresh final acceptance of
-this review candidate; no full-product, hosted CI or human certification is
-claimed. Main remains assessment only.
+Earlier verification remains dated evidence in current LOG sections 6-11; the
+final browser result includes the required-city setup correction. PR25 aligns
+client-city notices and their versions; its checks track that follow-up separately
+from the accepted PR24 baseline. SPINE normal
+validation passes with its deferred-RFC warning, while the recorded old-LOG
+checkpoint deletion finding stays visible. Main remains assessment only; this
+baseline does not complete the remaining product or establish human acceptance.
 
 ## 7. Remaining work
 
