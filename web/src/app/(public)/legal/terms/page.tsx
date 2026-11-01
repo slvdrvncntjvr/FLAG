@@ -39,10 +39,11 @@ export default function Terms() {
         The link expires after fourteen days and can be used for one acceptance or decline.
       </p>
       <p>
-        Clients sign in or register to respond. On acceptance, create a client profile with your display name and
-        individual or business type, or use the profile already linked to your account. City and DTI or SEC business
-        registration number are optional. Explicitly confirm the association of your signed-in account and profile
-        with this engagement, and separately consent to this engagement being logged with a 1 to 5 rating and
+        Clients sign in or register to respond. On acceptance, create a client profile with your display name,
+        individual or business type, and city, or use the profile already linked to your account, including an
+        existing profile without a city. DTI or SEC business registration number is optional. Explicitly confirm the
+        association of your signed-in account and profile with this engagement, and separately consent to this
+        engagement being logged with a 1 to 5 rating and
         supporting proof subject to moderator review. These are separate, initially unchecked choices; opening an
         invite, signing in, and accepting these terms do not accept the engagement. Each acceptance records a separate
         engagement-specific consent receipt with its text version and time. Profiles are never automatically merged

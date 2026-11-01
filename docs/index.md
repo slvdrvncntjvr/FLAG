@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.89
+doc_version: 0.90
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -33,7 +33,7 @@ verification and OPS for operations. The active decision log is
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.28 | Review | 2026-11-01 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.50 | Review | 2026-11-01 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.41 | Review | 2026-11-01 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.9 | Draft | 2026-11-01 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.10 | Draft | 2026-11-01 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -157,8 +157,11 @@ is not a completion signal. Existing authorized private log/proof reads remain
 available while new writes are disabled (`web/src/features/logs/rollout.ts:6`,
 `web/src/app/(app)/logs/[id]/page.tsx:13`).
 
-Privacy/terms versions are `2026-10-27`; freelancer acknowledgment and engagement
-consent are `2026-10-12` (`web/src/lib/policies.ts:8`). Staff roles are assigned
+Source privacy/terms versions are `2026-11-01`; freelancer acknowledgment and
+engagement consent remain `2026-10-12` (`web/src/lib/policies.ts:8`). The notice
+alignment/reacceptance follow-up is delivered through [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25);
+its release requires current privacy/terms acknowledgment under the existing
+PRD-F8 gate. Existing engagement-consent history is unchanged. Staff roles are assigned
 in D1; no admin screen exists. The dev release has automated acceptance and
 read-only hosted checks; new authenticated human acceptance remains unrecorded.
 
@@ -195,7 +198,9 @@ entries and no high/critical findings. This does not establish dependency
 non-exploitability.
 
 Earlier verification remains dated evidence in current LOG sections 6-11; the
-final browser result includes the required-city setup correction. SPINE normal
+final browser result includes the required-city setup correction. PR25 aligns
+client-city notices and their versions; its checks track that follow-up separately
+from the accepted PR24 baseline. SPINE normal
 validation passes with its deferred-RFC warning, while the recorded old-LOG
 checkpoint deletion finding stays visible. Main remains assessment only; this
 baseline does not complete the remaining product or establish human acceptance.

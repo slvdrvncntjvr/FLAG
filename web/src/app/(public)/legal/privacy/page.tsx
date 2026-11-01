@@ -35,8 +35,9 @@ export default function Privacy() {
           expire after fourteen days; the token is stored as a hash rather than as the full invite link.
         </li>
         <li>
-          For a client profile: your display name, individual or business profile type, optional city, and optional
-          DTI or SEC business registration number. Accepting explicitly associates your signed-in account and client
+          For a new client profile: your display name, individual or business profile type, and city. DTI or SEC
+          business registration number is optional. You can reuse an existing profile without changing its stored
+          city, including a profile without a city. Accepting explicitly associates your signed-in account and client
           profile with that engagement. Profiles are never automatically merged because names match.
         </li>
         <li>
