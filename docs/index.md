@@ -3,47 +3,63 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.77
+doc_version: 0.88
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-30
+updated: 2026-11-01
 reconciled: 2026-09-14
 ---
 
-# Documentation Index: FLAG
+# FLAG: current project reference
 
-**Project slug:** `flag`
-**Tier:** 3 - Product
-**Maintained by:** slvdrvncntjvr
+**Project slug:** `flag` - **Tier:** 3 - Product - **Owner:** slvdrvncntjvr
 
 Built on SPINE 0.3.0
 
----
+Start with the [current baseline](#6-current-development-baseline) and
+[remaining work](#7-remaining-work). For a coding task, read IDEA §4-4.1, the
+relevant PRD acceptance criteria, SDD contract and BUILD command. Read QAD for
+verification and OPS for operations. The active decision log is
+[log-current-flag.md](log-current-flag.md).
 
 ## 1. Document Suite
 
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
-| IDEA · Idea Brief | [idea-flag.md](idea-flag.md) | 2.0 | Review | 2026-10-30 | 2026-10-13 |
-| BUILD · Build Guide | [build-flag.md](build-flag.md) | 2.35 | Review | 2026-10-30 | 2026-10-13 |
-| PRD · Product Requirements | [prd-flag.md](prd-flag.md) | 2.0 | Review | 2026-10-26 | 2026-10-13 |
-| SDD · System Design | [sdd-flag.md](sdd-flag.md) | 2.23 | Review | 2026-10-30 | 2026-10-13 |
-| QAD · QA & Test Plan | [qad-flag.md](qad-flag.md) | 2.45 | Review | 2026-10-30 | 2026-10-13 |
-| OPS · Ops & Observability | [ops-flag.md](ops-flag.md) | 2.36 | Review | 2026-10-30 | 2026-10-13 |
-| LOG · Session Log | [log-flag.md](log-flag.md) | 1.67 | Draft | 2026-10-30 | 2026-09-14 |
+| IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
+| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.39 | Review | 2026-11-01 | 2026-10-13 |
+| PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
+| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.28 | Review | 2026-11-01 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.50 | Review | 2026-11-01 | 2026-10-13 |
+| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.40 | Review | 2026-11-01 | 2026-10-13 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.8 | Draft | 2026-11-01 | 2026-09-14 |
 
-**Materialized at repo root (not in `docs/`):** AGENTS.md, CLAUDE.md, GEMINI.md, and IDE rule files - SPINE pointers.
+Review means the owner has not newly reconciled or locked the consolidated text.
+The owner explicitly authorized this overhaul and factual web-copy changes on
+`dev-2`; that authorization is recorded once in the current LOG and cr-004.
+New feature implementation still needs the scope of its actual task.
+The subsequent scoped repair/verification/dev-merge authorization is recorded in
+the current LOG; it does not newly lock or reconcile these Review documents.
 
-### 1.1 RFCs
+Root pointers: AGENTS.md, CLAUDE.md, GEMINI.md and IDE rules. Local web setup
+starts at [web/README.md](../web/README.md).
 
-| RFC ID | File | Feature | Status | Updated |
-|--------|------|---------|--------|---------|
-| flag-rfc-001 | [rfc-flag-id-check.md](rfc-flag-id-check.md) | Government ID check without storing the ID (PRD-F1) | Draft | 2026-10-13 |
+### 1.1 Historical and deferred references
 
-RFC flag-rfc-001 stays `Draft` on purpose: it holds the deferred PhilID QR cryptographic-check design (LOG Q13), which is unproven and out of the v1 launch scope. The pilot verifies by manual live inspection. Its two open owner-markers are future spike work, not launch blockers.
+These are excluded from normal session reading.
 
----
+| Reference | File | Status | Use |
+|-----------|------|--------|-----|
+| Original LOG | `docs/log-flag.md` (removed) | Historical, owner-deleted 2026-10-31 | Committed history remains in git; deleted uncommitted additions are not verified recoverable |
+| Pre-overhaul snapshot | `archive/docs-2026-10-31/` | Historical, owner-deleted 2026-10-31; untracked local copies observed 2026-11-01 | New copies left untouched; continuity with the deleted working history and external backup remain unverified |
+| flag-rfc-001 | [rfc-flag-id-check.md](rfc-flag-id-check.md) | Draft, deferred | Future QR feasibility only; manual inspection is the pilot method |
+
+The owner intentionally removed the original LOG and archive after consolidation.
+The active LOG replaces routine session context, not the deleted historical
+evidence. Checkpoint verification against `spine-cp-2026-10-26-1` therefore reports
+the missing original LOG. This is a recorded deletion, not a clean checkpoint
+result; do not suppress it or restore history without owner approval.
 
 ## 2. Change Log
 
@@ -54,10 +70,11 @@ Change records against `Locked` documents. See engine §7.3.
 | cr-001 | 2026-10-14 | Owner-approved audit repairs, retained build-guide edits, and durable authentication throttling; implementation authorized while changed docs are Review | BUILD, SDD | build-flag.md, sdd-flag.md, qad-flag.md, ops-flag.md | [cr-001-flag-audit-fixes.md](cr-001-flag-audit-fixes.md) |
 | cr-002 | 2026-10-26 | Owner-approved verification approve/reject with corrected new-request resubmission preserving history; applied, CR 0.2 Review, LOG Q25 resolved | PRD | prd-flag.md 2.0 Review, sdd-flag.md 2.12 Review, qad-flag.md 2.23 Review | [cr-002-flag-verification-decisions.md](cr-002-flag-verification-decisions.md) |
 | cr-003 | 2026-10-30 | Owner-approved wording fixes: remove the stale as-built sentence from IDEA §6 and correct the Q7 cap wording to match the approved weekly log quota; no scope or invariant change | IDEA | idea-flag.md 2.0 Review, build-flag.md, index.md, log-flag.md | [cr-003-flag-idea-status-cleanup.md](cr-003-flag-idea-status-cleanup.md) |
-
----
+| cr-004 | 2026-10-31 | Owner-authorized documentation consolidation and factual landing copy; requirements and invariants retained | IDEA, BUILD, PRD, SDD, QAD, OPS | idea-flag.md, build-flag.md, prd-flag.md, sdd-flag.md, qad-flag.md, ops-flag.md, index.md, log-flag.md, log-current-flag.md | [cr-004-flag-documentation-consolidation.md](cr-004-flag-documentation-consolidation.md) |
 
 ## 3. Traceability Matrix
+
+In SDD/QAD means reference coverage. Design completeness is stated in SDD section 6; implementation status is stated in INDEX section 6.
 
 | PRD-F# | Feature | Priority | In SDD | In QAD | In RFC |
 |--------|---------|----------|--------|--------|--------|
@@ -79,69 +96,123 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 | INV-# | Rule | Status | Enforced in | Negative test |
 |-------|------|--------|-------------|---------------|
-| INV-1 | Never publish a log a moderator has not approved | Active | SDD §5.1: log queries, moderation decision action `decideReview` (log-kind handler planned) | NT-01, NT-02, NT-11 |
+| INV-1 | Never publish a log a moderator has not approved | Active | SDD §5.1: initial-intake triggers prohibit publication; human log-publication handler remains planned | NT-01, NT-02, NT-11 |
 | INV-2 | Never accept a log without proof or without an accepted engagement | Active | SDD §5.1: `submitLog`, trigger `log_requires_proof` | NT-03, NT-04 |
 | INV-3 | Never store a raw ID image or full ID number | Active | SDD section 5.1: auth user-write hooks and verification handlers | NT-05 |
 | INV-4 | Never show proof outside moderators, filer, named client | Active | SDD §5.1: `/api/proofs/[id]` | NT-06 |
 | INV-5 | Never compute or show an unapproved reputation signal; only the approved 1-5 rating and client average are permitted | Active | SDD §5.1: schema review, record components | NT-07, NT-12 |
-| INV-6 | Never let a client edit or delete a published log | Active | SDD §5.1: server actions, `log_frozen_*` triggers | NT-08 |
+| INV-6 | Never let a client edit or delete a published log | Active | SDD §5.1: no client mutation; submitted parent/revision/tag/proof freeze triggers | NT-08 |
 | INV-7 | Never serve client records or logs to signed-out visitors or crawlers | Active | SDD §5.1: `(app)` layout, noindex, robots | NT-09 |
 | INV-8 | Never let an unverified or unacknowledged freelancer open an engagement or file a log | Active | SDD §5.1: `requireVerifiedFreelancer()` | NT-10 |
 
 ---
 
+
 ## 4. Incident Log
 
-| PM ID | Date | Severity | Summary | Actions closed | File |
-|-------|------|----------|---------|----------------|------|
-| none | | | | | |
-
----
+No product postmortem is registered. Current recovery context is in the current
+LOG §5. Earlier committed recoveries can be investigated through git history.
 
 ## 5. Health Check
 
-- [ ] Every `Locked` doc's `reconciled` date is newer than the last code change in its area
-- [ ] No doc has sat in `Draft` past its expected movement date
-- [ ] Every open change record has propagated downstream
-- [x] Every feature ID referenced by SDD, RFC, or QAD still exists in the PRD
-- [x] §3 Traceability Matrix covers every Must-Have
-- [x] §3.1 Invariant Matrix maps every Active invariant to its designed enforcement and planned negative tests; implemented test coverage is stated separately in QAD §1
-- [x] Validator green in normal mode (`python scripts/spine.py check docs/`)
-- [x] Latest checkpoint verifies clean (`python scripts/spine.py checkpoint verify`)
-- [x] No secrets committed in `docs/`
+Run from the repository root:
 
----
+```powershell
+python scripts/spine.py check docs/
+python scripts/spine.py checkpoint verify
+```
+
+The validator checks structure and traceability; the checkpoint checks preserved
+history and recorded changes. App correctness needs the checks in QAD. Human
+`reconciled` dates are carried forward, never advanced by an agent.
 
 ## 6. Current development baseline
 
-This section is the only current-status map. Other docs describe design and procedures, not status. Dated history is in LOG and git.
+This is the only current delivery-state map. Local source was assessed on
+2026-11-01 during the authorized audit repairs and independent review. The
+revision/schema entries below remain recorded baselines; fresh read-only
+configuration observations are stated separately below.
 
-| Where | What it runs | Schema |
-|-------|--------------|--------|
-| Dev (`flag-dev`, branch `dev`) | PR22 merge `0bd505f`: sign-in, onboarding, manual verification with moderator review, consent-first engagement invites | Migrations 0000–0008 |
-| Production (`flag`, branch `main`) | Older app at `3582f7e`: sign-in and onboarding only. It predates the PROOFS binding | Migrations 0000–0007 |
-| Branch `f2-private-log-proof-intake` (dev integration candidate) | Private log drafts, proof upload and submission to pending (PRD-F2, PRD-F3, per-log PRD-F14). Off by default: `PRIVATE_INTAKE_ENABLED` is `"false"` for dev and production in `web/wrangler.jsonc` | Adds migration 0009, applied nowhere remote |
+| Capability | Local source | Last recorded dev |
+|------------|--------------|-------------------|
+| Email-code accounts and policy onboarding | Implemented | Available |
+| Manual freelancer verification and moderator review | Implemented; approve/reject, corrected new requests, immutable submitted profile history | Available |
+| Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
+| Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
+| Log moderation/publication, client search/records and aggregate ratings | Not implemented | Unavailable |
+| Full retention, assessed account closure/export, private corrections and filer updates | Not implemented | Unavailable |
+| Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
-Dev legal versions: privacy and terms `2026-10-27`; freelancer acknowledgment and per-engagement client consent `2026-10-12` (`web/src/lib/policies.ts`).
+| Location | Last recorded revision | Schema |
+|----------|------------------------|--------|
+| Dev: `flag-dev`, branch `dev` | PR23 merge `f222efa`; read-only deployment checks recorded 2026-10-30 | 0000-0008; 0009 in source, unapplied |
+| Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
+| Local: `dev-2` | Consolidation and audit repairs preserved; composed/Unicode-host URL and required new-profile city repairs implemented and independently reviewed; final local packaging/browser and hosted CI gates precede dev integration | Source SQL unchanged; Drizzle generation metadata covers 0008-0009; no city migration/backfill |
 
-The owner authorized integrating the disabled intake source into dev on 2026-10-30. This integration remains compatible with migration 0008 and does not activate intake or apply migration 0009. The deployed baseline above is the last verified release; activation still follows §7 step 1 and Q28 remains open.
+`PRIVATE_INTAKE_ENABLED` is `"false"` in both source environments
+(`web/wrangler.jsonc:39`). Enabling it requires the prerequisite below; the flag
+is not a completion signal. Existing authorized private log/proof reads remain
+available while new writes are disabled (`web/src/features/logs/rollout.ts:6`,
+`web/src/app/(app)/logs/[id]/page.tsx:13`).
 
-What a user can do on dev today: sign in, accept the policies, request verification, have a moderator verify them, invite a client, and have the client accept or decline. A logged experience cannot be published or read by other freelancers yet.
+Privacy/terms versions are `2026-10-27`; freelancer acknowledgment and engagement
+consent are `2026-10-12` (`web/src/lib/policies.ts:8`). Staff roles are assigned
+in D1; no admin screen exists. No new deployment or authenticated human
+acceptance is claimed by this consolidation.
 
-Moderator and admin roles have no admin screen. The owner sets them directly in the D1 `user.role` column.
+The source blockers from [current LOG section 9](log-current-flag.md#9-independent-readiness-review-2026-11-01)
+are repaired under the owner's follow-up authorization. Composed government-ID
+URL labels and original Unicode hostnames reject before persistence; safe
+portfolio URLs retain their original bytes. PRD-F9 city wording and new-profile
+enforcement agree. Existing profiles, including legacy NULL city, remain reusable;
+freelancer verification city remains optional. Independent follow-up reviews found
+no remaining substantive issue within these bounded repairs; see current LOG
+section 11. Integration still requires the remaining checks below.
 
-## 7. Implemented scope and remaining work
+Fresh read-only Cloudflare settings checks on 2026-11-01 found invocation logs
+and log persistence enabled on both `flag-dev` and `flag`, with no Tail consumers
+or Logpush configured. The source logging protection remains undeployed; no
+retained log content was inspected or changed. Fresh migration checks confirm
+dev at 0000-0008 and production at 0000-0007. Dev bindings include PROOFS and
+intake is false; production still lacks PROOFS. No new remote migration or
+deployment occurred. OPS owns the release procedures.
 
-The owner prioritizes Must-Haves before optional PRD-F11 notifications (LOG 2026-10-30). This list is a backlog, not an authorization to implement or release.
+Final source verification passes 1,047 Workers tests across 35 files, typecheck,
+lint, 61 tooling tests, five setup tests and three runner tests. The final dev
+build/package, isolated packaged smoke and full browser command are running;
+hosted candidate CI and dev integration are not yet claimed. Production audit
+reports zero advisories; the full graph retains 15 moderate development-package
+entries and no high/critical findings. This does not establish dependency
+non-exploitability.
 
-| Order | Work | Requirement |
-|-------|------|-------------|
-| 1 | Enable private log intake on dev: back up dev D1, apply 0009, update privacy/terms to describe logs and proofs, set the flag on dev, owner checks on Android Chrome and desktop ([OPS §5](ops-flag.md#5-runbooks)) | PRD-F2, PRD-F3, PRD-F8 |
-| 2 | Log moderation: list log cases, claim, approve / ask-changes / reject with a reason, publish on approval. Needs a migration 0010, because the 0009 triggers only allow the draft-to-pending path | PRD-F4, INV-1 |
-| 3 | Client search and client record page: average with contributor count, Limited-record label under five, outcome counts, tags, published logs | PRD-F6, PRD-F14 |
-| 4 | Pilot-scope decision, open (LOG Q28): whether data requests and account closure, the retention job, and corrections/filer updates are built before the first publication or handled manually during the pilot | PRD-F12, PRD-F13 |
-| 5 | Production promotion when the owner decides ([OPS §7](ops-flag.md#7-production-readiness-gate)) | — |
+Earlier 885-test, 18-browser and dual-target build/package successes remain
+dated evidence in current LOG section 8. They are not fresh final acceptance of
+this review candidate; no full-product, hosted CI or human certification is
+claimed. Main remains assessment only.
 
-Release checks are green CI plus the manual smoke check ([QAD §1](qad-flag.md#1-strategy)). Owner acceptance is recorded in the [QAD §7.1 worksheet](qad-flag.md#71-owner-manual-acceptance-worksheet-prepared-2026-10-27). On 2026-10-30 the owner dropped billing-tier proofs, exact release-identity checks, production recovery drills, purge-owner recovery gates, iPhone/Messenger device gates and extra main-approval gates (LOG §1).
+## 7. Remaining work
 
-CORRECTION_REQUEST and DATA_REQUEST are designed, not built; lifecycle fields need design before migration. Deferred: PRD-F11 notifications, QR automation (RFC 001) and the undecided PRD §6 candidates, including the Messenger helper (LOG Q27). Public replies, corroboration, refusal signals, unapproved reputation signals, marketplace and payment work, and paid upgrades stay outside the approved scope.
+| Order | Deliverable | Scope |
+|-------|-------------|-------|
+| 1 | Finish lifecycle/correction design and implement the minimum safe workflow | PRD-F12, PRD-F13: recorded requests and outcomes, secure export, assessed correction/deletion/closure and access revocation, physical retention deletion and documented holds, independent corrections/filer updates |
+| 2 | Implement log review and publication | PRD-F4, INV-1: log queue, claim, approve/ask-changes/reject, reason/history and publication transition; additive migration after lifecycle migrations |
+| 3 | Enable intake on dev when the prerequisite is verified | Apply reviewed migrations starting at 0009 to backed-up dev, update applicable privacy/terms text and versions, enable intake and perform owner smoke checks; OPS §5 |
+| 4 | Implement client search, records and aggregates | PRD-F6, PRD-F14: latest eligible rating per contributor, counts, tags, Limited record and empty state |
+| 5 | Promote the intended product slice when the owner chooses | Green CI and manual smoke; OPS §7 |
+
+Email can receive pilot privacy requests when the named owner processes and
+records them. Minimum safe lifecycle and correction capabilities must exist
+before **real proof collection or publication**. Read-time hiding does not
+perform erasure. A polished self-service request interface may follow later.
+
+Lifecycle and log moderation may share one implementation milestone using
+synthetic data while intake stays disabled. Before migrations, finish the ERD
+for responsible staff/outcomes, actual case-close and review-round history,
+correction evidence, documented holds and assessed early-erasure/backup handling.
+Protect decided rows during ordinary writes; design an explicit maintenance path
+before changing freeze guards. The old draft ERD is reference material, not a
+ready migration contract.
+
+Deferred: notifications, QR automation, and unapproved PRD §6 candidates. All
+IDEA exclusions and eight invariants continue to apply. This queue describes
+remaining scope; it is not an instruction to start every feature.

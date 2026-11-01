@@ -1,15 +1,16 @@
 import { betterAuth } from "better-auth";
-import { APIError, createAuthMiddleware, signOut } from "better-auth/api";
+import { APIError, createAuthMiddleware, isAPIError, signOut } from "better-auth/api";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { normalizeIP } from "@better-auth/core/utils/ip";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { Db } from "@/server/db";
 import * as schema from "@/server/db/schema";
 import { sendMail } from "@/server/mail";
 import { createAuthRateLimiter, OTP_IP_SEND_LIMIT, OTP_LIMIT, OTP_PATHS, OTP_SEND_PATHS } from "./rate-limit";
 import { validateAuthUserProfile } from "./privacy";
+import { authLogger, safeAuthError, withAuthSafety } from "./safety";
 
 export type AuthEnv = {
   BETTER_AUTH_SECRET: string;
@@ -51,15 +52,21 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
   // context so an after hook can return 503 without mixing concurrent requests.
   const failedDeliveries = new WeakSet<object>();
   const baseUrl = new URL(env.BETTER_AUTH_URL);
-  const localConsole = baseUrl.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(baseUrl.hostname);
+  const localConsole = process.env.NODE_ENV !== "production" && baseUrl.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(baseUrl.hostname);
   const google =
     env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
       ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } }
       : undefined;
 
-  return betterAuth({
+  return withAuthSafety(betterAuth({
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
+    logger: authLogger,
+    onAPIError: {
+      // Throwing a bounded APIError also prevents Better Call's independent
+      // console.error fallback from printing a raw non-API exception.
+      onError(error) { throw safeAuthError(error); },
+    },
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: { ...schema, verification: schema.authVerification },
@@ -90,6 +97,13 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
         // generic and server-only OTP APIs can also request forget-password codes.
         if ((ctx.path && (PASSWORD_PATHS.has(ctx.path) || ctx.path.startsWith("/reset-password/")))
           || ctx.body?.type === "forget-password" || ctx.query?.type === "forget-password") denyPasswordAuth();
+        // This unused endpoint is a non-consuming code oracle with non-atomic
+        // attempt updates. Deny before any proof lookup for HTTP and auth.api,
+        // preserving the existing password-reset denial above.
+        if (ctx.path === "/email-otp/check-verification-otp") throw new APIError("FORBIDDEN", {
+          code: "OTP_CHECK_DISABLED",
+          message: "Use the email sign-in or verification form.",
+        });
         if (ctx.path === "/sign-out") {
           // Router origin/CSRF checks run first. Leave invalid bodies to the
           // library's own validation, without changing the session.
@@ -103,7 +117,7 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
               // storage are configured; Google has no provider end-session URL.
               await db.delete(schema.session).where(eq(schema.session.token, token));
             } catch {
-              console.error("Sign-out session revocation failed");
+              console.error("AUTH_SESSION_REVOCATION_FAILED");
               throw new APIError("SERVICE_UNAVAILABLE", {
                 code: "SESSION_REVOCATION_FAILED",
                 message: "Could not sign out. Try again later.",
@@ -132,11 +146,14 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
         }, { "Retry-After": String(perIp.retryAfter), "X-Retry-After": String(perIp.retryAfter) });
       }),
       after: createAuthMiddleware(async (ctx) => {
-        if (!failedDeliveries.delete(ctx.context)) return;
-        throw new APIError("SERVICE_UNAVAILABLE", {
+        if (failedDeliveries.delete(ctx.context)) throw new APIError("SERVICE_UNAVAILABLE", {
           code: "EMAIL_DELIVERY_FAILED",
           message: "Could not send the sign-in code. Try again later.",
         });
+        // The dispatcher converts handler APIErrors directly to responses,
+        // bypassing router onError; bound those server failures here too.
+        const returned = ctx.context.returned;
+        if (isAPIError(returned) && returned.statusCode >= 400) throw safeAuthError(returned);
       }),
     },
     // Cloudflare sets cf-connecting-ip; x-forwarded-for can be supplied by the client.
@@ -148,7 +165,25 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
       },
       user: {
         create: { before: validateAuthUserProfile },
-        update: { before: validateAuthUserProfile },
+        update: { before: async (data, ctx) => {
+          const validated = await validateAuthUserProfile(data);
+          // Match the SQL freeze: an open case or verified profile fixes the
+          // current name. SQL remains authoritative if review starts after this
+          // precheck; the auth error boundary sanitizes that race's adapter error.
+          const id = ctx?.path === "/update-user" ? ctx.context.session?.user.id : undefined;
+          if (id && typeof data.name === "string") {
+            const current = await db.query.user.findFirst({ columns: { name: true }, where: eq(schema.user.id, id) });
+            if (current && data.name !== current.name) {
+              const profile = await db.query.freelancerProfile.findFirst({ columns: { status: true }, where: eq(schema.freelancerProfile.userId, id) });
+              const review = await db.query.verificationCase.findFirst({ columns: { id: true }, where: and(eq(schema.verificationCase.freelancerId, id), isNull(schema.verificationCase.decidedAt)) });
+              if (profile?.status === "verified" || review) throw new APIError("CONFLICT", {
+                code: "REVIEWED_NAME_FIXED",
+                message: "This name cannot be changed while under review or verified.",
+              });
+            }
+          }
+          return validated;
+        } },
       },
       session: {
         create: {
@@ -190,13 +225,13 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
             // library logger. The callback and after hook share this context.
             if (ctx) failedDeliveries.add(ctx.context);
             else throw new APIError("SERVICE_UNAVAILABLE", { message: "Sign-in email is unavailable. Try again later." });
-            console.error("Sign-in email delivery failed");
+            console.error("AUTH_EMAIL_DELIVERY_FAILED");
           }
         },
       }),
       nextCookies(),
     ],
-  });
+  }));
 }
 
 export type Auth = ReturnType<typeof createAuth>;

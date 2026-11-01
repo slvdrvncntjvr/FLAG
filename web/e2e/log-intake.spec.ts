@@ -100,6 +100,7 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     await client.goto(inviteUrl);
     await client.getByRole("button", { name: "Continue to sign in or respond" }).click();
     await client.getByLabel("Display name", { exact: true }).fill("Synthetic named client");
+    await client.getByLabel("City", { exact: true }).fill("Quezon City");
     for (const box of await client.getByRole("checkbox").all()) await box.check();
     const accepted = client.waitForResponse(response => response.request().method() === "POST" && !!response.request().headers()["next-action"]);
     await client.getByRole("button", { name: "Accept engagement", exact: true }).click();

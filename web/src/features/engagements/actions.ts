@@ -7,7 +7,7 @@ import { getDb } from "@/server/db";
 import { getViewer, requireViewer, requireVerifiedFreelancer } from "@/server/auth/guards";
 import { loadInviteForClient, loadInviteLanding } from "@/server/db/queries/engagements";
 import { acceptInvitation, cancelInvitation, createInvitation, declineInvitation } from "./handlers";
-import { failed, hashInvite, INVITE_CONTINUATION_SECONDS, INVITE_RETURN_PATH, PENDING_INVITE_COOKIE, idInput, tokenInput, type EngagementResult } from "./schema";
+import { failed, hashInvite, INVITE_CONTINUATION_SECONDS, INVITE_RETURN_PATH, PENDING_INVITE_COOKIE, idInput, profileExpectationInput, tokenInput, type EngagementResult } from "./schema";
 
 export async function createEngagement(_previous: EngagementResult<{ invitePath: string }> | null, data: FormData): Promise<EngagementResult<{ invitePath: string }>> {
   const viewer = await requireVerifiedFreelancer().catch(() => null);
@@ -43,16 +43,18 @@ async function pendingHash() {
   return tokenInput.safeParse(value).success ? value! : "";
 }
 
-export async function acceptEngagement(_previous: EngagementResult | null, data: FormData): Promise<EngagementResult> {
+export async function acceptEngagement(expectedProfileId: unknown, _previous: EngagementResult | null, data: FormData): Promise<EngagementResult> {
   const viewer = await requireViewer().catch(() => null);
   if (!viewer) return failed("Sign in again to continue.");
+  if (!profileExpectationInput.safeParse(expectedProfileId).success) return failed();
   if (!validForm(data, ["engagementId", "consent", "associate", "displayName", "kind", "city", "registrationNo"])) return failed("Check the supplied fields.");
   const hash = await pendingHash();
   if (!await matchesRenderedInvite(viewer.id, hash, data)) return failed();
   const result = await acceptInvitation(await getDb(), viewer.id, hash, {
     consent: data.get("consent"), associate: data.get("associate"),
-    ...(data.has("displayName") ? { displayName: data.get("displayName"), kind: data.get("kind"), city: data.get("city") ?? undefined, registrationNo: data.get("registrationNo") ?? undefined } : {}),
-  });
+    ...Object.fromEntries(["displayName", "kind", "city", "registrationNo"]
+      .filter(key => data.has(key)).map(key => [key, data.get(key)])),
+  }, expectedProfileId);
   if (result.ok) {
     await clearInvite();
     revalidatePath("/engagements");

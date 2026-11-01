@@ -11,7 +11,12 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	"observability": { "enabled": true },
+	// Capability URLs may enrich custom logs too. Emit safe app events without storage.
+	"observability": {
+		"enabled": true,
+		"logs": { "enabled": true, "invocation_logs": false, "persist": false },
+		"traces": { "enabled": false, "persist": false }
+	},
 	"build": {
 		"command": "node scripts/check-wrangler-build.mjs --env="
 	},
@@ -47,7 +52,12 @@
 			"name": "flag-dev",
 			"workers_dev": true,
 			"preview_urls": false,
-			"observability": { "enabled": true },
+			// Repeat the URL-safety policy explicitly for this environment.
+			"observability": {
+				"enabled": true,
+				"logs": { "enabled": true, "invocation_logs": false, "persist": false },
+				"traces": { "enabled": false, "persist": false }
+			},
 			"d1_databases": [
 				{
 					"binding": "DB",

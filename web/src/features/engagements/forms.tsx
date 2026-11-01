@@ -2,8 +2,8 @@
 
 import { useActionState } from "react";
 import { POLICY_VERSIONS } from "@/lib/policies";
-import { acceptEngagement, cancelEngagement, continueInvite, createEngagement, declineEngagement } from "./actions";
-import { CONSENT_TEXT } from "./schema";
+import { cancelEngagement, continueInvite, createEngagement, declineEngagement } from "./actions";
+import { CONSENT_TEXT, type EngagementResult } from "./schema";
 
 const field = "mt-1 block w-full rounded-sm border border-rule bg-white px-3 py-3";
 const button = "w-full rounded-sm bg-ink px-4 py-3 text-paper disabled:opacity-60";
@@ -35,8 +35,11 @@ export function ContinueInviteForm({ token }: { token: string }) {
   </form>;
 }
 
-export function RespondInviteForm({ engagementId, profile }: { engagementId: string; profile: { displayName: string; kind: string } | null }) {
-  const [accepted, accept, accepting] = useActionState(acceptEngagement, null);
+export function RespondInviteForm({ engagementId, profile, acceptAction }: {
+  engagementId: string; profile: { displayName: string; kind: string } | null;
+  acceptAction: (previous: EngagementResult | null, data: FormData) => Promise<EngagementResult>;
+}) {
+  const [accepted, accept, accepting] = useActionState(acceptAction, null);
   const [declined, decline, declining] = useActionState(declineEngagement, null);
   return <div className="mt-6 space-y-8">
     <form action={accept} className="space-y-5">
@@ -46,7 +49,7 @@ export function RespondInviteForm({ engagementId, profile }: { engagementId: str
         <p className="text-sm">Enter your details. Profiles are linked to registered accounts and are never merged by name.</p>
         <label className="block text-sm">Display name<input name="displayName" maxLength={160} required className={field} /></label>
         <label className="block text-sm">Profile type<select name="kind" required className={field}><option value="individual">Individual</option><option value="business">Business</option></select></label>
-        <label className="block text-sm">City (optional)<input name="city" maxLength={160} className={field} /></label>
+        <label className="block text-sm">City<input name="city" maxLength={160} required className={field} /></label>
         <label className="block text-sm">DTI or SEC registration number (optional)<input name="registrationNo" maxLength={100} className={field} /></label>
       </fieldset>}
       <label className="flex items-start gap-3"><input type="checkbox" name="associate" required className="mt-1 size-4 shrink-0" /><span>Use my signed-in account and {profile ? "this client profile" : "create this client profile"} for this engagement.</span></label>

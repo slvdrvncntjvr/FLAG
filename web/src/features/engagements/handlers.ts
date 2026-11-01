@@ -1,7 +1,7 @@
 import type { Db } from "@/server/db";
 import { POLICY_VERSIONS } from "@/lib/policies";
 import { engagementActor, inviteNow, liveInvite } from "@/server/db/queries/engagements";
-import { acceptInput, createInput, failed, hashInvite, idInput, INVITE_DAY_LIMIT, INVITE_TTL_DAYS, INVITE_WEEK_LIMIT, newInviteToken, tokenInput, type EngagementResult } from "./schema";
+import { acceptInput, createInput, failed, hashInvite, idInput, INVITE_DAY_LIMIT, INVITE_TTL_DAYS, INVITE_WEEK_LIMIT, newInviteToken, profileExpectationInput, tokenInput, type EngagementResult } from "./schema";
 
 export async function createInvitation(db: Db, actorId: string | null, input: unknown): Promise<EngagementResult<{ invitePath: string }>> {
   if (!actorId) return failed("Sign in to continue.");
@@ -21,23 +21,30 @@ export async function createInvitation(db: Db, actorId: string | null, input: un
   } catch { return failed("Could not create the invitation. Try again."); }
 }
 
-export async function acceptInvitation(db: Db, actorId: string | null, hash: string, input: unknown): Promise<EngagementResult> {
+export async function acceptInvitation(db: Db, actorId: string | null, hash: string, input: unknown, expectedProfileId: unknown): Promise<EngagementResult> {
   if (!actorId) return failed("Sign in to continue.");
   const parsed = acceptInput.safeParse(input);
-  if (!parsed.success || !tokenInput.safeParse(hash).success) return failed("Confirm consent and profile association, and check the profile fields.");
-  const f = parsed.data, gate = liveInvite(hash, actorId), acceptanceId = crypto.randomUUID();
+  const expectation = profileExpectationInput.safeParse(expectedProfileId);
+  if (!parsed.success || !expectation.success || !tokenInput.safeParse(hash).success) return failed("Confirm consent and profile association, and check the profile fields.");
+  const f = parsed.data;
+  if (expectation.data === null ? !f.displayName || !f.kind || !f.city
+    : ["displayName", "kind", "city", "registrationNo"].some(key => key in f)) return failed();
+  const gate = liveInvite(hash, actorId), acceptanceId = crypto.randomUUID();
+  // For expected absence, only this batch's freshly generated profile ID may
+  // consent. A pre-existing/racing profile can never be silently substituted.
+  const profileId = expectation.data ?? crypto.randomUUID();
   const eligible = `EXISTS(SELECT 1 FROM engagement WHERE ${gate.text})`;
   try {
     const results = await db.$client.batch([
       // All predicates are rechecked inside the batch. A losing client creates no profile.
       db.$client.prepare(`INSERT INTO client_profile(id,user_id,display_name,kind,city,registration_no)
-        SELECT ?,?,?,?,?,? WHERE ${eligible} AND ? IS NOT NULL AND ? IS NOT NULL
+        SELECT ?,?,?,?,?,? WHERE ${eligible} AND ? IS NULL AND ? IS NOT NULL AND ? IS NOT NULL AND ? IS NOT NULL
         AND NOT EXISTS(SELECT 1 FROM client_profile WHERE user_id=?)`)
-        .bind(crypto.randomUUID(), actorId, f.displayName ?? null, f.kind ?? null, f.city ?? null, f.registrationNo ?? null,
-          ...gate.args, f.displayName ?? null, f.kind ?? null, actorId),
+        .bind(profileId, actorId, f.displayName ?? null, f.kind ?? null, f.city ?? null, f.registrationNo ?? null,
+          ...gate.args, expectation.data, f.displayName ?? null, f.kind ?? null, f.city ?? null, actorId),
       db.$client.prepare(`INSERT INTO policy_acceptance(id,user_id,policy,version)
-        SELECT ?,?,'client_consent',? WHERE ${eligible} AND EXISTS(SELECT 1 FROM client_profile WHERE user_id=?)`)
-        .bind(acceptanceId, actorId, POLICY_VERSIONS.client_consent, ...gate.args, actorId),
+        SELECT ?,?,'client_consent',? WHERE ${eligible} AND EXISTS(SELECT 1 FROM client_profile WHERE user_id=? AND id=?)`)
+        .bind(acceptanceId, actorId, POLICY_VERSIONS.client_consent, ...gate.args, actorId, profileId),
       // Always attempt the receipt for a known hash. If time advances beyond
       // expiry between statements, a skipped policy insert must ABORT rather
       // than commit the earlier profile insert. Validation rejects missing,

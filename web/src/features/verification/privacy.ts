@@ -13,13 +13,35 @@ const encodedImage = /(?:iVBORw0KGgo|\/9j\/|R0lGOD|UklGR|JVBERi0)|\b[a-f\d]{64}\
 // labels on each normalized/decoded inspection round, before exempting dates
 // or amounts; punctuation and Unicode whitespace may separate their words.
 const governmentNumberMarker = String.raw`(?:[\s\p{P}]+(?:numbers?|nos?|identification|identity|identifiers?|ids?)|[\s\p{P}]*#)`;
+// MID/member markers require a housing-fund label, not a bare project MID.
+const housingFundLabel = String.raw`(?:pag[\s\p{P}]*ibig(?:[\s\p{P}]+fund)?|home[\s\p{P}]+development[\s\p{P}]+mutual[\s\p{P}]+fund|h[\s\p{P}]*d[\s\p{P}]*m[\s\p{P}]*f)`;
+const membershipNumberMarker = String.raw`[\s\p{P}]+(?:m[\s\p{P}]*i[\s\p{P}]*d|member(?:ship)?(?:${governmentNumberMarker}|[\s\p{P}]+i[\s\p{P}]*d))`;
 const fullGovernmentIdLabel = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:` + [
   String.raw`social[\s\p{P}]+security(?:[\s\p{P}]+(?:system|account))?${governmentNumberMarker}`,
   String.raw`tax(?:[\s\p{P}]*payer)?[\s\p{P}]+(?:identification|identity|identifier|id)`,
-  String.raw`(?:pag[\s\p{P}]*ibig|home[\s\p{P}]+development[\s\p{P}]+mutual[\s\p{P}]+fund)${governmentNumberMarker}`,
+  String.raw`${housingFundLabel}(?:${governmentNumberMarker}|${membershipNumberMarker})`,
   String.raw`(?:government|national)[\s\p{P}]+(?:identification|identity|identifier|id)`,
   String.raw`(?:philippine[\s\p{P}]+(?:identification|identity)(?:[\s\p{P}]+system)?|government[\s\p{P}]+service[\s\p{P}]+insurance[\s\p{P}]+system|philippine[\s\p{P}]+health[\s\p{P}]+insurance(?:[\s\p{P}]+corporation)?|philsys[\s\p{P}]+card)${governmentNumberMarker}`,
 ].join("|") + String.raw`)(?![\p{L}\p{N}])`, "iu");
+
+// A labelled complete number is sensitive even when its digit count also fits
+// an ordinary project ID. URL labels may compose a known government alias or
+// full agency name with account/member/identity/number terms. Only these terms
+// extend the label: unrelated project words must not supply number context.
+const urlGovernmentAlias = String.raw`(?<![\p{L}\p{N}])(?:` + [
+  String.raw`t[\s\p{P}]*i[\s\p{P}]*n|s[\s\p{P}]*s[\s\p{P}]*s|s[\s\p{P}]*s[\s\p{P}]*n|g[\s\p{P}]*s[\s\p{P}]*i[\s\p{P}]*s`,
+  String.raw`phil[\s\p{P}]*health|psn|pcn|phil[\s\p{P}]*sys|e?[\s\p{P}]*phil[\s\p{P}]*id|passport|licen[cs]e|id[\s\p{P}]+(?:number|no)`,
+  housingFundLabel,
+  String.raw`social[\s\p{P}]+security(?:[\s\p{P}]+system)?`,
+  String.raw`government[\s\p{P}]+service[\s\p{P}]+insurance[\s\p{P}]+system`,
+  String.raw`philippine[\s\p{P}]+health[\s\p{P}]+insurance(?:[\s\p{P}]+corporation)?`,
+  String.raw`philippine[\s\p{P}]+(?:identification|identity)(?:[\s\p{P}]+system)?`,
+].join("|") + String.raw`)(?![\p{L}\p{N}])`;
+const urlGovernmentNumberSuffix = String.raw`(?:[\s\p{P}\p{S}\p{M}]+(?:numbers?|nos?|identification|identity|identifiers?|ids?|accounts?|members?(?:ship)?|cards?|m[\s\p{P}]*i[\s\p{P}]*d))*`;
+const labelledUrlNumber = new RegExp(
+  String.raw`(?:${fullGovernmentIdLabel.source}|${urlGovernmentAlias})${urlGovernmentNumberSuffix}[\s\p{P}\p{S}\p{M}]+(?:${numberSequence.source}|${fullIdToken.source})`,
+  "iu",
+);
 
 function inspectVerificationText(value: string, rejectReviewLinks: boolean, hasNumber = (text: string) => numberSequence.test(text)): boolean {
   let inspected = value;
@@ -69,13 +91,29 @@ export function hasNoVerificationUrlPayload(value: string): boolean {
   if (!inspectVerificationText(value, false, () => false)) return false;
   try {
     const url = new URL(value);
-    return [url.hostname, url.pathname, url.hash.slice(1), ...Array.from(url.searchParams).flat()]
+    // URL.hostname converts Unicode domains to ASCII punycode, hiding Nd digits.
+    // Also inspect the original host, using URL's input trimming/control removal
+    // and special-scheme authority boundaries before any percent/NFKC decoding.
+    const source = value.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, "").replace(/[\t\n\r]/g, "");
+    const afterScheme = source.slice(source.indexOf(":") + 1);
+    const authority = /^(?:https?|ftp|wss?):$/.test(url.protocol)
+      ? afterScheme.replace(/^[\\/]+/, "").split(/[\\/?#]/, 1)[0]
+      : afterScheme.match(/^\/\/([^/?#]*)/)?.[1] ?? "";
+    const host = authority.slice(authority.lastIndexOf("@") + 1);
+    const originalHostname = host.startsWith("[") ? host.slice(0, host.indexOf("]") + 1) : host.split(":", 1)[0];
+    const pairs = Array.from(url.searchParams);
+    const safeComponents = [originalHostname, url.hostname, url.pathname, url.hash.slice(1), ...pairs.flat()]
       .every(part => inspectVerificationText(part, false, (text) => {
         // Hex digits spelling an escape are not part of a number. Inspect the
         // decoded characters in the next round, within the same fixed budget.
         const decodedCopy = text.replace(/%[a-f\d]{2}/gi, "_");
-        return fullNumberSequence.test(decodedCopy) || fullIdToken.test(decodedCopy);
+        return labelledUrlNumber.test(decodedCopy) || fullNumberSequence.test(decodedCopy) || fullIdToken.test(decodedCopy);
       }));
+    // Only a key and its own value share label context. Ordinary number checks
+    // stay component-local so independent numeric keys/values cannot join into
+    // a false full ID. Never join all query parameters into one inspection copy.
+    return safeComponents && pairs.every(([key, content]) => inspectVerificationText(`${key}=${content}`, false,
+      text => labelledUrlNumber.test(text.replace(/%[a-f\d]{2}/gi, "_"))));
   } catch { return false; }
 }
 

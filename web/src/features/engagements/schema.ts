@@ -9,6 +9,9 @@ export const INVITE_RETURN_PATH = "/invite/continue";
 export const INVITE_CONTINUATION_SECONDS = 15 * 60;
 export const tokenInput = z.string().regex(/^[a-f0-9]{64}$/);
 export const idInput = z.string().min(1).max(100).regex(/^[a-zA-Z0-9_-]+$/);
+// Explicit null means the rendered form presented profile creation. Undefined
+// must fail closed; this expectation never replaces live actor/capability checks.
+export const profileExpectationInput = idInput.nullable();
 const safeText = (max: number) => z.string().trim().min(1).max(max)
   .refine(v => !/[\u0000-\u001f\u007f]/.test(v)).refine(hasNoVerificationPayload);
 const optionalText = (max: number) => z.preprocess(v => v === "" ? undefined : v, safeText(max).optional());
@@ -26,7 +29,8 @@ export const createInput = z.strictObject({ title: safeText(160), clientNameHint
 export const acceptInput = z.strictObject({
   consent: z.literal("on"), associate: z.literal("on"),
   displayName: optionalText(160), kind: z.enum(["individual", "business"]).optional(),
-  city: optionalText(160), registrationNo: z.preprocess(v => v === "" ? undefined : v, registration.optional()),
+  // Absent only for existing-profile association; creation requires city in the handler.
+  city: safeText(160).optional(), registrationNo: z.preprocess(v => v === "" ? undefined : v, registration.optional()),
 });
 export type AcceptInput = z.infer<typeof acceptInput>;
 export type EngagementResult<T extends object = object> = ({ ok: true } & T) | { ok: false; message: string };

@@ -163,7 +163,23 @@ export async function removeDraftProof(db: Db, proofs: R2Bucket, actorId: string
   const row = await trackedProof(db, proofId);
   if (!row || row.uploaded_by !== actorId || await ownedDraft(db, actorId, row.log_id) !== "editable") return failure("not_found");
   try {
-    await abandonUpload(db, proofs, proofId);
+    const gate = editableDraftGate(actorId);
+    // Explicit removal is one authorized user action. Touch BEFORE pending_purge
+    // freezes parent edits; either zero-row write must roll back the whole batch.
+    await db.$client.batch([
+      db.$client.prepare(`UPDATE engagement_log SET draft_updated_at=${intakeNow} WHERE id=? AND ${gate.text}`)
+        .bind(row.log_id, ...gate.args),
+      assertChanged(db),
+      db.$client.prepare(`UPDATE proof_file SET status='pending_purge' WHERE id=? AND log_id=? AND uploaded_by=?
+        AND owner_kind='filer' AND revision_id IS NULL AND status=? AND status IN ('uploading','abandoned','purged')
+        AND EXISTS(SELECT 1 FROM engagement_log WHERE id=proof_file.log_id AND ${gate.text})`)
+        .bind(proofId, row.log_id, actorId, row.status, ...gate.args),
+      assertChanged(db),
+    ]);
+    // The committed claim linearizes authorization. Later actor revocation cannot
+    // cancel an authorized R2 delete; internal retries remain actor-independent
+    // and never touch activity. Exclusive purge ownership still protects bytes.
+    await purgeClaimedProof(db, proofs, proofId);
     const current = await trackedProof(db, proofId);
     return current?.status === "purged" ? { ok: true, data: {} } : failure("unavailable");
   } catch { return failure("unavailable"); }
