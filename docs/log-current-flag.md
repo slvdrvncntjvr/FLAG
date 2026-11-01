@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.8
+doc_version: 0.9
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -233,3 +233,24 @@ reports zero production advisories and 15 moderate development-package entries,
 with no high/critical findings. The final packaged/browser and hosted CI gates
 still precede integration; INDEX owns their current outcome. No remote migration,
 intake enablement, production promotion or human acceptance is claimed here.
+
+## 12. Dev integration and hosted verification, 2026-11-01
+
+[PR24](https://github.com/slvdrvncntjvr/FLAG/pull/24) merged as `cde6943` after
+the owner's go-ahead and green required checks in
+[run 41314347205](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41314347205).
+The first full browser attempt exposed a missed private-intake setup fixture:
+native validation blocked its new profile because city was absent. Commit
+`e20d450` supplies city without weakening assertions. The final full Windows
+browser command passes 18/18, exits 0, verifies teardown/free port and removes
+owned data; the failed attempt retains its evidence. INDEX owns the final matrix.
+
+The normal dev Workers Build deployed the baseline. Read-only settings checks
+confirm the expected bindings, disabled intake, invocation logging and platform
+log/trace persistence off, tracing off and no Tail consumers/Logpush. Nine
+read-only page checks and anonymous proof denial pass. The HTTP session endpoint
+was deliberately not probed because its limiter writes counters. Dev's migration
+ledger remains 0000-0008; no remote migration or retained-log inspection/deletion
+occurred. Production remains unchanged and unpromoted; its readiness work is in
+INDEX and OPS, not implied by green local tests. No new human acceptance,
+reconciliation date, checkpoint or history restoration is claimed.
