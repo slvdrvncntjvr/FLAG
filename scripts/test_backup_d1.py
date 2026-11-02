@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 
@@ -37,10 +38,15 @@ class BackupD1Tests(unittest.TestCase):
         self.assertNotIn("SYNTHETIC SQL", result.stdout + result.stderr)
         return result
 
+    def test_failure_stage_is_fixed_and_does_not_echo_account_override(self):
+        result = self.assert_refused("-Target", "dev", extra_env={
+            "CF_ACCOUNT_ID": "MUST_NOT_LEAK-conflicting-account",
+        })
+        self.assertIn("FLAG_BACKUP_FAILED stage=account_override", result.stderr)
+
     def test_actual_dpapi_and_failure_cleanup(self):
         before = set((ROOT / "temporary").glob("backup-selftest-*"))
-        # A real remote attempt would lack credentials and also fail if invoked;
-        # SelfTest uses neither the installed Wrangler nor any developer data.
+        # SelfTest uses synthetic Node producers, not installed Wrangler or data.
         result = self.run_script("-Mode", "SelfTest", extra_env={
             "CLOUDFLARE_API_TOKEN": "MUST_NOT_LEAK-synthetic-no-network-token",
         })
@@ -48,8 +54,15 @@ class BackupD1Tests(unittest.TestCase):
         rows = json.loads(result.stdout)
         self.assertEqual({row["Case"] for row in rows}, {
             "success", "export", "empty", "write", "verify", "overwrite", "race", "cleanup",
+            "native_stderr", "native_failure", "native_empty_env", "native_arguments",
         })
         self.assertTrue(all(row["Passed"] and row["PlaintextCleaned"] for row in rows))
+        stages = {row["Case"]: row.get("FailureStage") for row in rows}
+        self.assertEqual(stages["native_failure"], "export_native")
+        self.assertEqual(stages["cleanup"], "cleanup")
+        self.assertEqual(stages["verify"], "verify_artifact")
+        self.assertIsNone(stages["native_stderr"])
+        self.assertIsNone(stages["native_empty_env"])
         self.assertEqual(set((ROOT / "temporary").glob("backup-selftest-*")), before)
         self.assertNotIn("MUST_NOT_LEAK", result.stdout + result.stderr)
 
@@ -67,10 +80,46 @@ class BackupD1Tests(unittest.TestCase):
                 self.assertEqual(plan["Account"], "1af65da586efd62d6f6d429240395f28")
                 self.assertEqual(plan["Database"], database)
                 self.assertEqual(plan["DatabaseId"], database_id)
-                self.assertIn("npx.cmd --no-install wrangler d1 export " + database, plan["Command"])
+                self.assertIn('node.exe "' + str(ROOT / "web/node_modules/wrangler/bin/wrangler.js") + '" d1 export ' + database, plan["Command"])
                 self.assertIn(env_flag, plan["Command"])
                 self.assertIn("--remote", plan["Command"])
+                self.assertIn("--skip-confirmation", plan["Command"])
+                self.assertNotIn("--yes", plan["Command"])
                 self.assertTrue(plan["Output"].endswith(".sql.dpapi"))
+
+    def test_installed_export_parser_accepts_confirmation_flag_without_remote(self):
+        # The local handler rejects the absent synthetic binding before opening
+        # any local DB. Never pass --remote, project config or real target names.
+        node = shutil.which("node.exe")
+        entry = ROOT / "web/node_modules/wrangler/bin/wrangler.js"
+        self.assertTrue(node and entry.is_file(), "Installed Node/Wrangler required")
+        env = os.environ.copy()
+        env.update({
+            "WRANGLER_SEND_METRICS": "false", "WRANGLER_WRITE_LOGS": "false",
+            "WRANGLER_LOG": "error", "WRANGLER_LOG_SANITIZE": "true",
+            "CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV": "false",
+            "CLOUDFLARE_API_TOKEN": "MUST_NOT_LEAK-synthetic-no-network-token",
+            "CI": "true",
+        })
+        with tempfile.TemporaryDirectory(prefix="flag-backup-parser-") as directory:
+            scratch = Path(directory)
+            config = scratch / "wrangler.json"
+            config.write_text(json.dumps({"name": "synthetic-parser", "d1_databases": []}))
+            output = scratch / "never-created.sql"
+            for flag, expected in [
+                ("--yes", "Unknown argument: yes"),
+                ("--skip-confirmation", "Couldn't find a D1 DB"),
+            ]:
+                with self.subTest(flag=flag):
+                    result = subprocess.run([
+                        node, str(entry), "d1", "export", "synthetic-missing-binding", "--local",
+                        "--config", str(config), "--cwd", directory, "--output", str(output), flag,
+                    ], cwd=directory, env=env, capture_output=True, text=True, timeout=30)
+                    self.assertNotEqual(result.returncode, 0)
+                    diagnostic = result.stdout + result.stderr
+                    self.assertTrue(expected in diagnostic, "Unexpected synthetic parser outcome")
+                    self.assertNotIn("MUST_NOT_LEAK", diagnostic)
+                    self.assertFalse(output.exists())
 
     def test_no_implicit_target_or_execution_approval(self):
         for arguments in [

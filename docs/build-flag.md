@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.42
+doc_version: 2.43
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -160,9 +160,12 @@ Production execution additionally requires later owner release approval and
 These switches attest to approval and prerequisite review; the script cannot
 establish either. Preparing or reviewing the command grants no release approval.
 
-The helper invokes installed Wrangler via `npx.cmd --no-install` in offline npm
-mode, with an isolated configuration for the validated target and explicit remote
-export/environment flags. No packages are installed or upgraded. It encrypts the
+The helper invokes the installed Node executable and the absolute project-local
+Wrangler entrypoint directly, with an isolated configuration for the validated
+target and explicit remote export/environment flags. Redirected native streams
+are drained without displaying their content and the actual process exit code
+is checked; native stderr cannot become a PowerShell terminating error before
+the result is assessed. No packages are installed or upgraded. It encrypts the
 SQL bytes with Windows DPAPI CurrentUser (no optional entropy) into a new unique
 `.sql.dpapi` in existing `C:/Users/Vincent/FLAG-backups`; optional `-OutputName`
 accepts only a new filename there. Existing output is never replaced. SQL and

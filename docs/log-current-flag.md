@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.14
+doc_version: 0.15
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -395,3 +395,24 @@ SDD 2.39 makes exact provider credential ownership and physical expires_at clean
 explicit. Separate Orca workers own these repairs; passing final integration,
 actual dev backup/migration, merge and deployment remain evidence to establish,
 not consequences of this authorization. INDEX owns their eventual delivery state.
+
+## 18. Pilot candidate verification and backup repair, 2026-11-02
+
+The independent repair rereview cleared exact OTP lifecycle ownership, effective
+assessed read deadlines and private denial headers in the inspected stable
+source. Whole-candidate Workers and both full browser environments pass; INDEX
+owns the counts and dated candidate CI link. The Windows suite used its explicit
+bounded local allowance, while hosted Linux passed the unchanged default.
+The earlier stale-copy/timeout and Linux packaged-startup failures remain failed
+evidence, superseded by their complete successful runs rather than suppressed.
+
+The real dev backup attempts exposed two defects in its helper: Windows
+PowerShell can terminate on redirected native stderr despite a successful exit,
+and installed Wrangler export accepts skip-confirmation rather than yes. Direct
+installed Node invocation with drained private streams and exact exit handling,
+the supported flag, synthetic argument/stream/failure tests and local CLI parsing
+repair those defects. The 14:30 UTC dev export produced a new encrypted artifact
+in the established owner backup directory, verified by in-memory DPAPI decrypt,
+byte length and SHA-256; plaintext cleanup passed. No artifact from either failed
+attempt is described as verified. The coordinator has not yet applied dev
+migrations or merged at this checkpoint; main and real intake remain excluded.

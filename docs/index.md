@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.96
+doc_version: 0.97
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -28,12 +28,12 @@ verification and OPS for operations. The active decision log is
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
-| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.42 | Review | 2026-11-02 | 2026-10-13 |
+| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.43 | Review | 2026-11-02 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.39 | Review | 2026-11-02 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.53 | Review | 2026-11-02 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.44 | Review | 2026-11-02 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.14 | Draft | 2026-11-02 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.15 | Draft | 2026-11-02 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -148,8 +148,8 @@ received 2026-11-02 is stated below.
 | Manual freelancer verification and moderator review | Implemented; approve/reject, corrected new requests, immutable submitted profile history | Available |
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
-| Log moderation/publication, client search/records and aggregate ratings | Implemented on the pilot feature branch; independent source reviews completed, final integration pending | Unavailable |
-| Full retention, assessed account closure/export, private corrections and filer updates | Implemented on the pilot feature branch; reviewed retention/recovery repairs pass focused tests, final integration pending | Unavailable |
+| Log moderation/publication, client search/records and aggregate ratings | Implemented on the pilot feature branch; bounded source reviews and final application/browser checks pass; PR26 integration pending | Unavailable |
+| Full retention, assessed account closure/export, private corrections and filer updates | Implemented on the pilot feature branch; reviewed repairs and application/browser checks pass; verified dev backup/migrations precede PR26 merge | Unavailable |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
@@ -258,8 +258,22 @@ eight defects across writer ownership, retention deadlines and claim recovery;
 the repairs were independently reread and exercised by focused tests. Further
 dev-merge review found exact typed-OTP cleanup, assessed read-deadline and
 proof-denial-header gaps. The repairs pass their focused runtime sets and bounded
-independent source rereview; whole-candidate validation still precedes integration. The full
-regression and actual browser gates remain pending. Preserve ordinary freeze
+independent source rereview. The final local Workers suite passes 1,273 tests in
+48 files; all 22 desktop/mobile browser scenarios pass with verified teardown,
+free port and successful-run data removed. The local Windows browser run uses
+the documented explicit 30-minute suite allowance; hosted Linux passes its
+unchanged default. Candidate ef890aa passes both required checks in
+[PR26 run 41456648042](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41456648042),
+including the packaged scheduled handler, 19-route smoke and no-upload packaging.
+Typecheck/lint, tooling/setup/Python checks and production audit pass; the full
+dependency graph retains 15 moderate development findings, no high/critical.
+The first encrypted dev backup attempts failed without verified artifacts.
+Native process handling and the installed export confirmation flag are repaired;
+the 2026-11-02 14:30 UTC dev backup passes decrypt/length/SHA-256 verification
+with plaintext cleanup confirmed. Ten Python tests pass, including synthetic
+native-stream, argument and actual local CLI-parser cases. Remote migration and
+merge still follow current candidate checks and the reviewed OPS sequence.
+Later candidate changes require their current checks. Preserve ordinary freeze
 guards and add only the scoped
 maintenance path. This is work in progress, not a completed release,
 remote physical-erasure evidence, dev migration/deployment or full acceptance.

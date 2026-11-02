@@ -18,6 +18,42 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $ownerBackupDirectory = 'C:\Users\Vincent\FLAG-backups'
+$script:backupStage = 'preflight'
+$script:backupFailureStage = $null
+
+function Invoke-QuietNode {
+    param([string[]]$Arguments, [string]$WorkingDirectory, [switch]$CaptureOutput)
+    # Windows PowerShell promotes native stderr to terminating errors under
+    # ErrorActionPreference=Stop, even with *> $null and a successful exit.
+    # Start Node directly (no cmd/npx/package resolution); drain both pipes
+    # concurrently without retaining export diagnostics in strings or on disk.
+    $start = New-Object Diagnostics.ProcessStartInfo
+    $start.FileName = (Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+    $start.WorkingDirectory = $WorkingDirectory
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    # ProcessStartInfo.ArgumentList is unavailable in Windows PowerShell 5.1.
+    # Quote each argument using the Windows argv backslash/quote rules.
+    $start.Arguments = (@($Arguments | ForEach-Object {
+        $escaped = [regex]::Replace($_, '(\\*)"', '$1$1\"')
+        '"' + [regex]::Replace($escaped, '(\\+)$', '$1$1') + '"'
+    }) -join ' ')
+    $process = New-Object Diagnostics.Process
+    $process.StartInfo = $start
+    try {
+        $null = $process.Start()
+        $stderr = $process.StandardError.BaseStream.CopyToAsync([IO.Stream]::Null)
+        $stdout = if ($CaptureOutput) { $process.StandardOutput.ReadToEndAsync() }
+            else { $process.StandardOutput.BaseStream.CopyToAsync([IO.Stream]::Null) }
+        $process.WaitForExit()
+        $null = $stderr.GetAwaiter().GetResult()
+        if ($CaptureOutput) { $output = $stdout.GetAwaiter().GetResult() }
+        else { $null = $stdout.GetAwaiter().GetResult(); $output = $null }
+        [pscustomobject]@{ ExitCode = $process.ExitCode; Output = $output }
+    } finally { $process.Dispose() }
+}
 
 function Clear-Bytes([byte[]]$Bytes) {
     if ($null -ne $Bytes) { [Array]::Clear($Bytes, 0, $Bytes.Length) }
@@ -82,12 +118,24 @@ try {
 '@
     # CommonJS -e supports dynamic import but not top-level await.
     $code = '(async () => {' + $code + '})()'
-    Push-Location $web
-    try {
-        $raw = & node.exe -e $code $Target 2>$null
-        if ($LASTEXITCODE -ne 0) { throw 'Approved target validation failed.' }
-        return ($raw | ConvertFrom-Json)
-    } finally { Pop-Location }
+    $native = Invoke-QuietNode -Arguments @('-e', $code, $Target) -WorkingDirectory $web -CaptureOutput
+    if ($native.ExitCode -ne 0) { throw 'Approved target validation failed.' }
+    return ($native.Output | ConvertFrom-Json)
+}
+
+function Invoke-D1Export {
+    param([string]$Sql, [string]$Scratch, $Approved, [string]$Environment, [string]$EntryPoint)
+    $script:backupStage = 'export_config'
+    $db = @{ binding = 'DB'; database_name = $Approved.database; database_id = $Approved.databaseId }
+    $config = @{ account_id = $Approved.account; name = $Approved.worker; d1_databases = @($db) }
+    if ($Environment -eq 'dev') { $config.env = @{ dev = @{ name = $Approved.worker; d1_databases = @($db) } } }
+    $configPath = Join-Path $Scratch 'wrangler.json'
+    [IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 6))
+    $envArgument = if ($Environment -eq 'dev') { '--env=dev' } else { '--env=' }
+    $script:backupStage = 'export_native'
+    $native = Invoke-QuietNode -Arguments @($EntryPoint, 'd1', 'export', $Approved.database,
+        '--remote', $envArgument, '--config', $configPath, '--cwd', $Scratch, '--output', $Sql, '--skip-confirmation') -WorkingDirectory $Scratch
+    if ($native.ExitCode -ne 0) { throw 'Remote export failed.' }
 }
 
 function Invoke-EncryptedBackup {
@@ -98,16 +146,23 @@ function Invoke-EncryptedBackup {
     $created = $false
     $verified = $false
     $cleanupOk = $false
+    $script:backupFailureStage = $null
     try {
         # CreateNew below also closes the race after this preflight.
+        $script:backupStage = 'output_preflight'
         if (Test-Path -LiteralPath $Destination) { throw 'Backup output already exists.' }
+        $script:backupStage = 'private_scratch'
         $scratch = New-PrivateScratch
         $sql = Join-Path $scratch 'export.sql'
+        $script:backupStage = 'export'
         & $Producer $sql $scratch
+        $script:backupStage = 'read_export'
         $plain = [IO.File]::ReadAllBytes($sql)
         if ($plain.Length -eq 0) { throw 'Empty export refused.' }
+        $script:backupStage = 'encrypt'
         $cipher = [Security.Cryptography.ProtectedData]::Protect(
             $plain, $null, [Security.Cryptography.DataProtectionScope]::CurrentUser)
+        $script:backupStage = 'write_artifact'
         $stream = [IO.File]::Open($Destination, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
         $created = $true
         try {
@@ -118,6 +173,7 @@ function Invoke-EncryptedBackup {
             $stream.Write($cipher, 0, $cipher.Length)
             $stream.Flush($true)
         } finally { $stream.Dispose() }
+        $script:backupStage = 'verify_artifact'
         $stored = [IO.File]::ReadAllBytes($Destination)
         if ($FailurePoint -eq 'verify') { $stored[0] = $stored[0] -bxor 255 }
         $decoded = [Security.Cryptography.ProtectedData]::Unprotect(
@@ -131,6 +187,7 @@ function Invoke-EncryptedBackup {
         }
         $verified = $true
     } catch {
+        $script:backupFailureStage = $script:backupStage
         # Neither native stderr nor the caught exception can expose SQL/credentials.
         throw 'D1 backup failed; no verified backup was produced. Sensitive diagnostics suppressed.'
     } finally {
@@ -140,9 +197,11 @@ function Invoke-EncryptedBackup {
             if ($null -ne $scratch) { Remove-Scratch $scratch }
             $cleanupOk = $true
         } catch {
+            $script:backupFailureStage = 'cleanup'
             throw 'D1 backup plaintext cleanup failed; verified backup withheld.'
         } finally {
             if ($created -and (-not $verified -or -not $cleanupOk)) {
+                $script:backupStage = 'remove_failed_artifact'
                 Remove-Item -LiteralPath $Destination -Force
             }
         }
@@ -151,12 +210,13 @@ function Invoke-EncryptedBackup {
 }
 
 function Invoke-SyntheticTests {
-    # Only test artifacts (never developer files or backups); no Wrangler/node/network.
+    # Only test artifacts (never developer files or backups); fake native export
+    # uses Node with synthetic source only, never installed Wrangler or network.
     $testRoot = Join-Path $repoRoot ('temporary\backup-selftest-' + [Guid]::NewGuid().ToString('N'))
     $null = [IO.Directory]::CreateDirectory($testRoot)
     $results = @()
     try {
-        foreach ($case in @('success', 'export', 'empty', 'write', 'verify', 'overwrite', 'race', 'cleanup')) {
+        foreach ($case in @('success', 'export', 'empty', 'write', 'verify', 'overwrite', 'race', 'cleanup', 'native_stderr', 'native_failure', 'native_empty_env')) {
             $state = @{ Scratch = $null; Plain = $null; ProducerCalled = $false; Lock = $null }
             $output = Join-Path $testRoot ($case + '.sql.dpapi')
             if ($case -eq 'overwrite') { [IO.File]::WriteAllText($output, 'existing-synthetic-marker') }
@@ -168,6 +228,35 @@ function Invoke-SyntheticTests {
                 $fixture = [byte[]](0, 45, 45, 32, 83, 89, 78, 84, 72, 69, 84, 73, 67, 255, 10)
                 try {
                     $state.Plain = $sql
+                    if ($case -in @('native_stderr', 'native_failure', 'native_empty_env')) {
+                        $fake = Join-Path $scratch 'fake wrangler.js'
+                        $source = @'
+const fs = require('node:fs');
+const a = process.argv.slice(2);
+function need(ok) { if (!ok) process.exit(91); }
+need(a.length === 12 && a[0] === 'd1' && a[1] === 'export');
+need(a[2] === 'synthetic db "quoted" \\' && a[3] === '--remote');
+need(a[4] === '--env=dev' && a[5] === '--config' && a[7] === '--cwd');
+need(a[9] === '--output' && a[11] === '--skip-confirmation');
+const c = JSON.parse(fs.readFileSync(a[6], 'utf8'));
+need(c.account_id === 'synthetic-account' && c.env.dev.d1_databases[0].database_name === a[2]);
+need(process.cwd() === a[8]);
+process.stdout.write('MUST_NOT_LEAK-synthetic-output\n'.repeat(8192));
+process.stderr.write('MUST_NOT_LEAK-synthetic-stderr\n'.repeat(8192));
+fs.writeFileSync(a[10], Buffer.from([0, 45, 255, 10]));
+'@
+                        if ($case -eq 'native_failure') { $source += "`nprocess.exitCode = 23;" }
+                        if ($case -eq 'native_empty_env') {
+                            $source = $source.Replace("a[4] === '--env=dev'", "a[4] === '--env='")
+                            $source = $source.Replace('c.env.dev.d1_databases[0]', 'c.d1_databases[0]')
+                        }
+                        [IO.File]::WriteAllText($fake, $source)
+                        $synthetic = [pscustomobject]@{ account = 'synthetic-account'; worker = 'synthetic-worker';
+                            database = 'synthetic db "quoted" \'; databaseId = 'synthetic-database-id' }
+                        $syntheticEnvironment = if ($case -eq 'native_empty_env') { 'production' } else { 'dev' }
+                        Invoke-D1Export $sql $scratch $synthetic $syntheticEnvironment $fake
+                        return
+                    }
                     if ($case -eq 'empty') { [IO.File]::WriteAllBytes($sql, [byte[]]@()) }
                     else { [IO.File]::WriteAllBytes($sql, $fixture) }
                     if ($case -eq 'race') { [IO.File]::WriteAllText($output, 'existing-synthetic-marker') }
@@ -197,7 +286,7 @@ function Invoke-SyntheticTests {
                 }
             }
             $clean = ($null -eq $state.Scratch -or -not (Test-Path -LiteralPath $state.Scratch))
-            $expectedFailure = $case -ne 'success'
+            $expectedFailure = $case -notin @('success', 'native_stderr', 'native_empty_env')
             $outputOk = if ($case -in @('overwrite', 'race')) {
                 [IO.File]::ReadAllText($output) -ceq 'existing-synthetic-marker'
             } else { (Test-Path -LiteralPath $output) -eq (-not $expectedFailure) }
@@ -206,8 +295,13 @@ function Invoke-SyntheticTests {
                 [Console]::Error.WriteLine('Synthetic case ' + $case + ': cleanup=' + $clean + ', output=' + $outputOk + ', failure=' + $failed)
                 throw 'Synthetic cleanup/overwrite assertion failed.'
             }
-            $results += [pscustomobject]@{ Case = $case; Passed = $true; PlaintextCleaned = $clean }
+            $results += [pscustomobject]@{ Case = $case; Passed = $true; PlaintextCleaned = $clean; FailureStage = $script:backupFailureStage }
         }
+        # Empty args, whitespace, shell metacharacters, literal quotes and
+        # trailing backslashes must reach Node unchanged without a shell.
+        $native = Invoke-QuietNode -Arguments @('-e', 'process.exit(process.argv[1] === "" && process.argv[2] === "a & b" && process.argv[3] === "quote\"tail\\" ? 0 : 92)', '', 'a & b', 'quote"tail\') -WorkingDirectory $repoRoot
+        if ($native.ExitCode -ne 0) { throw 'Synthetic native argument check failed.' }
+        $results += [pscustomobject]@{ Case = 'native_arguments'; Passed = $true; PlaintextCleaned = $true }
         # Check the actual wipe helper, not just its call sites.
         $wipe = [byte[]](1, 2, 255)
         Clear-Bytes $wipe
@@ -254,7 +348,9 @@ try {
             [Environment]::SetEnvironmentVariable($name, $settings[$name], 'Process')
         }
         try {
+            $script:backupStage = 'target_validation'
             $approved = Get-ApprovedTarget
+            $script:backupStage = 'account_override'
             foreach ($accountVariable in @('CLOUDFLARE_ACCOUNT_ID', 'CF_ACCOUNT_ID')) {
                 $accountOverride = [Environment]::GetEnvironmentVariable($accountVariable, 'Process')
                 if ($accountOverride -and $accountOverride -cne $approved.account) { throw 'Account environment override conflicts with the approved target.' }
@@ -263,24 +359,15 @@ try {
                 [pscustomobject]@{
                     Mode = 'Plan'; Target = $Target; Account = $approved.account
                     Database = $approved.database; DatabaseId = $approved.databaseId; Output = $destination
-                    Command = ('npx.cmd --no-install wrangler d1 export ' + $approved.database + ' --remote --env=' + $(if ($Target -eq 'dev') { 'dev' } else { '' }) + ' --config <isolated-OS-temp-config> --cwd <OS-temp-directory> --output <OS-temp-directory>\export.sql --yes')
+                    Command = ('node.exe "' + (Join-Path $repoRoot 'web/node_modules/wrangler/bin/wrangler.js') + '" d1 export ' + $approved.database + ' --remote --env=' + $(if ($Target -eq 'dev') { 'dev' } else { '' }) + ' --config <isolated-OS-temp-config> --cwd <OS-temp-directory> --output <OS-temp-directory>\export.sql --skip-confirmation')
                     Executed = $false
                 } | ConvertTo-Json -Compress
             } else {
+                $script:backupStage = 'backup_directory'
                 if (-not [IO.Directory]::Exists($ownerBackupDirectory)) { throw 'The established owner backup directory must already exist.' }
                 $producer = {
                     param($sql, $scratch)
-                    $db = @{ binding = 'DB'; database_name = $approved.database; database_id = $approved.databaseId }
-                    $config = @{ account_id = $approved.account; name = $approved.worker; d1_databases = @($db) }
-                    if ($Target -eq 'dev') { $config.env = @{ dev = @{ name = $approved.worker; d1_databases = @($db) } } }
-                    $configPath = Join-Path $scratch 'wrangler.json'
-                    [IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 6))
-                    $envArgument = if ($Target -eq 'dev') { '--env=dev' } else { '--env=' }
-                    Push-Location (Join-Path $repoRoot 'web')
-                    try {
-                        & npx.cmd --no-install wrangler d1 export $approved.database --remote $envArgument --config $configPath --cwd $scratch --output $sql --yes *> $null
-                        if ($LASTEXITCODE -ne 0) { throw 'Remote export failed.' }
-                    } finally { Pop-Location }
+                    Invoke-D1Export $sql $scratch $approved $Target (Join-Path $repoRoot 'web/node_modules/wrangler/bin/wrangler.js')
                 }.GetNewClosure()
                 $result = Invoke-EncryptedBackup $destination $producer
                 [pscustomobject]@{
@@ -295,9 +382,11 @@ try {
     }
 } catch {
     # Fixed messages above are safe; unexpected runtime/native exception content is never shown.
-    if ($Mode -eq 'SelfTest') {
-        [Console]::Error.WriteLine('Synthetic self-test failure at script line ' + $_.InvocationInfo.ScriptLineNumber + ' (' + $_.Exception.GetType().Name + ').')
-    }
+    $stage = if ($script:backupFailureStage) { $script:backupFailureStage } else { $script:backupStage }
+    if ($stage -notin @('preflight', 'target_validation', 'account_override', 'backup_directory',
+        'output_preflight', 'private_scratch', 'export', 'export_config', 'export_native', 'read_export',
+        'encrypt', 'write_artifact', 'verify_artifact', 'cleanup', 'remove_failed_artifact')) { $stage = 'preflight' }
+    [Console]::Error.WriteLine('FLAG_BACKUP_FAILED stage=' + $stage)
     [Console]::Error.WriteLine('FLAG D1 backup command failed. Check explicit target, approvals, installed tools, output, and cleanup permissions; diagnostics suppressed.')
     exit 1
 }
