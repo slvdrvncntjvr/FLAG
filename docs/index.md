@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.97
+doc_version: 0.98
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -33,7 +33,7 @@ verification and OPS for operations. The active decision log is
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.39 | Review | 2026-11-02 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.53 | Review | 2026-11-02 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.44 | Review | 2026-11-02 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.15 | Draft | 2026-11-02 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.16 | Draft | 2026-11-02 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -134,13 +134,12 @@ history and recorded changes. App correctness needs the checks in QAD. Human
 
 ## 6. Current development baseline
 
-This is the only current delivery-state map. The reviewed consolidation and audit
-repairs were integrated into dev through [PR24](https://github.com/slvdrvncntjvr/FLAG/pull/24)
-and the [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25) notice follow-up on
-2026-11-01. Hosted facts below are dated observations carried from the prior
-coordinator audit `run_f8e7c3f97f0b`, not fresh checks in this design task. That
-release record had no authenticated human acceptance; the narrower owner report
-received 2026-11-02 is stated below.
+This is the only current delivery-state map. The approved pilot merged into dev
+through [PR26](https://github.com/slvdrvncntjvr/FLAG/pull/26) as `f46be4c` on
+2026-11-02, following current-head CI, verified encrypted backup and ordered
+migrations. The earlier PR24/PR25 observations below remain dated baseline
+evidence. Local/hosted synthetic tests and read-only deployment checks do not
+broaden the limited owner acceptance report stated below.
 
 | Capability | Local source | Last recorded dev |
 |------------|--------------|-------------------|
@@ -148,13 +147,13 @@ received 2026-11-02 is stated below.
 | Manual freelancer verification and moderator review | Implemented; approve/reject, corrected new requests, immutable submitted profile history | Available |
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
-| Log moderation/publication, client search/records and aggregate ratings | Implemented on the pilot feature branch; bounded source reviews and final application/browser checks pass; PR26 integration pending | Unavailable |
-| Full retention, assessed account closure/export, private corrections and filer updates | Implemented on the pilot feature branch; reviewed repairs and application/browser checks pass; verified dev backup/migrations precede PR26 merge | Unavailable |
+| Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
+| Full retention, assessed account closure/export, private corrections and filer updates | Implemented and merged in PR26; bounded reviews and application/browser checks pass | Pilot Worker and hourly scheduled handler deployed; live synthetic physical-erasure acceptance pending |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR25 deployed baseline `4f216e9` (includes PR24 `cde6943`); prior audit observation 2026-11-01 | 0000-0008; 0009 in source, unapplied |
+| Dev: `flag-dev`, branch `dev` | PR26 merge `f46be4c`; version `b0eca03e-3be6-4c33-bf44-2fbe593c4877` at 100%, observed 2026-11-02 | 0000-0011 applied; foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -166,16 +165,16 @@ is not a completion signal. Existing authorized private log/proof reads remain
 available while new writes are disabled (`web/src/features/logs/rollout.ts:6`,
 `web/src/app/(app)/logs/[id]/page.tsx:13`).
 
-The deployed baseline privacy/terms versions are `2026-11-01`; the pilot feature
-branch prepares `2026-11-02` notices and current-policy database authority.
+Dev privacy/terms versions and current-policy database authority are
+`2026-11-02`; the earlier PR25 baseline used `2026-11-01`.
 Freelancer acknowledgment and
 engagement consent remain `2026-10-12` (`web/src/lib/policies.ts:8`). The notice
 alignment/reacceptance follow-up is delivered through [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25);
 the pilot release requires current privacy/terms acknowledgment under the existing
 PRD-F8 gate. Existing engagement-consent history is unchanged. Staff roles are assigned
-in D1; the documented release baseline has no admin screen. The prior audit
-observed the current notice versions and successful PR25 delivery; this task
-performs no new hosted verification. On 2026-11-02 the owner reports current dev
+in D1; the pilot adds assessed admin privacy tools without conferring proof
+access on a bare admin. The prior audit observed successful PR25 delivery.
+On 2026-11-02 the owner reports current dev
 signup, verification and moderation working, without naming further scenarios.
 This is limited owner-reported acceptance, not acceptance of log publication,
 lifecycle, corrections, records, ratings or production readiness.
@@ -229,17 +228,17 @@ from the accepted PR24 baseline. SPINE normal
 validation passes with its deferred-RFC warning, while the recorded old-LOG
 checkpoint deletion finding stays visible. Main remains assessment only; this
 baseline does not complete the remaining product or broaden the limited owner
-report above. The feature branch's design and implementation work is not yet a
-deployed capability.
+report above. PR26's current delivery and acceptance limits are recorded here;
+the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 ## 7. Remaining work
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 1 | Implement and verify the designed lifecycle/correction workflow | PRD-F12, PRD-F13: SDD §§3.8–3.11 defines responsible requests/outcomes, secure export, assessed closure/access revocation, physical erasure/backup disposition, bounded holds and independent correction/update rounds |
-| 2 | Implement log review and publication | PRD-F4, INV-1: log queue, claim, approve/ask-changes/reject, reason/history and publication transition; additive migration after lifecycle migrations |
-| 3 | Enable only authorized acceptance intake on dev after verified prerequisites | Apply reviewed migrations starting at 0009 to backed-up dev, align privacy/terms versions, deploy and perform isolated synthetic acceptance; owner smoke and real-proof readiness remain explicit, OPS §5 |
-| 4 | Implement client search, records and aggregates | PRD-F6, PRD-F14: latest eligible rating per contributor, counts, tags, Limited record and empty state |
+| 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
+| 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
+| 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Dev backup, migrations, notices and deployment are complete; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness, OPS §5 |
+| 4 | Complete hosted client-record/rating acceptance | PRD-F6, PRD-F14: latest eligible contributor vote, counts, tags, Limited record and empty-state checks against actual synthetic publications |
 | 5 | Promote the intended product slice when the owner chooses | Green CI and manual smoke; OPS §7 |
 
 Email can receive pilot privacy requests when the named owner processes and
@@ -250,10 +249,9 @@ perform erasure. A polished self-service request interface may follow later.
 Lifecycle and log moderation share an authorized implementation milestone using
 synthetic data while development intake stays disabled. The design-first ERD,
 register/constraints and concrete interfaces are now in SDD §3/§4.1; schema and
-feature implementation must follow them after independent design review. The
-feature branch now contains the designed entities, new migrations 0010/0011,
-staff tools, review flows and records. The candidate remains on the feature
-branch and unapplied remotely while final integration is completed. Independent source reviews found
+feature implementation followed them after independent design review. PR26
+delivers the designed entities, migrations 0010/0011, staff tools, review flows
+and records to dev. Independent source reviews found
 eight defects across writer ownership, retention deadlines and claim recovery;
 the repairs were independently reread and exercised by focused tests. Further
 dev-merge review found exact typed-OTP cleanup, assessed read-deadline and
@@ -262,21 +260,24 @@ independent source rereview. The final local Workers suite passes 1,273 tests in
 48 files; all 22 desktop/mobile browser scenarios pass with verified teardown,
 free port and successful-run data removed. The local Windows browser run uses
 the documented explicit 30-minute suite allowance; hosted Linux passes its
-unchanged default. Candidate ef890aa passes both required checks in
-[PR26 run 41456648042](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41456648042),
+unchanged default. Final candidate `40a3b28` passes both required checks in
+[PR26 run 41462909796](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41462909796),
 including the packaged scheduled handler, 19-route smoke and no-upload packaging.
 Typecheck/lint, tooling/setup/Python checks and production audit pass; the full
 dependency graph retains 15 moderate development findings, no high/critical.
 The first encrypted dev backup attempts failed without verified artifacts.
 Native process handling and the installed export confirmation flag are repaired;
-the 2026-11-02 14:30 UTC dev backup passes decrypt/length/SHA-256 verification
-with plaintext cleanup confirmed. Ten Python tests pass, including synthetic
-native-stream, argument and actual local CLI-parser cases. Remote migration and
-merge still follow current candidate checks and the reviewed OPS sequence.
-Later candidate changes require their current checks. Preserve ordinary freeze
-guards and add only the scoped
-maintenance path. This is work in progress, not a completed release,
-remote physical-erasure evidence, dev migration/deployment or full acceptance.
+both the 14:30 UTC backup and fresh pre-migration 14:52 UTC dev backup pass
+decrypt/length/SHA-256 verification with plaintext cleanup confirmed. Ten local
+Python tests pass, including synthetic native-stream, argument and actual local
+CLI-parser cases; Linux CI discovers ten and skips seven Windows-only cases.
+Reviewed pending migrations 0009–0011 applied successfully before the PR26 merge;
+the actual ledger and foreign keys were checked read-only. Actual deployed
+bindings/auth origin match dev, intake is false, invocation/persisted logs and
+traces are off, no Tail/Logpush is configured, and cron is hourly. The new Worker
+is observed at 100%. This establishes deployment, not hosted authenticated human
+acceptance or live synthetic physical-erasure results. Later changes require
+their current checks; ordinary freeze guards and exact maintenance remain.
 
 Deferred: notifications, QR automation, and unapproved PRD §6 candidates. All
 IDEA exclusions and eight invariants continue to apply. This queue describes
