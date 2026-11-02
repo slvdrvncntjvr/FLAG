@@ -3,7 +3,7 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.41
+doc_version: 2.42
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -100,6 +100,7 @@ and npx.cmd if execution policy blocks the .ps1 shims; no policy change needed.
 | Deployment, redirects, harness, observability and migration-generation tests | npm run test:deploy |
 | Local setup regression tests | node --test scripts/setup-local.test.mjs |
 | Isolated browser suite | npm run test:e2e |
+| Slower local full browser run, bounded 30-minute suite budget | npm run test:e2e -- --global-timeout=1800000 |
 | Dev Worker build | npm run build:worker:dev |
 | Production Worker build | npm run build:worker |
 | Packaged local workerd smoke | npm run test:worker:smoke |
@@ -114,6 +115,13 @@ requires account selection. Keep developer secrets and data intact. Console OTP
 requires HTTP localhost and both mail keys absent; setting a key sends real mail.
 The setup/check scripts print no secrets and preserve existing .dev.vars by
 default. See web/README.md for the short setup path.
+
+The isolated browser harness keeps its default 15-minute Playwright suite budget
+and 16-minute child wait. An explicit positive integer global-timeout argument
+up to 1,800,000 milliseconds extends the enclosing wait by the existing one-minute
+completion margin; invalid, duplicate or unbounded values fail before creating
+temporary data. Per-test/assertion limits, zero retries and verified teardown
+are unchanged. CI keeps its default invocation.
 
 ### 3.1 Deploy and migrations
 

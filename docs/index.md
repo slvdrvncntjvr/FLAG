@@ -28,7 +28,7 @@ verification and OPS for operations. The active decision log is
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
-| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.41 | Review | 2026-11-02 | 2026-10-13 |
+| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.42 | Review | 2026-11-02 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.39 | Review | 2026-11-02 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.53 | Review | 2026-11-02 | 2026-10-13 |

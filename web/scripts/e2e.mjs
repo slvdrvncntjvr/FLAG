@@ -3,9 +3,12 @@ import { resolve, join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { assertPortFree, ownsReadyServer } from './e2e-isolation.mjs';
+import { playwrightChildWait } from './e2e-timeout.mjs';
 import { createOwnedDirectory, finishOwnedRun, lifecycleDiagnostic, stopOwnedChildren, trackOwnedChild, unrefFailedOwnedChild, waitOwnedChild } from './process-lifecycle.mjs';
 
 const root = resolve(import.meta.dirname, '..');
+const playwrightArgs = process.argv.slice(2);
+const playwrightWait = playwrightChildWait(playwrightArgs);
 const directory = await createOwnedDirectory('flag-e2e-');
 const temp = directory.root;
 const app = join(temp, 'app');
@@ -102,7 +105,7 @@ try {
     await fetch('http://localhost:3000' + path, { signal: AbortSignal.timeout(120_000) });
   }
   console.log('Local routes ready; running browser tests.');
-  await done(run(join(root, 'node_modules/@playwright/test/cli.js'), ['test', ...process.argv.slice(2)], { cwd: root, stdio: 'inherit' }), 960_000);
+  await done(run(join(root, 'node_modules/@playwright/test/cli.js'), ['test', ...playwrightArgs], { cwd: root, stdio: 'inherit' }), playwrightWait);
   completed = true;
 } catch {
   console.error('Isolated E2E run failed; owned temporary data will be retained');
