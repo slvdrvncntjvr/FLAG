@@ -222,7 +222,7 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole("button", { name: "Submit private log", exact: true }).click();
     console.info("[F2] submitted; checking frozen pending view");
-    await expect(page.getByText("Submitted. Awaiting log moderation.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Submitted. Awaiting human log review.", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save complete draft", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Upload private proof", exact: true })).toHaveCount(0);
     await page.reload();
