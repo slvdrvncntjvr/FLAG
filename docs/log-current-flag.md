@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.15
+doc_version: 0.16
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -416,3 +416,19 @@ in the established owner backup directory, verified by in-memory DPAPI decrypt,
 byte length and SHA-256; plaintext cleanup passed. No artifact from either failed
 attempt is described as verified. The coordinator has not yet applied dev
 migrations or merged at this checkpoint; main and real intake remain excluded.
+
+## 19. Pilot dev integration, 2026-11-02
+
+After final required candidate checks passed, the coordinator took and verified
+a fresh encrypted dev D1 backup at 14:52 UTC, then applied exactly the reviewed
+pending migrations 0009, 0010 and 0011. All succeeded; read-only ledger,
+foreign-key and current-policy checks passed. PR26 merged into dev as f46be4c
+at 14:53 UTC. The automatic dev deployment is observed at 100% with fetch and
+scheduled handlers; INDEX owns its exact version and delivery/acceptance limits.
+
+Read-only actual settings retain the approved DB/PROOFS/auth-origin bindings,
+disabled intake, disabled invocation/persisted logs/traces, no Tail/Logpush and
+the hourly cron. This does not execute a live erasure task, prove recipient
+handover/backup disposition, or establish authenticated hosted/manual acceptance.
+Main, production configuration, real intake, invariant meanings, reconciliation
+dates and historical deletion evidence remain unchanged.
