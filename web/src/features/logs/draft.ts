@@ -1,6 +1,7 @@
 import type { Db } from "@/server/db";
 import { assertChanged, editableDraftGate, filerGate, intakeNow } from "@/server/db/queries/logs";
 import { failure, logDraftInput, outcomeForRating, withinFilingWindow, type LogResult } from "./schema";
+import { saveProposal } from "@/features/updates/handlers";
 
 export async function saveLogDraft(db: Db, actorId: string | null, input: unknown): Promise<LogResult<{ logId: string; ref: string }>> {
   if (!actorId) return failure("unauthenticated");
@@ -11,6 +12,19 @@ export async function saveLogDraft(db: Db, actorId: string | null, input: unknow
     return failure("invalid_input", fields);
   }
   const f = parsed.data;
+  if (f.logId) {
+    const previous = await db.$client.prepare("SELECT ref,engagement_id,anchor_kind,anchor_date FROM engagement_log WHERE id=? AND freelancer_id=? AND status='ask_changes'").bind(f.logId, actorId)
+      .first<{ ref: string; engagement_id: string; anchor_kind: string; anchor_date: string }>();
+    if (previous) {
+      if (previous.engagement_id !== f.engagementId || previous.anchor_kind !== f.anchorKind || previous.anchor_date !== f.anchorDate) return failure("conflict");
+      const draft = await db.$client.prepare("SELECT id FROM log_revision WHERE log_id=? AND kind='initial' AND state='draft' AND decision IS NULL ORDER BY rev_no DESC LIMIT 1").bind(f.logId).first<{ id: string }>();
+      const bound = await db.$client.prepare("SELECT rp.proof_id FROM revision_proof rp JOIN log_revision r ON r.id=rp.revision_id WHERE r.log_id=? AND r.rev_no=(SELECT MAX(rev_no) FROM log_revision WHERE log_id=?)")
+        .bind(f.logId, f.logId).all<{ proof_id: string }>();
+      const saved = await saveProposal(db, actorId, { logId: f.logId, expectedCurrentRevisionId: null, ...(draft ? { revisionId: draft.id } : {}),
+        fields: { rating: f.rating, facts: f.facts, tags: f.tags, periodStart: f.periodStart, periodEnd: f.periodEnd, amountCentavos: f.amountCentavos }, proofIds: bound.results.map(p => p.proof_id) }, "initial");
+      return saved.ok ? { ok: true, data: { logId: f.logId, ref: previous.ref } } : saved;
+    }
+  }
   if (!withinFilingWindow(f.anchorDate)) return failure("invalid_input", { anchorDate: ["File within 15 calendar days of the first eligible event; future dates are not allowed."] });
   const logId = f.logId ?? crypto.randomUUID(), revisionId = crypto.randomUUID();
   const gate = filerGate(actorId), edit = editableDraftGate(actorId);

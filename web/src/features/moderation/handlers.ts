@@ -72,8 +72,9 @@ export async function decideVerification(db: Db, actorId: string | null, input: 
         SELECT ?,?,'verification_decided','verification_case',vc.id,vc.decided_at FROM verification_case vc JOIN moderation_case mc ON mc.subject_id = vc.id AND mc.kind = 'verification'
         WHERE mc.id = ? AND changes() = 1`, [eventId, actorId, caseId]),
       statement(db, `UPDATE moderation_case SET status = 'decided', claimed_by = NULL, claimed_until = NULL,
-        decision = ?, reason = ?, decided_by = ?, decided_at = (SELECT created_at FROM audit_event WHERE id = ?)
-        WHERE id = ? AND ${eventGate()}`, [decision, reason, actorId, eventId, caseId, eventId]),
+        decision = ?, reason = ?, decided_by = ?, decided_at = (SELECT created_at FROM audit_event WHERE id = ?),
+        closed_at = (SELECT created_at FROM audit_event WHERE id = ?), closure_kind = 'decision'
+        WHERE id = ? AND ${eventGate()}`, [decision, reason, actorId, eventId, eventId, caseId, eventId]),
       statement(db, `UPDATE freelancer_profile SET status = CASE WHEN status = 'suspended' THEN 'suspended' ELSE ? END, verified_at = CASE WHEN ? = 'approve' THEN (SELECT created_at FROM audit_event WHERE id = ?) ELSE NULL END
         WHERE user_id = (SELECT vc.freelancer_id FROM verification_case vc JOIN moderation_case mc ON mc.subject_id = vc.id AND mc.kind = 'verification' WHERE mc.id = ?) AND ${eventGate()}`,
       [decision === "approve" ? "verified" : "rejected", decision, eventId, caseId, eventId]),

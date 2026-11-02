@@ -70,8 +70,8 @@ export function DraftWorkspace({ log }: { log: PrivateLog }) {
   return <fieldset disabled={pending} className="min-w-0">
     <legend className="sr-only">Private draft and proof</legend>
     <DraftForm engagementId={log.engagementId} log={log} onDirty={setDirty} onBusy={setSaving} />
-    <ProofUpload logId={log.id} count={log.proofs.length} onBusy={setUploading} />
-    <ProofList log={log} editable={!pending && !uploading} />
+    {log.draftReady ? <ProofUpload logId={log.id} count={log.proofs.length} onBusy={setUploading} /> : <p className="mt-6" role="status">Save your revised draft before changing evidence or resubmitting.</p>}
+    <ProofList log={log} editable={log.draftReady && !pending && !uploading} />
     <form action={action} className="mt-8 space-y-4 border-t border-rule pt-6" aria-busy={pending}>
       <input type="hidden" name="logId" value={log.id} />
       <h2 className="font-serif text-2xl">Submit saved draft</h2>
@@ -79,7 +79,7 @@ export function DraftWorkspace({ log }: { log: PrivateLog }) {
       {dirty && <p role="status">Save your changed details before submitting.</p>}
       {!log.proofs.length && <p>Attach at least one proof file before submitting.</p>}
       {state && !state.ok && <p role="alert">{state.error}</p>}
-      <button disabled={pending || saving || uploading || dirty || !log.proofs.length} className={button}>{pending ? "Submitting…" : "Submit private log"}</button>
+      <button disabled={pending || saving || uploading || dirty || !log.draftReady || !log.proofs.length} className={button}>{pending ? "Submitting…" : "Submit private log"}</button>
     </form>
   </fieldset>;
 }

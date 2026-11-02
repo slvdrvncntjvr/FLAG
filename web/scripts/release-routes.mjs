@@ -4,6 +4,8 @@ import { POLICY_VERSIONS } from "../src/lib/policies.ts";
 // Node 24 reads the policy source directly, so a policy bump updates both probes.
 const protectedPages = [
   "/home", "/onboarding", "/verification", "/moderation/verification", "/moderation/verification/nonexistent",
+  "/clients", "/clients/nonexistent", "/logs/nonexistent", "/moderation/logs", "/moderation/logs/nonexistent",
+  "/moderation/corrections", "/moderation/corrections/nonexistent", "/admin/privacy", "/admin/privacy/nonexistent",
 ];
 export const ANONYMOUS_ROUTES = Object.freeze([
   "/", ...protectedPages, "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session",

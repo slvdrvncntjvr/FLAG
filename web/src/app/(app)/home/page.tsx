@@ -25,8 +25,12 @@ export default async function Home() {
           : isFreelancer ? intakeEnabled ? "Open your engagements to create or view a private engagement log." : "Open your engagements to manage invitations and view accepted work." : "Use the available account tools below."}
       </p>
       {(isClient || isFreelancer) && <p className="mt-6"><Link href="/engagements" className="underline underline-offset-2">View engagements</Link></p>}
+      {(isClient || isFreelancer) && <p className="mt-6"><Link href="/clients" className="underline underline-offset-2">{isClient ? "View your client record" : "Search client records"}</Link></p>}
       {isFreelancer && <p className="mt-6"><Link href="/verification" className="underline underline-offset-2">View verification or request an identity check</Link></p>}
       {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/verification" className="underline underline-offset-2">Open verification review queue</Link></p>}
+      {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/logs" className="underline underline-offset-2">Review engagement logs and updates</Link></p>}
+      {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/corrections" className="underline underline-offset-2">Review private correction requests</Link></p>}
+      {viewer.role === "admin" && <p className="mt-6"><Link href="/admin/privacy" className="underline underline-offset-2">Process privacy requests and retention</Link></p>}
     </>
   );
 }

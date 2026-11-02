@@ -1,6 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"main": ".open-next/worker.js",
+	"main": "custom-worker.ts",
+	"triggers": { "crons": ["0 * * * *"] },
 	"name": "flag",
 	"account_id": "1af65da586efd62d6f6d429240395f28",
 	"compatibility_date": "2026-10-01",
@@ -46,6 +47,7 @@
 	// Secrets are per-environment: set with `wrangler secret put <NAME> --env dev`.
 	"env": {
 		"dev": {
+			"triggers": { "crons": ["0 * * * *"] },
 			"build": {
 				"command": "node scripts/check-wrangler-build.mjs --env=dev"
 			},

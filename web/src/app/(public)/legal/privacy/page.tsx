@@ -13,8 +13,9 @@ export default function Privacy() {
       </p>
       <p>
         Accounts, onboarding, manual freelancer verification, moderator review of verification requests, engagement
-        invitations, client profiles, and accepting or declining invitations are available. Logs, proof uploads,
-        client records, and private corrections remain planned.
+        invitations, client profiles, and accepting or declining invitations are available. The pilot also includes
+        private logs and proof, human review, client records, private corrections, and assessed data requests. New
+        log and proof submissions are available only while pilot intake is enabled.
       </p>
 
       <h2 className="font-serif text-lg">What we collect</h2>
@@ -48,17 +49,24 @@ export default function Privacy() {
           engagement consent and creates no warning or negative signal.
         </li>
         <li>
-          When logging becomes available: the facts, rating, covered work period, optional amount, proof files,
-          and review history you submit for an accepted engagement.
+          For logs: the facts, 1 to 5 rating, covered work period, event and filing dates, optional amount, tags,
+          and private supporting proof for an accepted engagement. Proposed updates and client counterproof are
+          stored with their review history. We record the human reviewer, decisions and private reasons, and
+          receipts identifying the exact proof retrieved and assessed during each review round.
+        </li>
+        <li>
+          For data requests: the request, verified account-control reference, assigned processor, assessed scope,
+          decisions, finite holds, erasure and backup-disposition receipts, and any short-lived private export.
+          Do not send a government ID image or full ID number with a request.
         </li>
       </ul>
 
       <h2 className="font-serif text-lg">Why we use it</h2>
       <p>
         We use this data to authenticate you, verify freelancers, manage engagement invitations and responses, and
-        record your explicit account/profile association and engagement-specific consent. As logging and private
-        corrections launch, we will use the submitted material to run moderation and private review and keep the
-        proof-backed record that is the purpose of the service. We do not sell your data, and we do not use it for advertising.
+        record your explicit account/profile association and engagement-specific consent. We use submitted logs
+        and evidence for human moderation, private correction review, and the approved client record and rating.
+        Request and maintenance records support assessed access, account closure, retention, and physical erasure. We do not sell your data, and we do not use it for advertising.
       </p>
 
       <h2 className="font-serif text-lg">Who can see it</h2>
@@ -74,7 +82,7 @@ export default function Privacy() {
         the profile and portfolio information needed to review it; the decision reason is shared with you.
       </p>
       <p>
-        Published client records and logs will be visible to signed-in freelancers; clients see their own record.
+        Published client records and logs are visible to signed-in freelancers; clients see their own record.
         Readers see the filer&apos;s name, but not contact or ID data. Proof files are restricted to the filer, named client,
         and moderators. An admin has no blanket proof access. Private review requests and notes stay with the parties
         and moderators. Records and logs are never served to signed-out visitors or search engines. Our email provider
@@ -88,7 +96,7 @@ export default function Privacy() {
         expired rate-limit records are removed during authentication requests.
       </p>
       <p>
-        The following policy applies when logging launches. Published experiences and their proofs are kept
+        Published experiences and their proofs are kept
         for twelve months from original publication; updates do not restart that period. Expired, hidden, or withdrawn
         experiences do not contribute to visible records or ratings. Idle drafts and abandoned unpublished material
         are deleted after thirty days of inactivity; rejected material after thirty days from the final decision.
@@ -105,7 +113,17 @@ export default function Privacy() {
         revoke access, and remove data as the assessment permits. Closing an account does not automatically erase
         unexpired records or consent history. If a name or content needs earlier erasure, the affected publication is
         hidden or withdrawn. These periods are FLAG&apos;s policy, not universal legal retention requirements. Requests
-        currently go to the contact address below; account-request and retention automation have not launched.
+        go to the contact address below. The assigned processor verifies account control and records an individual
+        assessment and outcome. Unresolved holds, retained dependencies, or backup copies remain recorded as
+        deferred work with finite follow-up; hiding a record alone does not establish physical erasure.
+      </p>
+
+      <p>
+        An assessed metadata export includes only the approved account, profile, policy, or log-metadata categories.
+        It excludes proof bytes, private review notes, and other people&apos;s contact details. The private stored
+        artifact expires within twenty-four hours or earlier when a source expires or changes. Delivery uses a
+        single-use secret through a verified private channel, with account-session or separately assessed
+        export-only access. Closing an account never restores ordinary account access through an export.
       </p>
 
       <h2 className="font-serif text-lg">Your rights</h2>

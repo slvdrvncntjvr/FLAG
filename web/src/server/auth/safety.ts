@@ -28,6 +28,7 @@ const clientMessages = new Map<string, string>([
   ["OTP_CHECK_DISABLED", "Use the email sign-in or verification form."],
   ["INVALID_USER_PROFILE", "Check the supplied profile fields. Do not include ID details or files."],
   ["REVIEWED_NAME_FIXED", "This name cannot be changed while under review or verified."],
+  ["ACCOUNT_UNAVAILABLE", "This account is unavailable. Contact support."],
   ["AUTH_REQUEST_REJECTED", "Check the authentication request and try again."],
 ]);
 

@@ -7,6 +7,9 @@ import { submitLog } from "@/features/logs/submit";
 import { purgeClaimedProof } from "@/features/logs/proof-storage";
 import { addProof, intakeFixture, pdfBytes, uploadRequest } from "./private-intake-fixtures";
 
+import { ageSyntheticDrafts, finiteSyntheticHold, legacySyntheticHold } from "./synthetic-retention-clock";
+
+const agedActivity = () => new Date(Date.now() - 31 * 86400000).toISOString();
 async function agedProof(f: Awaited<ReturnType<typeof intakeFixture>>, tombstone = false, id = crypto.randomUUID()) {
   const key = `logs/${f.logId}/${id}`;
   const checksum = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", pdfBytes)), byte => byte.toString(16).padStart(2, "0")).join("");
@@ -66,7 +69,7 @@ describe("bounded internal private-intake cleanup", () => {
         // A second caller cannot publish 'purged' while this caller can still delete.
         expect(await purgeClaimedProof(f.db, target, id)).toBe(false);
         expect(await env.DB.prepare("SELECT status,purge_inflight FROM proof_file WHERE id=?").bind(id).first()).toEqual({ status: "pending_purge", purge_inflight: 1 });
-        await expect(env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run()).rejects.toThrow(/cleanup is in progress/);
+        await expect(finiteSyntheticHold(f.logId)).rejects.toThrow(/purge.*claimed/);
         await target.put(objectKey, pdfBytes, { sha256: row.sha256, httpMetadata: { contentType: "application/pdf" } });
         await target.delete(objectKey);
       };
@@ -75,7 +78,7 @@ describe("bounded internal private-intake cleanup", () => {
     expect(await purgeClaimedProof(f.db, bucket, id)).toBe(true);
     expect(deleteCalls).toBe(1);
     expect(await env.DB.prepare("SELECT status,purge_inflight FROM proof_file WHERE id=?").bind(id).first()).toEqual({ status: "purged", purge_inflight: 0 });
-    await env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run();
+    await finiteSyntheticHold(f.logId);
     // A still-later put is preserved under the hold; there is no stale second deleter.
     await env.PROOFS.put(key, pdfBytes, { sha256: row.sha256, httpMetadata: { contentType: "application/pdf" } });
     expect(await purgeClaimedProof(f.db, env.PROOFS, id)).toBe(false);
@@ -85,7 +88,7 @@ describe("bounded internal private-intake cleanup", () => {
   it("skips an unproven in-flight owner while other cleanup progresses", async () => {
     const busy = await intakeFixture(), good = await intakeFixture();
     const busyId = await agedProof(busy), goodId = await agedProof(good);
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days') WHERE id IN (?,?)").bind(busy.logId, good.logId).run();
+    await ageSyntheticDrafts([busy.logId, good.logId], agedActivity());
     await env.DB.prepare("UPDATE proof_file SET status='pending_purge' WHERE id=?").bind(busyId).run();
     await env.DB.prepare("UPDATE proof_file SET purge_attempts=1,purge_inflight=1 WHERE id=?").bind(busyId).run();
     await runPrivateIntakeCleanup(good.db, env.PROOFS, { limit: 1 });
@@ -98,7 +101,7 @@ describe("bounded internal private-intake cleanup", () => {
     const badId = await agedProof(bad, false, `a-${crypto.randomUUID()}`);
     const goodId = await agedProof(good, false, `z-${crypto.randomUUID()}`);
     const badKey = `logs/${bad.logId}/${badId}`, goodKey = `logs/${good.logId}/${goodId}`;
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days') WHERE id IN (?,?)").bind(bad.logId, good.logId).run();
+    await ageSyntheticDrafts([bad.logId, good.logId], agedActivity());
     await env.DB.prepare("UPDATE proof_file SET status='pending_purge' WHERE id IN (?,?)").bind(badId, goodId).run();
     if (failure === "mismatch") await env.PROOFS.put(badKey, "synthetic replacement", { httpMetadata: { contentType: "text/plain" } });
     const bucket = new Proxy(env.PROOFS, { get(target, key) {
@@ -124,10 +127,11 @@ describe("bounded internal private-intake cleanup", () => {
   it("cleans idle proofs and drafts after timestamp-only hold release", async () => {
     const f = await intakeFixture(), id = await agedProof(f);
     const key = `logs/${f.logId}/${id}`;
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days'),hold_kind='legal',hold_placed_at='2026-10-01T00:00:00.000Z' WHERE id=?").bind(f.logId).run();
+    await ageSyntheticDrafts([f.logId], agedActivity());
+    await legacySyntheticHold(f.logId, "legal", "2026-10-01T00:00:00.000Z", null);
     await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     expect(await env.PROOFS.head(key)).not.toBeNull();
-    await env.DB.prepare("UPDATE engagement_log SET hold_released_at=hold_placed_at WHERE id=?").bind(f.logId).run();
+    await legacySyntheticHold(f.logId, "legal", "2026-10-01T00:00:00.000Z", "2026-10-01T00:00:00.000Z");
     await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     expect(await env.PROOFS.head(key)).toBeNull();
     expect(await env.DB.prepare("SELECT id FROM engagement_log WHERE id=?").bind(f.logId).first()).toBeNull();
@@ -135,11 +139,12 @@ describe("bounded internal private-intake cleanup", () => {
 
   it("blocks reactivating a released hold after the purge claim and before R2 deletion", async () => {
     const f = await intakeFixture(), id = await agedProof(f);
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days'),hold_kind='legal',hold_placed_at='2026-10-01T00:00:00.000Z',hold_released_at='2026-10-02T00:00:00.000Z' WHERE id=?").bind(f.logId).run();
+    await ageSyntheticDrafts([f.logId], agedActivity());
+    await legacySyntheticHold(f.logId, "legal", "2026-10-01T00:00:00.000Z", "2026-10-02T00:00:00.000Z");
     let reactivationBlocked = false;
     const bucket = new Proxy(env.PROOFS, { get(target, key) {
       if (key === "delete") return async (objectKey: string) => {
-        await expect(env.DB.prepare("UPDATE engagement_log SET hold_released_at=NULL WHERE id=?").bind(f.logId).run()).rejects.toThrow(/cleanup is in progress/);
+        await expect(finiteSyntheticHold(f.logId)).rejects.toThrow(/purge.*claimed/);
         reactivationBlocked = true;
         return target.delete(objectKey);
       };
@@ -166,7 +171,7 @@ describe("bounded internal private-intake cleanup", () => {
   it("purges truly idle drafts with bytes, children and no untracked orphan", async () => {
     const f = await intakeFixture(), id = await agedProof(f);
     const objectKey = (await env.DB.prepare("SELECT object_key FROM proof_file WHERE id=?").bind(id).first<{ object_key: string }>())!.object_key;
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days') WHERE id=?").bind(f.logId).run();
+    await ageSyntheticDrafts([f.logId], agedActivity());
     const result = await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     expect(result.deletedObjects).toBeGreaterThanOrEqual(1);
     expect(await env.PROOFS.head(objectKey)).toBeNull();
@@ -177,9 +182,9 @@ describe("bounded internal private-intake cleanup", () => {
   it("preserves touched, held and submitted material regardless of age", async () => {
     const touched = await intakeFixture(), held = await intakeFixture(), pending = await intakeFixture();
     const t = await addProof(touched), h = await addProof(held), p = await addProof(pending);
-    for (const f of [touched, held, pending]) await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days') WHERE id=?").bind(f.logId).run();
+    for (const f of [touched, held, pending]) await ageSyntheticDrafts([f.logId], agedActivity());
     expect(await saveLogDraft(touched.db, touched.freelancerId, { ...touched.input, logId: touched.logId })).toMatchObject({ ok: true });
-    await env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(held.logId).run();
+    await finiteSyntheticHold(held.logId);
     expect(await submitLog(pending.db, env.PROOFS, pending.freelancerId, pending.logId)).toMatchObject({ ok: true });
     await runPrivateIntakeCleanup(touched.db, env.PROOFS, { limit: 25 });
     for (const id of [t, h, p]) {
@@ -234,7 +239,7 @@ describe("bounded internal private-intake cleanup", () => {
       };
       if (key === "delete") return async (objectKey: string) => {
         observedStatus = (await env.DB.prepare("SELECT status FROM proof_file WHERE object_key=?").bind(objectKey).first<{ status: string }>())?.status;
-        try { await env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run(); }
+        try { await finiteSyntheticHold(f.logId); }
         catch { holdBlocked = true; }
         // An unexpectedly successful hold never authorizes this fixture to erase the bytes.
         if (holdBlocked) await target.delete(objectKey);
@@ -250,7 +255,7 @@ describe("bounded internal private-intake cleanup", () => {
       if (key === "put") return async (...args: Parameters<R2Bucket["put"]>) => {
         const row = await env.DB.prepare("SELECT id FROM proof_file WHERE log_id=? AND status='uploading'").bind(f.logId).first<{ id: string }>();
         expect(await removeDraftProof(f.db, target, f.freelancerId, row!.id)).toMatchObject({ ok: true });
-        await env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run();
+        await finiteSyntheticHold(f.logId);
         return target.put(...args);
       };
       const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
@@ -266,11 +271,12 @@ describe("bounded internal private-intake cleanup", () => {
   it("rechecks aged purged tombstone bytes before retirement, preserving them while held", async () => {
     const f = await intakeFixture(), id = await agedProof(f, true);
     const key = `logs/${f.logId}/${id}`;
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days'),hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run();
+    await ageSyntheticDrafts([f.logId], agedActivity());
+    await finiteSyntheticHold(f.logId);
     await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     expect(await env.PROOFS.head(key)).not.toBeNull();
     expect(await env.DB.prepare("SELECT id FROM proof_file WHERE id=?").bind(id).first()).not.toBeNull();
-    await env.DB.prepare("UPDATE engagement_log SET hold_kind=NULL WHERE id=?").bind(f.logId).run();
+    await env.DB.prepare("UPDATE retention_hold SET released_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE target_type='log' AND target_id=?").bind(f.logId).run();
     await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     expect(await env.PROOFS.head(key)).toBeNull();
     expect(await env.DB.prepare("SELECT id FROM engagement_log WHERE id=?").bind(f.logId).first()).toBeNull();
@@ -278,7 +284,7 @@ describe("bounded internal private-intake cleanup", () => {
   it("retires many aged failure tombstones in bounded progress before deleting their parent", async () => {
     const f = await intakeFixture();
     for (let i = 0; i < 12; i++) await agedProof(f, true);
-    await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days') WHERE id=?").bind(f.logId).run();
+    await ageSyntheticDrafts([f.logId], agedActivity());
     await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 5 });
     expect((await env.DB.prepare("SELECT id FROM proof_file WHERE log_id=?").bind(f.logId).all()).results).toHaveLength(7);
     expect(await env.DB.prepare("SELECT id FROM engagement_log WHERE id=?").bind(f.logId).first()).not.toBeNull();

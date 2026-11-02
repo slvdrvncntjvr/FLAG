@@ -6,6 +6,7 @@ import { submitLog } from "@/features/logs/submit";
 import { removeDraftProof, uploadProof } from "@/features/logs/proofs";
 import { loadPrivateLog } from "@/server/db/queries/logs";
 import { addProof, intakeFixture, uploadRequest } from "./private-intake-fixtures";
+import { legacySyntheticHold } from "./synthetic-retention-clock";
 
 const governmentIdFacts = [
   "Social Security number is PHP123456789",
@@ -168,13 +169,13 @@ describe("private intake audit repairs", () => {
 
   it.each(["2026-10-01T00:00:00.000Z", "2026-10-02T00:00:00.000Z"])("resumes editing, proof operations and submission after timestamp release %s", async releasedAt => {
     const f = await intakeFixture(), proofId = await addProof(f);
-    await env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at='2026-10-01T00:00:00.000Z',hold_released_at='2026-09-30T00:00:00.000Z' WHERE id=?").bind(f.logId).run();
+    await legacySyntheticHold(f.logId, "legal", "2026-10-01T00:00:00.000Z", "2026-09-30T00:00:00.000Z");
     expect((await loadPrivateLog(f.db, f.freelancerId, f.logId))?.canEdit).toBe(false);
     expect(await saveLogDraft(f.db, f.freelancerId, { ...f.input, logId: f.logId })).toMatchObject({ ok: false });
     expect(await submitLog(f.db, env.PROOFS, f.freelancerId, f.logId)).toMatchObject({ ok: false });
     expect((await uploadProof(f.db, env.PROOFS, f.freelancerId, f.logId, uploadRequest())).status).toBe(409);
     expect(await removeDraftProof(f.db, env.PROOFS, f.freelancerId, proofId)).toMatchObject({ ok: false });
-    await env.DB.prepare("UPDATE engagement_log SET hold_released_at=? WHERE id=?").bind(releasedAt, f.logId).run();
+    await legacySyntheticHold(f.logId, "legal", "2026-10-01T00:00:00.000Z", releasedAt);
     expect((await loadPrivateLog(f.db, f.freelancerId, f.logId))?.canEdit).toBe(true);
     expect(await saveLogDraft(f.db, f.freelancerId, { ...f.input, logId: f.logId, rating: 3 })).toMatchObject({ ok: true });
     expect(await removeDraftProof(f.db, env.PROOFS, f.freelancerId, proofId)).toMatchObject({ ok: true });

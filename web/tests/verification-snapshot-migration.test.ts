@@ -2,6 +2,7 @@ import { applyD1Migrations } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import { expect, it } from "vitest";
 import snapshot from "../drizzle/meta/0007_snapshot.json";
+import latestSnapshot from "../drizzle/meta/0011_snapshot.json";
 
 const db = env.MIGRATION_DB;
 async function state() {
@@ -13,11 +14,11 @@ async function state() {
   }
   return { schema, rows };
 }
-async function assertSnapshotColumns(database: D1Database) {
+async function assertSnapshotColumns(database: D1Database, expectedColumns: Record<string, { name: string; type: string; notNull: boolean; primaryKey: boolean; default?: unknown }>) {
   const columns = (await database.prepare("PRAGMA table_info(verification_case)").all<{ name: string; type: string; notnull: number; pk: number; dflt_value: string | null }>()).results;
   expect(Object.fromEntries(columns.map(column => [column.name, {
     name: column.name, type: column.type.toLowerCase(), notNull: !!column.notnull, primaryKey: !!column.pk, default: column.dflt_value,
-  }]))).toEqual(Object.fromEntries(Object.values(snapshot.tables.verification_case.columns).map(column => [column.name, {
+  }]))).toEqual(Object.fromEntries(Object.values(expectedColumns).map(column => [column.name, {
     // SQLite PRAGMA removes the expression's outer parentheses.
     name: column.name, type: column.type, notNull: column.notNull, primaryKey: column.primaryKey, default: "default" in column ? String(column.default).replace(/^\((.*)\)$/, "$1") : null,
   }])));
@@ -63,7 +64,7 @@ it("0007 adds nullable snapshot evidence without rebuilding, backfilling or chan
     } else expect(after.rows[table]).toEqual(rows);
   }
   expect(after.schema.some(item => String(item.name).startsWith("__new"))).toBe(false);
-  await assertSnapshotColumns(db);
+  await assertSnapshotColumns(db, snapshot.tables.verification_case.columns);
   // Legacy NULLs cannot be backfilled from today's profile, even undecided.
   await expect(db.prepare("UPDATE verification_case SET submitted_profile='{}' WHERE id='open'").run()).rejects.toThrow(/immutable/);
   await expect(db.prepare("UPDATE verification_case SET reason='Rewritten' WHERE id='rejected'").run()).rejects.toThrow(/immutable/);
@@ -72,9 +73,21 @@ it("0007 adds nullable snapshot evidence without rebuilding, backfilling or chan
   expect(await state()).toEqual(after);
 }, 20_000);
 
-it("the fresh full migration chain matches the Drizzle column snapshot and installs both independent immutability guards", async () => {
-  await assertSnapshotColumns(env.DB);
+it("the fresh full migration chain matches the latest Drizzle snapshot and enforces independent history and scoped deletion guards", async () => {
+  await assertSnapshotColumns(env.DB, latestSnapshot.tables.verification_case.columns);
   const triggers = (await env.DB.prepare("SELECT name,sql FROM sqlite_schema WHERE type='trigger' AND tbl_name='verification_case' ORDER BY name").all()).results;
-  expect(triggers.map(trigger => trigger.name)).toEqual(["verification_case_frozen_delete", "verification_case_frozen_update", "verification_submitted_profile_frozen"]);
+  expect(triggers.map(trigger => trigger.name)).toEqual(["pilot_verification_case_consume", "pilot_verification_case_delete", "verification_case_frozen_update", "verification_submitted_profile_frozen"]);
   expect(triggers.find(trigger => trigger.name === "verification_submitted_profile_frozen")?.sql).toContain("NEW.submitted_profile IS NOT OLD.submitted_profile");
+  expect(triggers.find(trigger => trigger.name === "pilot_verification_case_delete")?.sql).toContain("exact claimed purge task required");
+  const owner = crypto.randomUUID(), open = crypto.randomUUID(), decided = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO user(id,name,email,role) VALUES(?,'Synthetic Owner',?,'freelancer')").bind(owner, `${owner}@example.invalid`).run();
+  await env.DB.prepare("INSERT INTO freelancer_profile(user_id,display_name,status) VALUES(?,'Synthetic Owner','pending')").bind(owner).run();
+  await env.DB.prepare("INSERT INTO verification_case(id,freelancer_id,submitted_profile,created_at) VALUES(?,?,'{}','2026-10-01T00:00:00.000Z')").bind(open, owner).run();
+  await expect(env.DB.prepare("UPDATE verification_case SET submitted_profile='[]' WHERE id=?").bind(open).run()).rejects.toThrow(/submitted verification profile is immutable/i);
+  await expect(env.DB.prepare("DELETE FROM verification_case WHERE id=?").bind(open).run()).rejects.toThrow(/exact claimed purge task required/i);
+  await env.DB.prepare("UPDATE verification_case SET decision='reject',reason='Original grounds',decided_at='2026-10-03T00:00:00.000Z' WHERE id=?").bind(open).run();
+  await env.DB.prepare("INSERT INTO verification_case(id,freelancer_id,created_at) VALUES(?,?,'2026-10-04T00:00:00.000Z')").bind(decided, owner).run();
+  await expect(env.DB.prepare("UPDATE verification_case SET reason='Rewritten' WHERE id=?").bind(open).run()).rejects.toThrow(/verification case is immutable/i);
+  await expect(env.DB.prepare("DELETE FROM verification_case WHERE id=?").bind(open).run()).rejects.toThrow(/exact claimed purge task required/i);
+  expect(await env.DB.prepare("SELECT submitted_profile,reason FROM verification_case WHERE id=?").bind(open).first()).toEqual({ submitted_profile: "{}", reason: "Original grounds" });
 });

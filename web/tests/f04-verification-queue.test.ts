@@ -5,6 +5,7 @@ import { POLICY_VERSIONS, requiredPolicies } from "@/lib/policies";
 import { freelancerProfile, moderationCase, policyAcceptance, user, verificationCase, type Role } from "@/server/db/schema";
 import { loadVerificationQueue } from "@/server/db/queries/verification";
 import { claimVerification, decideVerification } from "@/features/moderation/handlers";
+import { seedCurrentLog } from "./current-schema-fixtures";
 
 const db = createDb(env.DB);
 
@@ -55,7 +56,10 @@ describe("PRD-F4 verification queue", () => {
     const own = await request(reviewer, timestamp);
     const other = await request(await actor("freelancer"), timestamp);
     const futureCase = crypto.randomUUID();
-    await db.insert(moderationCase).values({ id: futureCase, kind: "log", subjectId: other.id });
+    // A verification ID cannot impersonate a log; a real typed log case is also excluded.
+    await expect(env.DB.prepare("INSERT INTO moderation_case(id,kind,subject_id) VALUES(?,'log',?)").bind(crypto.randomUUID(), other.id).run()).rejects.toThrow(/typed case subject mismatch/i);
+    const log = await seedCurrentLog();
+    await db.insert(moderationCase).values({ id: futureCase, kind: "log", subjectId: log.logId, logId: log.logId });
     const queue = await loadVerificationQueue(db, reviewer);
     expect(queue.some(row => row.review.id === own.caseId || row.review.id === futureCase)).toBe(false);
     expect(queue.some(row => row.review.id === other.caseId)).toBe(true);

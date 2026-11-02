@@ -23,7 +23,10 @@ export default async function PrivateLogPage({ params }: { params: Promise<{ id:
     <p className="mt-2 break-words">{log.title}</p>
     <p className="mt-2">Status: <strong>{log.status === "pending" ? "Pending" : log.status === "draft" ? "Draft" : log.status}</strong></p>
     <p className="mt-4">Available only to the filer, named client and moderators.</p>
-    {log.status === "pending" && <div role="status" className="mt-6 space-y-2 border-y border-rule py-4"><p>Submitted. Awaiting log moderation.</p><p>This log is private and has not been published. Log review decisions are not available in this version.</p>{log.firstSubmittedAt && <p className="font-mono text-sm">First submitted: {log.firstSubmittedAt}</p>}</div>}
+    {log.status === "pending" && <div role="status" className="mt-6 space-y-2 border-y border-rule py-4"><p>Submitted. Awaiting human log review.</p><p>This log is private and has not been published.</p>{log.firstSubmittedAt && <p className="font-mono text-sm">First submitted: {log.firstSubmittedAt}</p>}</div>}
+    {log.status === "ask_changes" && <p role="status" className="mt-6">A moderator requested changes. Save a revised draft before adding proof or resubmitting. Your original filing date and anchor stay fixed.</p>}
+    {["published", "hidden", "withdrawn"].includes(log.status) && <nav aria-label="Private log requests" className="mt-6 flex flex-wrap gap-5"><Link className="underline" href={`/logs/${log.id}/correction`}>Private correction history</Link>{viewer.role === "freelancer" && <Link className="underline" href={`/logs/${log.id}/update`}>Propose a dated update</Link>}</nav>}
+    {!!log.reviewHistory.length && <section className="mt-6"><h2 className="font-serif text-xl">Private review decisions</h2><ol className="divide-y divide-rule">{log.reviewHistory.map((round, index) => <li key={index} className="py-3"><p>{round.decision.replaceAll("_", " ")} · <time>{round.decidedAt}</time></p><p className="whitespace-pre-wrap break-words">{round.reason}</p></li>)}</ol></section>}
     {canEdit ? <DraftWorkspace log={log} /> : <>
       <dl className="mt-6 space-y-4 border-y border-rule py-4">
         <div><dt className="text-muted">Filing anchor</dt><dd className="font-mono">{log.anchorKind.replaceAll("_", " ")} · {log.anchorDate}</dd></div>

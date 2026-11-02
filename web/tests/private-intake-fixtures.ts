@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { expect } from "vitest";
-import { seedLog } from "./helpers";
+import { seedEngagement } from "./helpers";
 import { POLICY_VERSIONS } from "@/lib/policies";
 import { saveLogDraft } from "@/features/logs/draft";
 import { manilaDate, type LogDraftInput } from "@/features/logs/schema";
@@ -8,8 +8,7 @@ import { uploadProof } from "@/features/logs/proofs";
 
 export const pdfBytes = new TextEncoder().encode("%PDF-1.7\nSynthetic project invoice. No real personal data.\n%%EOF");
 export async function intakeFixture() {
-  const seeded = await seedLog();
-  await env.DB.prepare("DELETE FROM engagement_log WHERE id=?").bind(seeded.logId).run();
+  const seeded = await seedEngagement();
   for (const [policy, version] of Object.entries(POLICY_VERSIONS)) {
     if (policy === "client_consent") continue;
     for (const actor of [seeded.freelancerId, seeded.clientUserId]) {

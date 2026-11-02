@@ -30,6 +30,7 @@ export const user = sqliteTable(
     phoneNumberVerified: integer("phone_number_verified", { mode: "boolean" }).notNull().default(false),
     createdAt: isoTime("created_at").notNull().default(isoNow),
     updatedAt: isoTime("updated_at").notNull().default(isoNow),
+    deactivatedAt: isoTime("deactivated_at"),
   },
   (t) => [check("user_role_check", sql`${t.role} IS NULL OR ${t.role} IN ('freelancer','client','moderator','admin')`)],
 );
@@ -102,6 +103,12 @@ export const POLICIES = ["privacy", "terms", "freelancer_ack", "client_consent"]
 export type Policy = (typeof POLICIES)[number];
 
 // Append-only; triggers in drizzle/0001_triggers.sql reject UPDATE and DELETE (SDD §3.3).
+// Application-owned policy authority. Ordinary SQL writes are frozen by migration guards.
+export const currentPolicyVersion = sqliteTable("current_policy_version", {
+  policy: text("policy", { enum: POLICIES }).primaryKey(),
+  version: text("version").notNull(),
+}, (t) => [check("current_policy_version_policy_check", sql`${t.policy} IN ('privacy','terms','freelancer_ack','client_consent')`), check("current_policy_version_version_check", sql`length(trim(${t.version}))>0`)]);
+
 export const policyAcceptance = sqliteTable(
   "policy_acceptance",
   {
@@ -112,6 +119,7 @@ export const policyAcceptance = sqliteTable(
     policy: text("policy", { enum: POLICIES }).notNull(),
     version: text("version").notNull(),
     acceptedAt: isoTime("accepted_at").notNull().default(isoNow),
+    retiredAt: isoTime("retired_at"),
   },
   (t) => [
     index("policy_acceptance_user_idx").on(t.userId, t.policy),
@@ -182,7 +190,7 @@ export const verificationCase = sqliteTable(
 );
 
 export const MODERATION_KINDS = ["verification", "log", "correction", "filer_update"] as const;
-export const MODERATION_STATUSES = ["open", "claimed", "decided"] as const;
+export const MODERATION_STATUSES = ["open", "claimed", "decided", "awaiting_changes", "closed"] as const;
 export const MODERATION_DECISIONS = ["approve", "ask_changes", "reject", "uphold", "correct", "withdraw"] as const;
 
 export const moderationCase = sqliteTable("moderation_case", {
@@ -197,11 +205,18 @@ export const moderationCase = sqliteTable("moderation_case", {
   decidedBy: text("decided_by").references(() => user.id, { onDelete: "restrict" }),
   decidedAt: isoTime("decided_at"),
   createdAt: isoTime("created_at").notNull().default(isoNow),
+  logId: text("log_id").references((): AnySQLiteColumn => engagementLog.id, { onDelete: "restrict" }),
+  correctionRequestId: text("correction_request_id").unique().references((): AnySQLiteColumn => correctionRequest.id, { onDelete: "restrict" }),
+  closedAt: isoTime("closed_at"),
+  closureKind: text("closure_kind", { enum: ["decision", "abandoned", "erased"] }),
 }, (t) => [
   uniqueIndex("moderation_case_subject_idx").on(t.kind, t.subjectId),
   index("moderation_case_queue_idx").on(t.kind, t.status, t.createdAt),
+  index("moderation_case_closed_idx").on(t.closedAt),
+  uniqueIndex("moderation_case_live_initial_idx").on(t.logId).where(sql`${t.kind} = 'log' AND ${t.status} IN ('open','claimed','awaiting_changes')`),
+  uniqueIndex("moderation_case_live_update_idx").on(t.logId).where(sql`${t.kind} = 'filer_update' AND ${t.status} IN ('open','claimed','awaiting_changes')`),
   check("moderation_case_kind_check", sql`${t.kind} IN ('verification','log','correction','filer_update')`),
-  check("moderation_case_state_check", sql`(${t.status} = 'open' AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL) OR (${t.status} = 'claimed' AND ${t.claimedBy} IS NOT NULL AND ${t.claimedUntil} IS NOT NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL) OR (${t.status} = 'decided' AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NOT NULL AND ${t.reason} IS NOT NULL AND length(trim(${t.reason}, char(9)||char(10)||char(11)||char(12)||char(13)||' ')) > 0 AND ${t.decidedBy} IS NOT NULL AND ${t.decidedAt} IS NOT NULL)`),
+  check("moderation_case_state_check", sql`(${t.status} IN ('open','awaiting_changes') AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL AND ${t.closedAt} IS NULL AND ${t.closureKind} IS NULL) OR (${t.status} = 'claimed' AND ${t.claimedBy} IS NOT NULL AND ${t.claimedUntil} IS NOT NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL AND ${t.closedAt} IS NULL AND ${t.closureKind} IS NULL) OR (${t.status} = 'decided' AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NOT NULL AND ${t.reason} IS NOT NULL AND length(trim(${t.reason}, char(9)||char(10)||char(11)||char(12)||char(13)||' ')) > 0 AND ${t.decidedBy} IS NOT NULL AND ${t.decidedAt} IS NOT NULL AND ((${t.closedAt} = ${t.decidedAt} AND ${t.closureKind} = 'decision') OR (${t.kind} = 'verification' AND ${t.closedAt} IS NULL AND ${t.closureKind} IS NULL))) OR (${t.status} = 'closed' AND ${t.claimedBy} IS NULL AND ${t.claimedUntil} IS NULL AND ${t.decision} IS NULL AND ${t.reason} IS NULL AND ${t.decidedBy} IS NULL AND ${t.decidedAt} IS NULL AND ${t.closedAt} IS NOT NULL AND ${t.closureKind} IN ('abandoned','erased'))`),
   check("moderation_case_decision_check", sql`${t.decision} IS NULL OR (${t.kind} = 'verification' AND ${t.decision} IN ('approve','reject')) OR (${t.kind} IN ('log','filer_update') AND ${t.decision} IN ('approve','ask_changes','reject')) OR (${t.kind} = 'correction' AND ${t.decision} IN ('uphold','ask_changes','correct','withdraw'))`),
 ]);
 
@@ -213,6 +228,8 @@ export const auditEvent = sqliteTable("audit_event", {
   subjectType: text("subject_type").notNull(),
   subjectId: text("subject_id").notNull(),
   createdAt: isoTime("created_at").notNull().default(isoNow),
+  moderationCaseId: text("moderation_case_id").references(() => moderationCase.id, { onDelete: "restrict" }),
+  retainUntil: isoTime("retain_until"),
 }, (t) => [index("audit_event_subject_idx").on(t.subjectType, t.subjectId, t.createdAt)]);
 
 export const portfolioLink = sqliteTable(
@@ -274,6 +291,7 @@ export const engagement = sqliteTable(
     inviteExpiresAt: isoTime("invite_expires_at").notNull(),
     acceptedAt: isoTime("accepted_at"),
     declinedAt: isoTime("declined_at"),
+    purposeEndedAt: isoTime("purpose_ended_at"),
     createdAt: isoTime("created_at").notNull().default(isoNow),
   },
   (t) => [
@@ -323,6 +341,7 @@ export const engagementLog = sqliteTable(
     holdKind: text("hold_kind", { enum: ["review", "legal"] }),
     holdPlacedAt: isoTime("hold_placed_at"),
     holdReleasedAt: isoTime("hold_released_at"),
+    nameRetentionUntil: isoTime("name_retention_until"),
     createdAt: isoTime("created_at").notNull().default(isoNow),
   },
   (t) => [
@@ -355,10 +374,18 @@ export const logRevision = sqliteTable(
     decidedAt: isoTime("decided_at"),
     decision: text("decision", { enum: REVISION_DECISIONS }),
     reason: text("reason"),
+    draftUpdatedAt: isoTime("draft_updated_at"),
+    effectiveOn: text("effective_on"),
+    invalidatedAt: isoTime("invalidated_at"),
+    state: text("state", { enum: ["draft", "submitted"] }).notNull().default("draft"),
+    moderationCaseId: text("moderation_case_id").references(() => moderationCase.id, { onDelete: "restrict" }),
   },
   (t) => [
     uniqueIndex("log_revision_log_rev_no_idx").on(t.logId, t.revNo),
     uniqueIndex("log_revision_id_log_idx").on(t.id, t.logId),
+    index("log_revision_activity_idx").on(t.state, t.draftUpdatedAt),
+    check("log_revision_state_check", sql`${t.state} IN ('draft','submitted')`),
+    check("log_revision_effective_check", sql`${t.effectiveOn} IS NULL OR (${t.effectiveOn} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND date(${t.effectiveOn}, '+0 days') IS ${t.effectiveOn})`),
     check("log_revision_rev_no_check", sql`typeof(${t.revNo}) = 'integer' AND ${t.revNo} >= 1`),
     check("log_revision_kind_check", sql`${t.kind} IN ('initial','filer_update','correction')`),
     check("log_revision_rating_check", sql`typeof(${t.rating}) = 'integer' AND ${t.rating} BETWEEN 1 AND 5`),
@@ -406,8 +433,10 @@ export const proofFile = sqliteTable(
     sha256: text("sha256").notNull(),
     purgeAttempts: integer("purge_attempts").notNull().default(0),
     purgeInflight: integer("purge_inflight").notNull().default(0),
+    writeInflight: integer("write_inflight").notNull().default(0),
     status: text("status", { enum: PROOF_STATUSES }).notNull().default("uploading"),
     uploadedAt: isoTime("uploaded_at").notNull().default(isoNow),
+    correctionRequestId: text("correction_request_id").references((): AnySQLiteColumn => correctionRequest.id, { onDelete: "restrict" }),
   },
   (t) => [
     index("proof_file_log_idx").on(t.logId),
@@ -420,7 +449,181 @@ export const proofFile = sqliteTable(
     check("proof_file_size_check", sql`typeof(${t.sizeBytes}) = 'integer' AND ${t.sizeBytes} BETWEEN 1 AND 10485760`),
     check("proof_file_purge_attempts_check", sql`typeof(${t.purgeAttempts}) = 'integer' AND ${t.purgeAttempts} BETWEEN 0 AND 9007199254740991`),
     check("proof_file_purge_inflight_check", sql`typeof(${t.purgeInflight}) = 'integer' AND ${t.purgeInflight} IN (0,1)`),
+    check("proof_file_writer_check", sql`${t.writeInflight} IN (0,1)`),
     check("proof_file_status_check", sql`${t.status} IN ('uploading','attached','abandoned','pending_purge','purged')`),
   ],
 );
+
+// Pilot lifecycle/review contract: SDD §§3.8–3.12. SQL triggers enforce
+// relationship, actor, immutable-history and exact maintenance authority.
+export const correctionRequest = sqliteTable("correction_request", {
+  id: text("id").primaryKey(),
+  logId: text("log_id").references(() => engagementLog.id, { onDelete: "restrict" }),
+  subjectRef: text("subject_ref").notNull(),
+  requestedBy: text("requested_by").notNull().references(() => user.id, { onDelete: "restrict" }),
+  baseRevisionId: text("base_revision_id").references(() => logRevision.id, { onDelete: "restrict" }),
+  status: text("status", { enum: ["draft", "submitted", "ask_changes", "closed", "abandoned"] }).notNull().default("draft"),
+  newEvidenceNote: text("new_evidence_note").notNull(),
+  activeProofIds: text("active_proof_ids").notNull().default("[]"),
+  createdAt: isoTime("created_at").notNull().default(isoNow),
+  updatedAt: isoTime("updated_at").notNull().default(isoNow),
+  submittedAt: isoTime("submitted_at"),
+  closedAt: isoTime("closed_at"),
+  hiddenAt: isoTime("hidden_at"),
+  hiddenBy: text("hidden_by").references(() => user.id, { onDelete: "restrict" }),
+  hideReason: text("hide_reason"),
+  restoredAt: isoTime("restored_at"),
+}, (t) => [
+  uniqueIndex("correction_request_live_log_idx").on(t.logId).where(sql`${t.status} IN ('draft','submitted','ask_changes')`),
+  index("correction_request_subject_idx").on(t.subjectRef, t.closedAt),
+  check("correction_request_active_proofs_check", sql`json_valid(${t.activeProofIds}) AND json_type(${t.activeProofIds})='array' AND json_array_length(${t.activeProofIds})<=5`),
+  check("correction_request_status_check", sql`${t.status} IN ('draft','submitted','ask_changes','closed','abandoned')`),
+  check("correction_request_close_check", sql`(${t.status} IN ('closed','abandoned') AND ${t.closedAt} IS NOT NULL) OR (${t.status} IN ('draft','submitted','ask_changes') AND ${t.closedAt} IS NULL AND ${t.logId} IS NOT NULL)`),
+  check("correction_request_hide_check", sql`(${t.hiddenAt} IS NULL AND ${t.hiddenBy} IS NULL AND ${t.hideReason} IS NULL AND ${t.restoredAt} IS NULL) OR (${t.hiddenAt} IS NOT NULL AND ${t.hiddenBy} IS NOT NULL AND length(trim(${t.hideReason})) > 0)`),
+]);
+
+export const reviewRound = sqliteTable("review_round", {
+  id: text("id").primaryKey(),
+  caseId: text("case_id").notNull().references(() => moderationCase.id, { onDelete: "restrict" }),
+  roundNo: integer("round_no").notNull(),
+  revisionId: text("revision_id").references(() => logRevision.id, { onDelete: "restrict" }),
+  reviewerId: text("reviewer_id").notNull().references(() => user.id, { onDelete: "restrict" }),
+  decision: text("decision", { enum: MODERATION_DECISIONS }).notNull(),
+  reason: text("reason").notNull(),
+  decidedAt: isoTime("decided_at").notNull(),
+}, (t) => [
+  uniqueIndex("review_round_case_number_idx").on(t.caseId, t.roundNo),
+  check("review_round_number_check", sql`typeof(${t.roundNo})='integer' AND ${t.roundNo}>=1`),
+  check("review_round_decision_check", sql`${t.decision} IN ('approve','ask_changes','reject','uphold','correct','withdraw')`),
+  check("review_round_reason_check", sql`length(trim(${t.reason}))>0`),
+]);
+
+export const proofReview = sqliteTable("proof_review", {
+  id: text("id").primaryKey(),
+  roundId: text("round_id").notNull().references(() => reviewRound.id, { onDelete: "restrict" }),
+  proofId: text("proof_id").references(() => proofFile.id, { onDelete: "restrict" }),
+  proofSha256: text("proof_sha256").notNull(),
+  verdict: text("verdict", { enum: ["accepted", "rejected"] }).notNull(),
+  reason: text("reason").notNull(),
+  reviewedAt: isoTime("reviewed_at").notNull(),
+}, (t) => [
+  uniqueIndex("proof_review_round_proof_idx").on(t.roundId, t.proofId),
+  check("proof_review_verdict_check", sql`${t.verdict} IN ('accepted','rejected')`),
+  check("proof_review_reason_check", sql`length(trim(${t.reason}))>0`),
+]);
+
+export const revisionProof = sqliteTable("revision_proof", {
+  revisionId: text("revision_id").notNull().references(() => logRevision.id, { onDelete: "restrict" }),
+  proofId: text("proof_id").notNull().references(() => proofFile.id, { onDelete: "restrict" }),
+}, (t) => [primaryKey({ columns: [t.revisionId, t.proofId] })]);
+
+export const PRIVACY_REQUEST_KINDS = ["export", "correction", "deletion", "closure"] as const;
+export const PRIVACY_REQUEST_STATUSES = ["received", "assessing", "executing", "completed", "deferred", "denied"] as const;
+export const privacyRequest = sqliteTable("privacy_request", {
+  id: text("id").primaryKey(),
+  subjectUserId: text("subject_user_id").references(() => user.id, { onDelete: "restrict" }),
+  responsibleId: text("responsible_id").references(() => user.id, { onDelete: "restrict" }),
+  kind: text("kind", { enum: PRIVACY_REQUEST_KINDS }).notNull(),
+  receivedAt: isoTime("received_at").notNull(),
+  dueAt: isoTime("due_at").notNull(),
+  identityVerifiedAt: isoTime("identity_verified_at"),
+  status: text("status", { enum: PRIVACY_REQUEST_STATUSES }).notNull().default("received"),
+  scope: text("scope").notNull(),
+  assessment: text("assessment"),
+  outcome: text("outcome"),
+  deactivatedAt: isoTime("deactivated_at"),
+  assessedAt: isoTime("assessed_at"),
+  closedAt: isoTime("closed_at"),
+}, (t) => [
+  index("privacy_request_due_idx").on(t.status, t.dueAt),
+  check("privacy_request_kind_check", sql`${t.kind} IN ('export','correction','deletion','closure')`),
+  check("privacy_request_status_check", sql`${t.status} IN ('received','assessing','executing','completed','deferred','denied')`),
+  check("privacy_request_scope_check", sql`json_valid(${t.scope}) AND json_type(${t.scope})='object'`),
+  check("privacy_request_assessment_check", sql`${t.assessment} IS NULL OR (json_valid(${t.assessment}) AND json_type(${t.assessment})='object')`),
+  check("privacy_request_due_check", sql`julianday(${t.dueAt}) IS NOT NULL AND ${t.dueAt}>=${t.receivedAt} AND (${t.kind}!='closure' OR julianday(${t.dueAt})<=julianday(${t.receivedAt})+30)`),
+]);
+
+export const HOLD_TARGET_TYPES = ["user", "log", "revision", "proof", "case", "policy", "request", "audit"] as const;
+export const retentionHold = sqliteTable("retention_hold", {
+  id: text("id").primaryKey(),
+  targetType: text("target_type", { enum: HOLD_TARGET_TYPES }).notNull(),
+  targetId: text("target_id").notNull(),
+  kind: text("kind", { enum: ["review", "legal"] }).notNull(),
+  responsibleId: text("responsible_id").notNull().references(() => user.id, { onDelete: "restrict" }),
+  reason: text("reason").notNull(),
+  placedAt: isoTime("placed_at").notNull(),
+  reviewDueAt: isoTime("review_due_at").notNull(),
+  expiresAt: isoTime("expires_at").notNull(),
+  releasedAt: isoTime("released_at"),
+}, (t) => [
+  index("retention_hold_target_idx").on(t.targetType, t.targetId, t.expiresAt),
+  check("retention_hold_type_check", sql`${t.targetType} IN ('user','log','revision','proof','case','policy','request','audit')`),
+  check("retention_hold_kind_check", sql`${t.kind} IN ('review','legal')`),
+  check("retention_hold_reason_check", sql`length(trim(${t.reason}))>0`),
+  check("retention_hold_time_check", sql`julianday(${t.placedAt}) IS NOT NULL AND julianday(${t.reviewDueAt}) IS NOT NULL AND julianday(${t.expiresAt}) IS NOT NULL AND ${t.placedAt}<=${t.reviewDueAt} AND ${t.reviewDueAt}<=${t.expiresAt} AND (${t.releasedAt} IS NULL OR (julianday(${t.releasedAt}) IS NOT NULL AND ${t.releasedAt}>=${t.placedAt}))`),
+]);
+
+export const MAINTENANCE_OPERATIONS = ["purge", "redact_identity", "retire_policy", "close_abandoned"] as const;
+export const MAINTENANCE_BASES = ["retention_due", "assessed_erasure", "account_closure"] as const;
+export const MAINTENANCE_STATUSES = ["planned", "claimed", "blocked", "completed", "abandoned"] as const;
+export const maintenanceTask = sqliteTable("maintenance_task", {
+  id: text("id").primaryKey(),
+  privacyRequestId: text("privacy_request_id").references(() => privacyRequest.id, { onDelete: "restrict" }),
+  authorizedBy: text("authorized_by").references(() => user.id, { onDelete: "restrict" }),
+  targetType: text("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  operation: text("operation", { enum: MAINTENANCE_OPERATIONS }).notNull(),
+  basis: text("basis", { enum: MAINTENANCE_BASES }).notNull(),
+  dueAt: isoTime("due_at").notNull(),
+  authorizedAt: isoTime("authorized_at").notNull(),
+  authorizationExpiresAt: isoTime("authorization_expires_at").notNull(),
+  status: text("status", { enum: MAINTENANCE_STATUSES }).notNull().default("planned"),
+  claimedAt: isoTime("claimed_at"),
+  attempts: integer("attempts").notNull().default(0),
+  completedAt: isoTime("completed_at"),
+  retainUntil: isoTime("retain_until"),
+}, (t) => [
+  uniqueIndex("maintenance_task_live_idx").on(t.targetType, t.targetId, t.operation).where(sql`${t.status} IN ('planned','claimed','blocked')`),
+  index("maintenance_task_due_idx").on(t.status, t.dueAt, t.attempts),
+  check("maintenance_task_operation_check", sql`${t.operation} IN ('purge','redact_identity','retire_policy','close_abandoned')`),
+  check("maintenance_task_basis_check", sql`${t.basis} IN ('retention_due','assessed_erasure','account_closure')`),
+  check("maintenance_task_status_check", sql`${t.status} IN ('planned','claimed','blocked','completed','abandoned')`),
+  check("maintenance_task_attempts_check", sql`typeof(${t.attempts})='integer' AND ${t.attempts}>=0`),
+  check("maintenance_task_authorization_check", sql`julianday(${t.authorizedAt}) IS NOT NULL AND julianday(${t.authorizationExpiresAt}) IS NOT NULL AND julianday(${t.dueAt}) IS NOT NULL AND ${t.authorizedAt}<${t.authorizationExpiresAt} AND (julianday(${t.authorizationExpiresAt})-julianday(${t.authorizedAt}))*86400<=3600.001`),
+]);
+
+export const exportDelivery = sqliteTable("export_delivery", {
+  id: text("id").primaryKey(),
+  privacyRequestId: text("privacy_request_id").notNull().references(() => privacyRequest.id, { onDelete: "restrict" }),
+  authKind: text("auth_kind", { enum: ["session", "assessed_capability"] }).notNull(),
+  objectKey: text("object_key").unique(),
+  tokenHash: text("token_hash").unique(),
+  writeInflight: integer("write_inflight").notNull().default(0),
+  createdAt: isoTime("created_at").notNull(),
+  expiresAt: isoTime("expires_at").notNull(),
+  downloadedAt: isoTime("downloaded_at"),
+  purgedAt: isoTime("purged_at"),
+}, (t) => [
+  check("export_delivery_auth_check", sql`${t.authKind} IN ('session','assessed_capability')`),
+  check("export_delivery_writer_check", sql`${t.writeInflight} IN (0,1) AND (${t.writeInflight}=0 OR ${t.objectKey} IS NOT NULL AND ${t.purgedAt} IS NULL AND ${t.downloadedAt} IS NULL)`),
+  check("export_delivery_time_check", sql`julianday(${t.createdAt}) IS NOT NULL AND julianday(${t.expiresAt}) IS NOT NULL AND ${t.createdAt}<${t.expiresAt} AND julianday(${t.expiresAt})<=julianday(${t.createdAt})+1`),
+]);
+
+export const backupDisposition = sqliteTable("backup_disposition", {
+  id: text("id").primaryKey(),
+  privacyRequestId: text("privacy_request_id").references(() => privacyRequest.id, { onDelete: "restrict" }),
+  targetType: text("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  backupRef: text("backup_ref").notNull(),
+  action: text("action", { enum: ["erase", "expire", "restore_filter"] }).notNull(),
+  basis: text("basis").notNull(),
+  dueAt: isoTime("due_at").notNull(),
+  status: text("status", { enum: ["pending", "verified"] }).notNull().default("pending"),
+  verifiedAt: isoTime("verified_at"),
+}, (t) => [
+  index("backup_disposition_due_idx").on(t.status, t.dueAt),
+  check("backup_disposition_action_check", sql`${t.action} IN ('erase','expire','restore_filter')`),
+  check("backup_disposition_time_check", sql`julianday(${t.dueAt}) IS NOT NULL AND ((${t.status}='pending' AND ${t.verifiedAt} IS NULL) OR (${t.status}='verified' AND julianday(${t.verifiedAt}) IS NOT NULL))`),
+  check("backup_disposition_basis_check", sql`length(trim(${t.basis}))>0`),
+]);
 

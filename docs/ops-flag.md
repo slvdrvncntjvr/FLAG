@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.41
+doc_version: 2.44
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-11-01
+updated: 2026-11-02
 reconciled: 2026-10-13
 ---
 
@@ -27,6 +27,12 @@ The approved account is fixed in Wrangler configuration and binding guards.
 Each environment has separate data and secrets. dev-2 is a source branch;
 it adds no environment. The pilot stays within free allowances; owner approves
 any spend. No automatic spend cutoff is implemented.
+
+The owner's 2026-11-02 authorization covers remaining pilot implementation,
+backed-up dev migrations/deployment and synthetic intake after prerequisites
+under Review docs. Keep intake disabled during implementation. Promotion to main
+requires the owner's later approval. This procedure neither enables real pilot
+proof collection automatically nor adds optional features or paid upgrades.
 
 ## 2. Deploy
 
@@ -51,6 +57,79 @@ signed-out /home and /onboarding redirect to /sign-in; anonymous proofs deny.
 Worker rollback leaves schema/data unchanged. Select a known compatible version
 from recorded evidence; a D1 restore is a separate owner decision. Historical
 rollback/restore receipts are in the Superseded log, not fresh release evidence.
+
+### 2.1 Stage the remaining pilot on dev before main
+
+Use QAD sections 1.1–1.2 and 7.1 for executable acceptance and missing coverage.
+The commands below are existing package scripts verified against
+`web/package.json:8`; they were not executed by this documentation task. Run from
+web with npm.cmd on PowerShell where needed. Future lifecycle/export/maintenance
+operator commands must be supplied and exercised by their implementation owner;
+no guessed command or bare SQL override is a supported operating procedure.
+
+1. Finish the SDD schema/transition contract and additive migrations before
+   applying SQL. Preserve published migration bytes, snapshots, old consent and
+   decision evidence. Test upgrades from actual 0008/0009 fixtures; do not infer
+   production's ledger from dev. In particular 0009 blocks publication today;
+   only reviewed later migrations may replace its guards with the controlled
+   moderation/maintenance path. Retained rows must remain readable by the chosen
+   compatible application through deployment order.
+2. Keep actual dev intake `"false"`. Run the existing BUILD checks plus the new
+   QAD cases for the intended slice; verify candidate CI. Check dev's actual
+   migration ledger, take and verify its encrypted backup as in section 6, then
+   apply the compatible reviewed pending set with `npm run db:migrate:dev`.
+   This applies all pending files; inspect that set before execution. Migration
+   failure requires ledger/data inspection, not blind rerun or SQL rollback.
+3. Deploy dev through normal Workers Builds (section 2), or the already
+   authorized fallback `npm run deploy:dev`. A successful build/deploy does not
+   establish migration, binding, scheduler or acceptance success. Confirm actual
+   settings with section 2.2 and execute affected disabled-intake/authorized-read
+   smoke checks before enabling writes.
+4. Verify minimum safe assessed requests, export/closure, independent correction,
+   physical D1/R2 erasure and documented holds. Exercise the actual deployed
+   maintenance mechanism with synthetic due rows; record failures/retries and
+   confirmed erasure. Read hiding alone is not this prerequisite. Update
+   applicable privacy/terms text and versions when processing changes and check
+   current-policy reacceptance without rewriting old receipts.
+5. Only after prerequisites, enable the intended dev server flag for synthetic
+   intake and run QAD section 7.1 on synthetic accepted engagements/proofs,
+   publication, corrections, records and ratings. Record observed results once.
+   The flag enables writes globally for eligible verified dev users; it is not
+   a synthetic-account allowlist. Use clearly synthetic accounts/proofs, do not
+   verify/admit real proof filers during this phase, and keep the enabled test
+   window under staff control. If existing eligible real accounts make that
+   boundary unmanageable, leave intake false and have the coordinator resolve
+   containment before enabling it. Disable intake if safety fails; preserve
+   authorized evidence for assessed handling. Enabling dev is not enabling
+   production or authorizing real data; separate manual acceptance precedes
+   real pilot proof collection.
+6. Report dev outcomes, remaining defects and candidate CI/manual smoke to the
+   owner. Main remains unchanged until later promotion approval. Section 7 owns
+   the production sequence after that approval; do not apply production SQL or
+   change production settings as an incidental dev step.
+
+### 2.2 Verify actual deployed configuration
+
+The operator inspects the selected deployed Worker's settings/binding metadata
+through the established Cloudflare access, not merely the source file or a local
+dry-run. Record environment/time, names, ledger and pass/fail without secret
+values, capability paths or retained log content.
+
+| Check | Expected for the selected environment |
+|-------|---------------------------------------|
+| Target and private bindings | Dev: flag-dev / DB=flag-db-dev / PROOFS=flag-proofs-dev / dev auth origin; production: flag / DB=flag-db / PROOFS=flag-proofs / production auth origin. Match actual D1 IDs to source binding guards, not name alone |
+| Schema and compatibility | Actual migration ledger matches the reviewed required set; existing and newly shipped reads/actions work; deployment did not rewrite historical SQL/data |
+| Proof privacy | No public R2 domain/access; anonymous and unrelated/bare-admin proof requests return 404/no-store; authorized reads still work while intake is off |
+| Intake | Actual server value is exact string false during implementation; no new draft/upload/edit/submit writes; exact true only for intended post-prerequisite dev synthetics |
+| Auth/policies | Actual BETTER_AUTH_URL matches target; secret names exist without printing values; sign-in/current-policy reacceptance works; historical engagement consent unchanged |
+| Logging | Invocation logs false, logs.persist false, traces.enabled/persist false; no export destinations, Tail consumers or Logpush; fixed application events remain content-free |
+| Maintenance | Actual deployed scheduled/internal mechanism exists and has bounded authority; due synthetic D1/R2 data erased with content-free completion/retry evidence; no public purge route |
+
+Source observability tests intentionally assert disabled intake in both source
+environments (`web/scripts/observability-safety.test.mjs:63`). When enabling the
+approved dev phase, update the affected rollout/config expectations to reflect
+that phase while preserving production false and logging/privacy assertions;
+do not suppress a failing guard or treat an obsolete assertion as product intent.
 
 ## 3. Configuration and secrets
 
@@ -105,14 +184,9 @@ tokens into reports.
 
 ### Enable private intake on dev
 
-1. Complete and verify the minimum safe lifecycle/correction capabilities in
-   PRD-F12/PRD-F13. Use synthetic data while developing them.
-2. Back up dev D1. Review/apply pending migrations starting at 0009, including
-   prerequisite lifecycle/publication additions. Never edit published SQL.
-3. Update privacy/terms to describe the newly available processing and bump
-   their source policy versions when that meaning changes.
-4. Enable the server flag only in the intended dev environment, deploy the
-   reviewed candidate and run the shipped-slice smoke/owner check.
+Follow section 2.1 in order. PRD-F12/PRD-F13 are the existing minimum safe
+lifecycle/correction prerequisite. New feature implementation and dev synthetics
+are authorized; production promotion and real proof intake are not automatic.
 
 A source flag change alone is insufficient. Existing private reads stay
 relationship-authorized while intake is off. An unexplained purge_inflight owner
@@ -126,6 +200,70 @@ this address does not establish that an export/deletion/closure tool exists.
 Complete the minimum safe lifecycle before collecting real proofs or publishing.
 Hiding or read-time expiry alone is not physical erasure. Preserve documented
 holds and decided-row evidence until a controlled assessed purge is designed.
+
+When implemented, the processor records requester/subject, kind, responsible
+staff, assessment, action and outcome using the SDD-defined workflow. For
+closure, assess within 30 days, deactivate and revoke sessions/access without
+cascade-deleting retained evidence. Retain a published filer's name only under
+the assessed lawful purpose; earlier required erasure first hides/withdraws the
+publication and recalculates the record. Export uses the SDD section 3.10
+allowlist, per-file subject relationship checks and private delivery: ordinary
+verified-subject session plus hashed one-use capability, or a separately
+assessed post-closure export-only capability. Maximum lifetime is 24 hours; a
+closed account is never reopened to deliver it. The issuing admin does not
+receive proof bytes, choose another recipient or automatically email a secret
+link. Recheck subject/channel, no-store/nosniff attachment delivery, one-use
+refusal and confirmed artifact erasure before marking work done. Receipt of
+email is neither authentication nor delivery.
+
+Physical maintenance uses the SDD-defined internal/scheduled authority. It must
+not use raw unguarded DELETE or disable freeze/hold triggers. Claim eligible
+work atomically, delete exact scoped R2 objects, confirm result, then retire
+eligible D1 children/parents in dependency order with retry tracking. Preserve
+minimal per-case history until its own deadline. An R2 failure, changed identity
+or uncertain in-flight owner is incomplete work, never confirmed erasure.
+The bounded existing draft helper at
+`web/src/features/logs/cleanup.ts:7` is not a full retention scheduler or privacy
+processor. New operator entry points remain unavailable until implemented and
+exercised; this plan does not claim a Cron or export tool currently runs.
+
+SDD section 3.11 targets an hourly scheduled Worker calling the same bounded
+runner as staff retry: at most 25 task claims and 25 R2 deletes per run. Once
+implemented, check actual cron configuration and packaged scheduled-handler
+behavior, last run/result and due backlog. Reads/downloads deny exactly at their
+deadline; physical destruction is due on the next hourly sweep. Failed or held
+work remains explicitly tracked. A server helper without a deployed executor
+does not meet this contract. No maintenance CLI command is currently supplied.
+
+| Selector | Required operation |
+|----------|--------------------|
+| Published/withdrawn material | Original publication plus 12 months; approved updates/corrections never restart it; every record read excludes expired material before maintenance |
+| Idle draft/unpublished ask-changes | 30 days inactive; close abandoned case before purge; activity must not be fabricated by background retry |
+| Rejected material | 30 days from final decision; keep only separately due minimal case history afterward |
+| Abandoned proposed update | Purge only unapproved revision and exclusively owned proofs; preserve shared/active publication evidence and inherited expiry |
+| Verification/moderation/correction/audit history | Minimal receipt for 12 months from its own actual case close; account activity/later cases do not grant indefinite retention |
+| Policy acceptances | Current gate while purpose is active; retired rows expire 12 months after policy/purpose end or account closure |
+| Review/legal hold | Document scope, responsible person, reason and bounded review/end; delay private deletion only, never record visibility/ratings; re-evaluate eligible purge on release/expiry |
+
+Use SDD's exact date arithmetic; QAD tests normal/leap/month-end deadlines,
+holds and failure races. Do not translate 12 months into a 365-day constant.
+
+### Correction and publication follow-up
+
+Only an authorized unconflicted moderator with a live 30-minute claim may
+publish after checking the engagement/event/rating against approved proof and
+recording a reason. Ask-changes preserves on-time initial eligibility and all
+rounds; no anchor/publication clock reset. Queue waiting age is oldest first,
+overdue after 36 hours; review target is 48 hours.
+
+A named client's private request alone does not hide a publication. Record a
+credible error/privacy assessment for temporary hiding; opinion disagreement is
+not removal. Corrections use an independent reviewer other than the original
+log decider; reject filer/client/engaged reviewer conflicts. Record uphold,
+ask-changes, correct or withdraw and private history. Filer proposals appear only
+after approval, with dated metadata and the original expiry. Monitor correction
+age against the 48-hour target. On stale/conflicting decisions inspect the
+winning current round; never repair by overwriting decided evidence.
 
 ### Failures and overdue work
 
@@ -141,6 +279,25 @@ incident procedures land with their unfinished workflows.
 Before remote migration, take a target D1 export into the owner's existing
 C:/Users/Vincent/FLAG-backups location using the established encrypted process.
 Keep the original Windows profile required for DPAPI CurrentUser recovery.
+Match the target database/ledger before exporting. Encrypt through the existing
+DPAPI CurrentUser process; verify that the encrypted artifact decrypts to the
+export's bytes/hash in controlled local memory or protected temporary handling,
+then remove only this operation's plaintext after verification. Record backup
+time, target, path and nonsecret integrity result, never data contents or keys.
+Do not leave the raw export in the repository, docs or reports. Use the implemented
+Windows helper and review/execution commands in [BUILD §3.2](build-flag.md#32-encrypted-d1-backup-command-windows).
+Its default is a local target/command review; synthetic DPAPI/cleanup tests perform
+no remote export. Actual dev execution uses the already approved conditional
+authorization only after the prerequisite checks; production execution remains
+within the later owner-approved release. No remote backup ran during tooling
+preparation, and encrypted byte verification does not establish restore safety.
+
+Backups are part of assessed erasure: record affected artifacts, finite expiry/
+deletion or documented bounded hold, responsible processor and actual result.
+Before a future authorized restore becomes accessible, reapply outstanding
+erasure/closure decisions so old backup bytes cannot resurrect access or visible
+publications. Keep export/backup disposition receipts minimal and finite under
+the SDD contract. This adds no production restore drill or new recovery gate.
 Historical D1 and synthetic R2 restore checks are recorded 2026-10-26 in the
 Superseded log; this task did not repeat them. Never infer production recovery
 or safe SQL rollback merely from a local test.
@@ -157,6 +314,26 @@ green CI and manual smoke for the intended slice. Back up production, apply
 reviewed pending migrations dev first, deploy, verify actual bindings and policy
 reacceptance. The last recorded production baseline predates PROOFS; a promotion
 must include the configured private binding.
+
+For this pilot, get the later owner main-promotion approval after dev acceptance.
+Inspect production's actual ledger, take/verify its encrypted backup, and apply
+only the compatible reviewed set already exercised on dev with
+`npm run db:migrate:remote` from web. Normal main deployment follows section 2;
+the explicitly authorized fallback is `npm run deploy` only when included in
+that promotion scope. Recheck section 2.2 on production, then perform the
+intended-slice smoke and policy reacceptance. Keep production intake false unless
+the owner separately authorizes its intended activation after prerequisites.
+The new pilot Worker requires the reviewed lifecycle columns and guards before
+it starts: migrate first, then deploy. A private-query capability fallback does
+not make the new authentication/onboarding code work against 0007/0008.
+The previous 2026-11-01 Worker tolerates the additive nullable columns, but its
+older privacy/terms versions cannot satisfy the new database policy authority.
+It is a limited fail-closed fallback: new onboarding and staff mutations may be
+unavailable. It is not a verified full pilot rollback. A release must identify a
+version compatible with the final schema and current policy before using it.
+
+If a release fails, stop new intake and select a known schema-compatible Worker
+version; never claim a Worker rollback undoes migrations or deletions.
 
 Keep the approved real-intake prerequisite. Do not revive dropped billing-tier
 proofs, exact release-identity gates, production recovery drills, purge-owner

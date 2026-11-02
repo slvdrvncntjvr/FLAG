@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { isAPIError } from "better-auth/api";
 import { redirect } from "next/navigation";
 import { getDb } from "@/server/db";
 import { isOnboarded, loadViewer, type Viewer } from "@/server/db/queries/viewer";
@@ -10,7 +11,12 @@ export { AccessError };
 // Returns null for signed-out visitors and suspended accounts.
 export async function getViewer(): Promise<Viewer | null> {
   const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() }).catch((error: unknown) => {
+    // A closed account has no application viewer even when session cleanup is
+    // still pending. Preserve unexpected infrastructure failures for retry.
+    if (isAPIError(error) && error.statusCode === 403 && error.body?.code === "ACCOUNT_UNAVAILABLE") return null;
+    throw error;
+  });
   if (!session) return null;
   const viewer = await loadViewer(await getDb(), session.user.id);
   return viewer && !viewer.banned ? viewer : null;

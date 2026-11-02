@@ -1,9 +1,9 @@
 import type { Db } from "@/server/db";
-import { assertChanged, editableDraftGate, filerGate, intakeNow, loadPrivateLog } from "@/server/db/queries/logs";
+import { assertChanged, contentWithinDeadline, editableDraftGate, filerGate, intakeNow, loadPrivateLog } from "@/server/db/queries/logs";
 import { failure, idInput, MAX_PROOF_BYTES, proofKindInput, type LogFailureCode, type LogResult } from "./schema";
-import { hex, objectMatches, purgeClaimedProof, trackedProof, type ProofRecord } from "./proof-storage";
+import { hex, objectMatches, purgeClaimedProof, trackedProof, removeTrackedProof, settleProofWrite, type ProofRecord } from "./proof-storage";
 import { runPrivateIntakeCleanup } from "./cleanup";
-import { noActiveLogHold } from "./holds";
+import { uploadProposalProof } from "@/features/updates/proofs";
 
 const responseHeaders = { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" };
 function errorResponse(code: LogFailureCode, status: number) {
@@ -67,17 +67,17 @@ async function ownedDraft(db: Db, actorId: string | null, logId: string): Promis
   return own ? "conflict" : "missing";
 }
 
-async function abandonUpload(db: Db, proofs: R2Bucket, proofId: string): Promise<void> {
-  // Compensation can never claim attached/submitted/held evidence.
-  await db.$client.prepare(`UPDATE proof_file SET status='pending_purge' WHERE id=? AND status IN ('uploading','abandoned','purged')
-    AND EXISTS(SELECT 1 FROM engagement_log l WHERE l.id=proof_file.log_id AND l.status='draft' AND l.first_submitted_at IS NULL AND ${noActiveLogHold("l")})`)
-    .bind(proofId).run();
-  await purgeClaimedProof(db, proofs, proofId);
-  // A late put must reclaim its retained tombstone atomically BEFORE deleting bytes.
-  // The pending_purge guard blocks a new hold during deletion; attached evidence is never claimed.
+async function abandonUpload(db: Db, proofs: R2Bucket, proofId: string, actorId: string): Promise<void> {
+  await removeTrackedProof(db, proofs, proofId, actorId);
 }
 
 export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | null, logId: string, request: Request): Promise<Response> {
+  if (actorId && idInput.safeParse(logId).success) {
+    const revision = await db.$client.prepare(`SELECT r.id FROM log_revision r JOIN engagement_log l ON l.id=r.log_id
+      WHERE l.id=? AND l.freelancer_id=? AND l.status='ask_changes' AND r.kind='initial' AND r.state='draft' AND r.decision IS NULL ORDER BY r.rev_no DESC LIMIT 1`)
+      .bind(logId, actorId).first<{ id: string }>();
+    if (revision) return uploadProposalProof(db, proofs, actorId, { revisionId: revision.id }, request);
+  }
   let access = await ownedDraft(db, actorId, logId);
   if (access === "conflict" && actorId) {
     const actor = filerGate(actorId);
@@ -109,8 +109,8 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
         VALUES('private-upload:'||?||':'||date('now','+8 hours'),1,CAST(strftime('%s','now','+2 days') AS INTEGER)*1000)
         ON CONFLICT(key) DO UPDATE SET count=count+1 WHERE count<20`).bind(actorId!),
       assertChanged(db),
-      db.$client.prepare(`INSERT INTO proof_file(id,log_id,owner_kind,uploaded_by,object_key,kind,mime,size_bytes,sha256)
-        SELECT ?,id,'filer',?,?,?,?,?,? FROM engagement_log WHERE id=? AND ${gate.text}`)
+      db.$client.prepare(`INSERT INTO proof_file(id,log_id,owner_kind,uploaded_by,object_key,kind,mime,size_bytes,sha256,write_inflight)
+        SELECT ?,id,'filer',?,?,?,?,?,?,1 FROM engagement_log WHERE id=? AND ${gate.text}`)
         .bind(id, actorId!, key, kind, mime, bytes.byteLength, checksum, logId, ...gate.args),
       assertChanged(db),
       // Reserving an active put is draft activity too. Cleanup must not retire its parent mid-put.
@@ -124,7 +124,11 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
   try {
     // The bounded buffer is also supported by the Node/OpenNext Miniflare bridge.
     // A Node Blob.stream() has no workerd fixed-length marker and is rejected there.
-    await proofs.put(key, bytes, { httpMetadata: { contentType: mime }, sha256: checksum });
+    try {
+      await proofs.put(key, bytes, { httpMetadata: { contentType: mime }, sha256: checksum });
+    } finally {
+      await settleProofWrite(db, id, key);
+    }
     const row = await trackedProof(db, id);
     if (!row || !objectMatches(await proofs.head(key), row)) throw new Error("upload unavailable");
     // A concurrent submit may have attached the complete reservation. That is success, never compensation.
@@ -136,7 +140,7 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
     return Response.json({ ok: true, data: { proofId: id } }, { status: 201, headers: responseHeaders });
   } catch {
     // DB errors retain the original reservation; never blindly delete an unknown or changed key.
-    await abandonUpload(db, proofs, id).catch(() => undefined);
+    await abandonUpload(db, proofs, id, actorId!).catch(() => undefined);
     return errorResponse("unavailable", 503);
   }
 }
@@ -144,13 +148,13 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
 export async function downloadProof(db: Db, proofs: R2Bucket, actorId: string | null, proofId: string): Promise<Response> {
   if (!actorId || !idInput.safeParse(proofId).success) return errorResponse("not_found", 404);
   const row = await trackedProof(db, proofId);
-  if (!row || !["uploading", "attached"].includes(row.status) || !await loadPrivateLog(db, actorId, row.log_id)) return errorResponse("not_found", 404);
+  if (!row || !["uploading", "attached"].includes(row.status) || !await loadPrivateLog(db, actorId, row.log_id) || !await contentWithinDeadline(db, "proof", proofId)) return errorResponse("not_found", 404);
   try {
     const object = await proofs.get(row.object_key);
     if (!objectMatches(object, row) || !object) return errorResponse("not_found", 404);
     // Recheck after R2 await: cleanup and concurrent state changes must not expose discarded evidence.
     const current = await trackedProof(db, proofId);
-    if (!current || !["uploading", "attached"].includes(current.status) || !await loadPrivateLog(db, actorId, row.log_id)) return errorResponse("not_found", 404);
+    if (!current || !["uploading", "attached"].includes(current.status) || !await loadPrivateLog(db, actorId, row.log_id) || !await contentWithinDeadline(db, "proof", proofId)) return errorResponse("not_found", 404);
     const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" }[row.mime];
     if (!extension) return errorResponse("not_found", 404);
     return new Response(object.body, { headers: { ...responseHeaders, "Content-Type": row.mime, "Content-Length": String(row.size_bytes),

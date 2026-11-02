@@ -37,7 +37,7 @@ export async function prepareProof(file: File): Promise<File> {
   } finally { bitmap.close(); }
 }
 
-export function ProofUpload({ logId, count, onBusy }: { logId: string; count: number; onBusy?: (busy: boolean) => void }) {
+export function ProofUpload({ logId, count, onBusy, endpoint }: { logId: string; count: number; onBusy?: (busy: boolean) => void; endpoint?: string }) {
   const router = useRouter();
   const inMessenger = useSyncExternalStore(subscribe, messengerSnapshot, () => false);
   const [busy, setBusy] = useState(false);
@@ -57,7 +57,7 @@ export function ProofUpload({ logId, count, onBusy }: { logId: string; count: nu
       body.set("file", prepared);
       body.set("kind", String(data.get("kind")));
       setFeedback({ error: false, text: "Uploading private proof. Keep this page open." });
-      const response = await fetch(`/api/logs/${encodeURIComponent(logId)}/proofs`, { method: "POST", body, signal: AbortSignal.timeout(60_000) });
+      const response = await fetch(endpoint ?? `/api/logs/${encodeURIComponent(logId)}/proofs`, { method: "POST", body, signal: AbortSignal.timeout(60_000) });
       const result = await response.json().catch(() => null);
       if (!response.ok || !result || typeof result !== "object" || !("ok" in result) || result.ok !== true) throw new Error(response.status === 413 ? "The proof exceeds 10 MiB." : response.status === 429 ? "The daily proof limit has been reached. Try again tomorrow." : response.status === 404 ? "This draft is unavailable. Reload the page." : "Proof could not be uploaded. Reload to check whether it was saved, then retry if needed.");
       form.reset();

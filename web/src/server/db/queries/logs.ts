@@ -3,6 +3,8 @@ import { engagementActor } from "./engagements";
 import { isOnboarded, loadViewer } from "./viewer";
 import { idInput } from "@/features/logs/schema";
 import { noActiveLogHold } from "@/features/logs/holds";
+import { hasLifecycleSchema } from "./schema-capabilities";
+import { contentDeadlineCtes, contentDeadlineSql } from "./content-deadlines";
 
 export const intakeNow = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 // Gates are repeated INSIDE conditional writes; a stale session/view model is not authority.
@@ -36,6 +38,8 @@ export type PrivateLog = {
   firstSubmittedAt: string | null; submittedAt: string | null;
   rating: number; outcome: string; facts: string; periodStart: string; periodEnd: string;
   amountCentavos: number | null; tags: string[]; proofs: PrivateProof[]; canEdit: boolean;
+  revisionId: string; reviewHistory: { decision: string; reason: string; decidedAt: string }[];
+  draftReady: boolean;
 };
 export type IntakeEngagement = { id: string; title: string; startedOn: string; endedAt: string | null; clientName: string; log: PrivateLog | null };
 
@@ -44,32 +48,59 @@ async function reader(db: Db, actorId: string | null) {
   const viewer = await loadViewer(db, actorId);
   return viewer && !viewer.banned && isOnboarded(viewer) ? viewer : null;
 }
+// The retention views account for shared evidence and independent proposal clocks.
+// Keep legacy deployed-schema reads compatible; lifecycle writers never use this fallback.
+export async function contentWithinDeadline(db: Db, kind: "revision" | "proof", id: string): Promise<boolean> {
+  if (!await hasLifecycleSchema(db)) return true;
+  const table = kind === "revision" ? "log_revision" : "proof_file";
+  const alias = kind === "revision" ? "r" : "p";
+  return !!await db.$client.prepare(`WITH ${contentDeadlineCtes} SELECT 1 FROM ${table} ${alias} WHERE ${alias}.id=? AND ${contentDeadlineSql(kind, alias)}`).bind(id).first();
+}
 export async function loadPrivateLog(db: Db, actorId: string | null, logId: string): Promise<PrivateLog | null> {
   if (!idInput.safeParse(logId).success) return null;
   const viewer = await reader(db, actorId);
   if (!viewer) return null;
-  const row = await db.$client.prepare(`SELECT l.id,l.ref,l.engagement_id AS engagementId,e.title,l.status,
+  // Existing private reads must survive a disabled-intake deployment at 0008/0009.
+  // Probe schema capability on this D1 binding; do not cache across databases/migrations.
+  const pilot = await hasLifecycleSchema(db);
+  const row = await db.$client.prepare(`${pilot ? `WITH ${contentDeadlineCtes}` : ""} SELECT l.id,l.ref,l.engagement_id AS engagementId,e.title,l.status,
     l.anchor_kind AS anchorKind,l.anchor_date AS anchorDate,l.first_submitted_at AS firstSubmittedAt,l.submitted_at AS submittedAt,
     r.rating,r.outcome,r.facts,r.period_start AS periodStart,r.period_end AS periodEnd,r.amount_centavos AS amountCentavos,
-    l.freelancer_id AS filer,CASE WHEN ${noActiveLogHold("l")} THEN 0 ELSE 1 END AS hasActiveHold
+    r.id AS revisionId,${pilot ? "r.state='draft' AND r.decision IS NULL" : "l.status='draft'"} AS draftReady,l.freelancer_id AS filer,CASE WHEN ${pilot ? noActiveLogHold("l") : "(l.hold_kind IS NULL OR (l.hold_released_at IS NOT NULL AND l.hold_released_at>=l.hold_placed_at))"} THEN 0 ELSE 1 END AS hasActiveHold
     FROM engagement_log l JOIN engagement e ON e.id=l.engagement_id
     JOIN client_profile cp ON cp.id=l.client_id
-    JOIN log_revision r ON r.log_id=l.id AND r.rev_no=1
+    JOIN log_revision r ON r.log_id=l.id AND r.id=COALESCE(l.current_revision_id,(SELECT newest.id FROM log_revision newest WHERE newest.log_id=l.id AND newest.kind='initial' ORDER BY newest.rev_no DESC LIMIT 1))
     WHERE l.id=? AND l.status!='expired' AND (l.expires_at IS NULL OR l.expires_at>strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      ${pilot ? `AND ${contentDeadlineSql("revision", "r")}` : ""}
       AND (l.freelancer_id=? OR cp.user_id=? OR ?='moderator')`)
     .bind(logId, viewer.id, viewer.id, viewer.role).first<Omit<PrivateLog, "tags" | "proofs" | "canEdit"> & { filer: string; hasActiveHold: number }>();
   if (!row) return null;
-  const [tags, proofs] = await Promise.all([
-    db.$client.prepare("SELECT t.tag FROM log_tag t JOIN log_revision r ON r.id=t.revision_id WHERE r.log_id=? AND r.rev_no=1 ORDER BY t.tag").bind(logId).all<{ tag: string }>(),
-    db.$client.prepare(`SELECT id,kind,mime,size_bytes AS sizeBytes,status FROM proof_file WHERE log_id=? AND status IN ('uploading','attached') ORDER BY uploaded_at,id`).bind(logId).all<PrivateProof>(),
+  const [tags, proofs, history] = await Promise.all([
+    db.$client.prepare("SELECT tag FROM log_tag WHERE revision_id=? ORDER BY tag").bind(row.revisionId).all<{ tag: string }>(),
+    db.$client.prepare(`${pilot ? `WITH ${contentDeadlineCtes}` : ""} SELECT id,kind,mime,size_bytes AS sizeBytes,status FROM proof_file p WHERE log_id=? AND owner_kind='filer' AND status IN ('uploading','attached')
+      ${pilot ? `AND ${contentDeadlineSql("proof", "p")}` : ""}
+      AND (revision_id=? OR (revision_id IS NULL AND ?='draft')${pilot ? " OR EXISTS(SELECT 1 FROM revision_proof rp WHERE rp.revision_id=? AND rp.proof_id=p.id)" : ""}) ORDER BY uploaded_at,id`)
+      .bind(logId, row.revisionId, row.status, ...(pilot ? [row.revisionId] : [])).all<PrivateProof>(),
+    pilot ? db.$client.prepare(`SELECT rr.decision,rr.reason,rr.decided_at AS decidedAt FROM review_round rr JOIN moderation_case c ON c.id=rr.case_id WHERE c.log_id=? AND c.kind='log' ORDER BY rr.round_no`).bind(logId)
+      .all<{ decision: string; reason: string; decidedAt: string }>() : Promise.resolve({ results: [] }),
   ]);
+  if (pilot && !await contentWithinDeadline(db, "revision", row.revisionId)) return null;
   const { filer, hasActiveHold, ...safe } = row;
-  return { ...safe, tags: tags.results.map(t => t.tag), proofs: proofs.results,
-    canEdit: row.status === "draft" && !hasActiveHold && filer === viewer.id && viewer.role === "freelancer" && viewer.freelancerStatus === "verified" };
+  return { ...safe, draftReady: !!row.draftReady, tags: tags.results.map(t => t.tag), proofs: proofs.results, reviewHistory: history.results,
+    canEdit: ["draft", "ask_changes"].includes(row.status) && !hasActiveHold && filer === viewer.id && viewer.role === "freelancer" && viewer.freelancerStatus === "verified" };
 }
 export async function loadLogForEngagement(db: Db, actorId: string | null, engagementId: string): Promise<IntakeEngagement | null> {
   if (!idInput.safeParse(engagementId).success || !actorId) return null;
-  const gate = filerGate(actorId);
+  // Legacy capability affects this read only. All mutators retain the full live SQL gate.
+  const pilot = await hasLifecycleSchema(db);
+  const gate = pilot ? filerGate(actorId) : {
+    text: "EXISTS(SELECT 1 FROM freelancer_profile fp WHERE fp.user_id=? AND fp.status='verified')",
+    args: [actorId],
+  };
+  if (!pilot) {
+    const viewer = await reader(db, actorId);
+    if (!viewer || viewer.role !== "freelancer" || viewer.freelancerStatus !== "verified") return null;
+  }
   const row = await db.$client.prepare(`SELECT e.id,e.title,e.started_on AS startedOn,e.ended_at AS endedAt,cp.display_name AS clientName
     FROM engagement e JOIN client_profile cp ON cp.id=e.client_id WHERE e.id=? AND e.freelancer_id=? AND e.status='accepted' AND ${gate.text}`)
     .bind(engagementId, actorId, ...gate.args).first<Omit<IntakeEngagement, "log">>();

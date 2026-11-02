@@ -3,11 +3,11 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.10
+doc_version: 0.14
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
-updated: 2026-11-01
+updated: 2026-11-02
 reconciled: 2026-09-14
 ---
 
@@ -25,6 +25,7 @@ additions has been verified. Read history only for a specific decision or incide
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-11-02 | Owner authorizes the remaining approved pilot on feat/pilot-readiness-20261102 while governing docs remain Review | Complete PRD-F12/PRD-F13 lifecycle/corrections, PRD-F4 log moderation/publication and PRD-F6/PRD-F14 records/ratings on dev before main; necessary docs/schema/implementation approved. Keep development intake disabled; backed-up dev migrations/deploy and synthetic acceptance intake only after prerequisites. Later main merge needs owner approval; no paid upgrades or optional scope; preserve SPINE 0.3.0, invariant meanings, SQL/history and deleted-LOG finding | SDD, QAD, OPS, INDEX, current LOG |
 | 2026-11-01 | Owner authorizes implementing the prior review recommendations, verifying the candidate and merging dev-2 into dev while docs remain Review | Restore PRD-F9 city wording and require city for new client profiles only; existing profiles including legacy NULL city remain reusable, freelancer verification city remains optional, no migration/backfill. Repair composed government-ID URL labels with bounded decoding, separate query pairs and first/corrected-submission zero-write regressions. Preserve SPINE 0.3.0, invariants, owner work and historical rows; retain the known checkpoint deletion finding. Final checks, review and merge outcomes remain pending in INDEX; no deployment or human acceptance is implied | PRD, SDD, QAD, BUILD, INDEX, current LOG |
 | 2026-11-01 | Hold dev-2 integration after independent run run_7438fbbffbd0 finds a residual R1 verification-URL privacy blocker | Three reviews completed: tooling has no substantive finding, documentation flags qualified city-optionality drift, application finds a composed-label bypass. Earlier passing checks remain dated evidence; main is assessment only and no hosted/human/full-product certification follows | INDEX, current LOG |
 | 2026-11-01 | Scoped audit repair disables persisted Workers logs and traces in both source environments while retaining fixed application event emission | Invocation suppression alone does not establish that custom-log metadata omits capability URLs. Avoid default platform retention at the cost of stored console diagnostics; no configured exports, Tail consumer or Logpush. Actual hosted overrides/history remain uninspected and unchanged; OPS records the operator-channel and historical-retention limits | OPS, SDD, QAD, INDEX, current LOG |
@@ -45,6 +46,11 @@ verification and integration status.
 None blocking this consolidation. Future lifecycle/correction implementation
 needs a completed technical design, listed in INDEX; that is engineering work,
 not a request to reconfirm settled product decisions.
+
+**2026-11-02 update:** The scoped owner authorization and design milestone in
+§14 supersede the earlier engineering-design blocker above. Actual individual
+privacy/hold/backup assessments remain staff inputs; implementation and
+verification are still required. No product-scope or invariant decision is added.
 
 Current readiness review leaves city optionality unresolved: PRD-F9 now explicitly
 calls city optional, while the prior PRD lists city and calls only registration
@@ -266,3 +272,126 @@ the existing PRD-F8 gate when deployed. Freelancer acknowledgment and per-engage
 consent versions remain unchanged, and historical acceptance/receipt rows are not
 rewritten. [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25) includes this
 source follow-up and the integration-status docs; its checks own delivery evidence.
+
+## 14. Approved pilot design and evidence correction, 2026-11-02
+
+The owner explicitly approved the remaining required pilot work while the docs
+remain Review, including necessary design/schema changes and implementation on
+`feat/pilot-readiness-20261102`. Delivery scope is the lifecycle/correction
+prerequisite, log moderation/publication and client records/ratings defined in
+PRD-F4, PRD-F6, PRD-F12, PRD-F13 and PRD-F14. Development intake stays disabled.
+Backed-up dev migrations/deployment and synthetic acceptance intake are authorized
+only after the prerequisite checks; a later main merge needs a new owner
+go-ahead. No paid upgrades, optional notifications/QR or expanded product intent.
+Human reconciled dates stay unchanged.
+
+The owner reports current dev signup, verification and moderation working,
+without specifying other scenarios. Record only that limited report; it does
+not establish acceptance of publication, correction, erasure/export, records,
+rating fallbacks or production. INDEX owns delivery state and remaining work.
+
+Prior coordinator audit `run_f8e7c3f97f0b` on **2026-11-01**, relayed in this
+dispatch, observed PR25 head `cc98d2846e692fa56f8c3e17d5f3511c349accf4`
+merged as `4f216e9229340d64c51051286c30afb38d6434c5`, successful required and
+merge checks, Workers Builds and dev version at 100%, current notice versions,
+intake false, persisted dev logs/traces off and expected bindings. INDEX corrects
+the PR24-only deployed label and cites the dated checks. No fresh GitHub,
+Cloudflare, hosted page or user-data inspection occurred in this design task;
+production remains the prior recorded baseline. Local git independently
+identifies the PR25 merge, not hosted delivery.
+
+SDD 2.29 extends the one ERD/register/constraints before migration: responsible
+privacy requests/outcomes, private exports, actual case-close anchors and
+immutable review rounds/proof verdicts, independent correction evidence and
+filer revisions, bounded holds, exact assessed-maintenance grants and backup
+disposition. It defines an hourly bounded maintenance executor, preserves
+ordinary freeze guards and original publication/expiry, and specifies one shared
+eligible rating/record projection. Nine new target tables are explicitly planned;
+no schema, app code, migration, published SQL or historical receipt was edited
+by the design worker. Implementation ownership/interfaces are supporting context
+in ignored `temporary/pilot-design-20261102.md`; SDD is the durable contract.
+
+Normal SPINE validation passes at the design checkpoint: zero errors; warnings
+are the deferred QR RFC and nine intentionally unimplemented target entities.
+Checkpoint verification still reports the owner-deleted original LOG against
+`spine-cp-2026-10-26-1`, already classified in §5; no suppression, history restore
+or replacement checkpoint. Design review and implementation verification remain
+subsequent work, not consequences of passing document validation.
+
+
+## 15. Pilot implementation checkpoint, 2026-11-02
+
+The independent design review identified two retention-contract gaps: a required
+live correction-to-log reference blocked original content expiry, and umbrella
+user/case holds lacked precise category coverage. SDD repairs define nullable
+live references with immutable content-free subject references, exact-object
+holds, ordered detachment, actual case-close anchors and finite assessed work.
+Implementation continues under the owner's existing scope; no invariant, human
+reconciliation date, historical SQL 0000-0009 or checkpoint was changed.
+
+The feature branch now contains schema/migrations, human proof-review rounds,
+private corrections/updates, client records and ratings, assessed privacy tools,
+short-lived metadata exports and a scheduled maintenance entry point. Focused
+D1 runs establish initial publication/correction paths and closed-account denial.
+An integration run exposed an onboarding insert-select missing the new retired
+receipt field; the projection was repaired and the six closure/authentication
+tests pass. Further review found retention-selector and deferred retry/recovery
+gaps, which remain release blockers until repaired and independently verified.
+Routine command output stays in task reports; INDEX owns delivery status.
+
+Three supervised workers ended their turns at an explicit account usage limit.
+The coordinator inspected their transcripts, preserved all partial changes,
+stopped those attempts and resumed the same Tasks using Orca retry provenance
+and the currently configured agent. No credit purchase or paid upgrade occurred.
+The implementation is not declared complete from their earlier partial passes.
+
+Candidate privacy/terms copy now describes the pilot workflows and prepares
+version 2026-11-02; the schema owner must align database current-policy authority
+and fixtures before final verification. Existing engagement-consent and
+freelancer-acknowledgment versions/history remain unchanged. No dev backup,
+remote migration, deployment, intake enablement or main merge has occurred at
+this checkpoint. The original LOG deletion finding remains visible.
+
+
+## 16. Independent pilot implementation reviews, 2026-11-02
+
+Two bounded independent source reviews covered schema/lifecycle/backup and the
+application's moderation, corrections, records, ratings, authentication and
+private routes. They found seven concrete issues: proof-compensation hold races,
+late export and proof writers outliving cleanup tracking, delayed retry after
+settled proof deletion failure, omitted natural and cross-request assessed
+export deadlines, and private proof reads beyond unpublished retention clocks.
+The implementation owners are repairing these within the existing scope.
+Subsequent writer re-review also identified a guarded claim that could prevent
+already claimed unrelated maintenance from completing; this is under repair.
+Static review completion does not establish tested repairs or release acceptance.
+
+SDD 2.38 defines explicit export/proof writer fences before schema changes:
+immutable unique keys remain tracked while writes are unresolved, settlement
+follows awaited storage I/O, and time alone cannot transfer ownership. Ordinary
+self-removal retains its tracking tombstone while a late writer remains possible;
+assessed physical erasure must not complete or delete tracking prematurely.
+Shared retention and assessed-source deadlines govern reads and export lifetime.
+Old published SQL 0000-0009 and invariant meanings remain unchanged.
+
+The owner confirmed that all three verified dev freelancer accounts are
+controlled test accounts. This resolves the synthetic acceptance containment
+question for the global intake switch; it does not enable intake or authorize
+real pilot data. At this checkpoint no dev backup, remote migration, deployment,
+intake enablement, main merge, or history restoration has occurred.
+
+## 17. Dev merge repair and integration authorization, 2026-11-02
+
+After the merge-readiness assessment, the owner explicitly authorized repairing
+the remaining defects, verifying the candidate and merging it into dev. This
+covers the necessary commit/PR/CI and the existing OPS migration-before-deploy
+sequence; it does not promote main, approve real intake, change invariant
+meanings, advance human reconciliation or authorize paid/optional scope.
+
+The bounded assessment found subject OTP identifiers missed by closure and
+assessed ownership mapping, earlier assessed erasure deadlines missed by private
+reads/records before maintenance, and missing nosniff on anonymous proof denial.
+SDD 2.39 makes exact provider credential ownership and physical expires_at cleanup
+explicit. Separate Orca workers own these repairs; passing final integration,
+actual dev backup/migration, merge and deployment remain evidence to establish,
+not consequences of this authorization. INDEX owns their eventual delivery state.

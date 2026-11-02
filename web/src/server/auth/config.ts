@@ -4,7 +4,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { normalizeIP } from "@better-auth/core/utils/ip";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import type { Db } from "@/server/db";
 import * as schema from "@/server/db/schema";
 import { sendMail } from "@/server/mail";
@@ -48,6 +48,19 @@ async function requirePasswordlessAccount(data: { providerId?: string; password?
 
 export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
   const limiter = createAuthRateLimiter(db, env.BETTER_AUTH_SECRET);
+  const unavailableAccount = () => new APIError("FORBIDDEN", {
+    code: "ACCOUNT_UNAVAILABLE", message: "This account is unavailable. Contact support.",
+  });
+  const ensureActiveAccount = async (userId: string) => {
+    const current = await db.query.user.findFirst({
+      columns: { deactivatedAt: true }, where: eq(schema.user.id, userId),
+    });
+    if (!current || current.deactivatedAt !== null) throw unavailableAccount();
+  };
+  const accountWrite = async (data: { providerId?: string; password?: string | null; userId?: string }) => {
+    await requirePasswordlessAccount(data);
+    if (data.userId) await ensureActiveAccount(data.userId);
+  };
   // Better Auth catches delivery callback errors. Track failures by its per-call
   // context so an after hook can return 503 without mixing concurrent requests.
   const failedDeliveries = new WeakSet<object>();
@@ -79,6 +92,7 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
         // input: false makes Better Auth reject these keys in any sign-up or update body (AB-12).
         role: { type: "string", required: false, input: false },
         banned: { type: "boolean", required: false, defaultValue: false, input: false },
+        deactivatedAt: { type: "string", required: false, input: false, returned: false },
         banReason: { type: "string", required: false, input: false },
         phoneNumber: { type: "string", required: false, input: false },
         phoneNumberVerified: { type: "boolean", required: false, defaultValue: false, input: false },
@@ -127,7 +141,23 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
           // Keep the library endpoint responsible for its normal cookie cleanup.
           return;
         }
+        // Closure must deny stale cookies even if stored-session cleanup failed.
+        // Sign-out above remains available so the browser can clear its cookie.
+        const signedToken = await ctx.getSignedCookie(ctx.context.authCookies.sessionToken.name, ctx.context.secret);
+        if (signedToken) {
+          const closedSession = await db.select({ id: schema.user.id }).from(schema.session)
+            .innerJoin(schema.user, eq(schema.user.id, schema.session.userId))
+            .where(and(eq(schema.session.token, signedToken), isNotNull(schema.user.deactivatedAt))).limit(1);
+          if (closedSession.length) throw unavailableAccount();
+        }
         if (!ctx.path || !OTP_PATHS.has(ctx.path)) return;
+        const submittedEmail = typeof ctx.body?.email === "string" ? ctx.body.email.trim().toLowerCase() : "";
+        if (submittedEmail) {
+          const closed = await db.query.user.findFirst({
+            columns: { id: true }, where: and(eq(schema.user.email, submittedEmail), isNotNull(schema.user.deactivatedAt)),
+          });
+          if (closed) throw unavailableAccount();
+        }
         // Better Auth logs and absorbs errors in background delivery callbacks.
         // Reject missing configuration synchronously, before it stores/sends a code.
         const sends = OTP_SEND_PATHS.has(ctx.path);
@@ -160,8 +190,8 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
     advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
     databaseHooks: {
       account: {
-        create: { before: requirePasswordlessAccount },
-        update: { before: requirePasswordlessAccount },
+        create: { before: accountWrite },
+        update: { before: accountWrite },
       },
       user: {
         create: { before: validateAuthUserProfile },
@@ -171,6 +201,7 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
           // current name. SQL remains authoritative if review starts after this
           // precheck; the auth error boundary sanitizes that race's adapter error.
           const id = ctx?.path === "/update-user" ? ctx.context.session?.user.id : undefined;
+          if (id) await ensureActiveAccount(id);
           if (id && typeof data.name === "string") {
             const current = await db.query.user.findFirst({ columns: { name: true }, where: eq(schema.user.id, id) });
             if (current && data.name !== current.name) {
@@ -190,10 +221,11 @@ export function createAuth(env: AuthEnv, db: Db, options: AuthOptions = {}) {
           // A suspended account cannot start a session.
           before: async (session) => {
             const row = await db.query.user.findFirst({
-              columns: { banned: true },
+              columns: { banned: true, deactivatedAt: true },
               where: eq(schema.user.id, session.userId),
             });
             if (row?.banned) throw new APIError("FORBIDDEN", { message: "Account suspended" });
+            if (!row || row.deactivatedAt !== null) throw unavailableAccount();
           },
         },
       },

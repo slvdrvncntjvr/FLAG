@@ -129,9 +129,11 @@ describe("PRD-F8 onboarding and legal acknowledgment", () => {
     await acceptOnboarding(db, userId!, { role: "client", privacy: "on", terms: "on" });
     await expect(db.update(policyAcceptance).set({ version: "x" }).where(eq(policyAcceptance.userId, userId!))).rejects.toThrow();
     await expect(db.delete(policyAcceptance).where(eq(policyAcceptance.userId, userId!))).rejects.toThrow();
-    // Deleting the account still cascades (PRD-F12).
-    await db.delete(user).where(eq(user.id, userId!));
-    expect(await db.select().from(policyAcceptance).where(eq(policyAcceptance.userId, userId!))).toHaveLength(0);
+    // PRD-F12 requires assessed, exact dependent erasure; a raw USER cascade
+    // must not erase the retained policy history.
+    const receipts = await db.select().from(policyAcceptance).where(eq(policyAcceptance.userId, userId!));
+    await expect(db.delete(user).where(eq(user.id, userId!))).rejects.toThrow();
+    expect(await db.select().from(policyAcceptance).where(eq(policyAcceptance.userId, userId!))).toEqual(receipts);
   });
 });
 

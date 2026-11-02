@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { createDb } from "@/server/db";
 import { auditEvent, freelancerProfile, moderationCase, user, verificationCase } from "@/server/db/schema";
+import { acceptCurrentPolicies } from "./current-schema-fixtures";
 
 const db = createDb(env.DB);
 async function seed() {
@@ -11,6 +12,7 @@ async function seed() {
     { id: owner, name: "Owner Name", email: `${owner}@example.invalid`, role: "freelancer" },
     { id: reviewer, name: "Reviewer", email: `${reviewer}@example.invalid`, role: "moderator" },
   ]);
+  await acceptCurrentPolicies(reviewer, "moderator");
   await db.insert(freelancerProfile).values({ userId: owner, displayName: "Owner Name", status: "pending" });
   await db.insert(verificationCase).values({ id, freelancerId: owner, createdAt: "2026-10-01T00:00:00.000Z" });
   return { id, owner, reviewer };
@@ -85,17 +87,26 @@ describe("PRD-F1/F4 direct D1 constraints", () => {
     ]) {
       // Invalid enum values are intentional direct SQL attacks, beyond TypeScript.
       await expect(env.DB.prepare(`INSERT INTO moderation_case(id,kind,subject_id,status,claimed_by,claimed_until,decision,reason,decided_by,decided_at) VALUES (?,'verification',?,?,?,?,?,?,?,?)`)
-        .bind(crypto.randomUUID(), crypto.randomUUID(), row.status, "claimedBy" in row ? row.claimedBy : null, "claimedUntil" in row ? row.claimedUntil : null, "decision" in row ? row.decision : null, "reason" in row ? row.reason : null, "decidedBy" in row ? row.decidedBy : null, "decidedAt" in row ? row.decidedAt : null).run()).rejects.toThrow();
+        .bind(crypto.randomUUID(), f.id, row.status, "claimedBy" in row ? row.claimedBy : null, "claimedUntil" in row ? row.claimedUntil : null, "decision" in row ? row.decision : null, "reason" in row ? row.reason : null, "decidedBy" in row ? row.decidedBy : null, "decidedAt" in row ? row.decidedAt : null).run()).rejects.toThrow(/case must start open/i);
     }
     const id = crypto.randomUUID();
-    await db.insert(moderationCase).values({ id, kind: "verification", subjectId: f.id, status: "decided", decision: "reject", reason: "Review grounds", decidedBy: f.reviewer, decidedAt: "2026-10-03T00:00:00.000Z" });
-    await expect(db.update(moderationCase).set({ reason: "Changed history" }).where(eq(moderationCase.id, id))).rejects.toThrow();
-    await expect(db.delete(moderationCase).where(eq(moderationCase.id, id))).rejects.toThrow();
+    await db.insert(moderationCase).values({ id, kind: "verification", subjectId: f.id });
+    await env.DB.prepare("UPDATE moderation_case SET status='claimed',claimed_by=?,claimed_until=strftime('%Y-%m-%dT%H:%M:%fZ','now','+30 minutes') WHERE id=?").bind(f.reviewer, id).run();
+    // With a real claimed subject, malformed terminal tuples reach the current CHECKs.
+    const terminal = { status: "decided", claimed_by: null, claimed_until: null, decision: "reject", reason: "Review grounds", decided_by: f.reviewer, decided_at: "2026-10-03T00:00:00.000Z", closed_at: "2026-10-03T00:00:00.000Z", closure_kind: "decision" };
+    const updateCase = (fields: DatabasePatch) => env.DB.prepare(`UPDATE moderation_case SET ${Object.keys(fields).map(key => `${key}=?`).join(",")} WHERE id=?`).bind(...Object.values(fields), id).run();
+    for (const invalid of [{ decision: "ask_changes" }, { reason: " \t\n" }, { decided_at: null }, { closed_at: "2026-10-04T00:00:00.000Z" }, { closure_kind: "abandoned" }]) {
+      await expect(updateCase({ ...terminal, ...invalid })).rejects.toThrow(/CHECK constraint failed: moderation_case_(?:state|decision)_check/i);
+    }
+    await updateCase(terminal);
+    expect(await env.DB.prepare("SELECT status,closed_at,closure_kind FROM moderation_case WHERE id=?").bind(id).first()).toEqual({ status: "decided", closed_at: terminal.decided_at, closure_kind: "decision" });
+    await expect(env.DB.prepare("UPDATE moderation_case SET reason='Changed history' WHERE id=?").bind(id).run()).rejects.toThrow(/terminal case is immutable/i);
+    await expect(env.DB.prepare("DELETE FROM moderation_case WHERE id=?").bind(id).run()).rejects.toThrow(/exact claimed purge task required/i);
     const eventId = crypto.randomUUID();
     await db.insert(auditEvent).values({ id: eventId, actorId: f.reviewer, action: "verification_decided", subjectType: "verification_case", subjectId: f.id });
     await expect(db.update(auditEvent).set({ action: "forged" }).where(eq(auditEvent.id, eventId))).rejects.toThrow();
     await expect(db.delete(auditEvent).where(eq(auditEvent.id, eventId))).rejects.toThrow();
     const columns = await env.DB.prepare("PRAGMA table_info(audit_event)").all<{ name: string }>();
-    expect(columns.results.map((c) => c.name)).toEqual(["id", "actor_id", "action", "subject_type", "subject_id", "created_at"]);
+    expect(columns.results.map((c) => c.name)).toEqual(["id", "actor_id", "action", "subject_type", "subject_id", "created_at", "moderation_case_id", "retain_until"]);
   });
 });

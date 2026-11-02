@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.90
+doc_version: 0.96
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-01
+updated: 2026-11-02
 reconciled: 2026-09-14
 ---
 
@@ -28,12 +28,12 @@ verification and OPS for operations. The active decision log is
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
-| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.40 | Review | 2026-11-01 | 2026-10-13 |
+| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.41 | Review | 2026-11-02 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
-| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.28 | Review | 2026-11-01 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.50 | Review | 2026-11-01 | 2026-10-13 |
-| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.41 | Review | 2026-11-01 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.10 | Draft | 2026-11-01 | 2026-09-14 |
+| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.39 | Review | 2026-11-02 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.53 | Review | 2026-11-02 | 2026-10-13 |
+| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.44 | Review | 2026-11-02 | 2026-10-13 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.14 | Draft | 2026-11-02 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -41,6 +41,12 @@ The owner explicitly authorized this overhaul and factual web-copy changes on
 New feature implementation still needs the scope of its actual task.
 The subsequent scoped repair/verification/dev-merge authorization is recorded in
 the current LOG; it does not newly lock or reconcile these Review documents.
+On 2026-11-02 the owner explicitly authorized the remaining approved pilot on
+`feat/pilot-readiness-20261102`: necessary design/schema/implementation while
+docs remain Review, then backed-up dev migrations/deployment and synthetic
+acceptance intake only after prerequisites. Main merge needs later owner
+approval; no paid upgrades or optional features. See current LOG §14 for scope
+and the limited owner acceptance report; no human reconciled date advances.
 
 Root pointers: AGENTS.md, CLAUDE.md, GEMINI.md and IDE rules. Local web setup
 starts at [web/README.md](../web/README.md).
@@ -96,14 +102,14 @@ Retired, excluded from Must-Have coverage: PRD-F5 (right of reply, Dropped; QAD 
 
 | INV-# | Rule | Status | Enforced in | Negative test |
 |-------|------|--------|-------------|---------------|
-| INV-1 | Never publish a log a moderator has not approved | Active | SDD §5.1: initial-intake triggers prohibit publication; human log-publication handler remains planned | NT-01, NT-02, NT-11 |
-| INV-2 | Never accept a log without proof or without an accepted engagement | Active | SDD §5.1: `submitLog`, trigger `log_requires_proof` | NT-03, NT-04 |
-| INV-3 | Never store a raw ID image or full ID number | Active | SDD section 5.1: auth user-write hooks and verification handlers | NT-05 |
-| INV-4 | Never show proof outside moderators, filer, named client | Active | SDD §5.1: `/api/proofs/[id]` | NT-06 |
-| INV-5 | Never compute or show an unapproved reputation signal; only the approved 1-5 rating and client average are permitted | Active | SDD §5.1: schema review, record components | NT-07, NT-12 |
-| INV-6 | Never let a client edit or delete a published log | Active | SDD §5.1: no client mutation; submitted parent/revision/tag/proof freeze triggers | NT-08 |
-| INV-7 | Never serve client records or logs to signed-out visitors or crawlers | Active | SDD §5.1: `(app)` layout, noindex, robots | NT-09 |
-| INV-8 | Never let an unverified or unacknowledged freelancer open an engagement or file a log | Active | SDD §5.1: `requireVerifiedFreelancer()` | NT-10 |
+| INV-1 | Never publish a log a moderator has not approved | Active | SDD §5.1; target §3.8 human round and exact proof receipts | NT-01, NT-02, NT-11, NT-13 |
+| INV-2 | Never accept a log without proof or without an accepted engagement | Active | SDD §5.1: `submitLog`, trigger `log_requires_proof`; target §3.8 | NT-03, NT-04, NT-14 |
+| INV-3 | Never store a raw ID image or full ID number | Active | SDD §5.1: auth user-write hooks and verification handlers | NT-05, NT-15 |
+| INV-4 | Never show proof outside moderators, filer, named client | Active | SDD §5.1: `/api/proofs/[id]`; target scoped exports §3.10 | NT-06, NT-16 |
+| INV-5 | Never compute or show an unapproved reputation signal; only the approved 1-5 rating and client average are permitted | Active | SDD §5.1; target §3.12 shared eligible rating projection | NT-07, NT-12, NT-17 |
+| INV-6 | Never let a client edit or delete a published log | Active | SDD §5.1; target §§3.9–3.11 private corrections and exact maintenance scopes | NT-08, NT-18 |
+| INV-7 | Never serve client records or logs to signed-out visitors or crawlers | Active | SDD §5.1: `(app)` layout, noindex, robots; target §3.12 | NT-09, NT-19 |
+| INV-8 | Never let an unverified or unacknowledged freelancer open an engagement or file a log | Active | SDD §5.1: `requireVerifiedFreelancer()`; target closure guard §3.10 | NT-10, NT-20 |
 
 ---
 
@@ -130,8 +136,11 @@ history and recorded changes. App correctness needs the checks in QAD. Human
 
 This is the only current delivery-state map. The reviewed consolidation and audit
 repairs were integrated into dev through [PR24](https://github.com/slvdrvncntjvr/FLAG/pull/24)
-on 2026-11-01 after green local and hosted checks. Deployment/settings observations
-below were checked separately; no authenticated human acceptance is claimed.
+and the [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25) notice follow-up on
+2026-11-01. Hosted facts below are dated observations carried from the prior
+coordinator audit `run_f8e7c3f97f0b`, not fresh checks in this design task. That
+release record had no authenticated human acceptance; the narrower owner report
+received 2026-11-02 is stated below.
 
 | Capability | Local source | Last recorded dev |
 |------------|--------------|-------------------|
@@ -139,13 +148,13 @@ below were checked separately; no authenticated human acceptance is claimed.
 | Manual freelancer verification and moderator review | Implemented; approve/reject, corrected new requests, immutable submitted profile history | Available |
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
-| Log moderation/publication, client search/records and aggregate ratings | Not implemented | Unavailable |
-| Full retention, assessed account closure/export, private corrections and filer updates | Not implemented | Unavailable |
+| Log moderation/publication, client search/records and aggregate ratings | Implemented on the pilot feature branch; independent source reviews completed, final integration pending | Unavailable |
+| Full retention, assessed account closure/export, private corrections and filer updates | Implemented on the pilot feature branch; reviewed retention/recovery repairs pass focused tests, final integration pending | Unavailable |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR24 application baseline `cde6943`; normal Workers Build deployed and read-only checks passed 2026-11-01 | 0000-0008; 0009 in source, unapplied |
+| Dev: `flag-dev`, branch `dev` | PR25 deployed baseline `4f216e9` (includes PR24 `cde6943`); prior audit observation 2026-11-01 | 0000-0008; 0009 in source, unapplied |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -157,13 +166,29 @@ is not a completion signal. Existing authorized private log/proof reads remain
 available while new writes are disabled (`web/src/features/logs/rollout.ts:6`,
 `web/src/app/(app)/logs/[id]/page.tsx:13`).
 
-Source privacy/terms versions are `2026-11-01`; freelancer acknowledgment and
+The deployed baseline privacy/terms versions are `2026-11-01`; the pilot feature
+branch prepares `2026-11-02` notices and current-policy database authority.
+Freelancer acknowledgment and
 engagement consent remain `2026-10-12` (`web/src/lib/policies.ts:8`). The notice
 alignment/reacceptance follow-up is delivered through [PR25](https://github.com/slvdrvncntjvr/FLAG/pull/25);
-its release requires current privacy/terms acknowledgment under the existing
+the pilot release requires current privacy/terms acknowledgment under the existing
 PRD-F8 gate. Existing engagement-consent history is unchanged. Staff roles are assigned
-in D1; no admin screen exists. The dev release has automated acceptance and
-read-only hosted checks; new authenticated human acceptance remains unrecorded.
+in D1; the documented release baseline has no admin screen. The prior audit
+observed the current notice versions and successful PR25 delivery; this task
+performs no new hosted verification. On 2026-11-02 the owner reports current dev
+signup, verification and moderation working, without naming further scenarios.
+This is limited owner-reported acceptance, not acceptance of log publication,
+lifecycle, corrections, records, ratings or production readiness.
+
+The dated PR25 evidence is required CI
+[41316804137](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41316804137),
+merge-push CI [41317518481](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41317518481)
+and PR20 CI [41317522530](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41317522530)
+success, successful Workers Builds, and dev version
+`89181aec-0257-499b-b770-1260e64698c1` at 100%, created
+`2026-11-01T14:44:47Z`, as observed by that prior audit. The notice probe passed
+the visible `2026-11-01` versions. These receipts correct the earlier PR24-only
+deployed label; they do not establish later hosted state.
 
 The source blockers from [current LOG section 9](log-current-flag.md#9-independent-readiness-review-2026-11-01)
 are repaired under the owner's follow-up authorization. Composed government-ID
@@ -203,15 +228,17 @@ client-city notices and their versions; its checks track that follow-up separate
 from the accepted PR24 baseline. SPINE normal
 validation passes with its deferred-RFC warning, while the recorded old-LOG
 checkpoint deletion finding stays visible. Main remains assessment only; this
-baseline does not complete the remaining product or establish human acceptance.
+baseline does not complete the remaining product or broaden the limited owner
+report above. The feature branch's design and implementation work is not yet a
+deployed capability.
 
 ## 7. Remaining work
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 1 | Finish lifecycle/correction design and implement the minimum safe workflow | PRD-F12, PRD-F13: recorded requests and outcomes, secure export, assessed correction/deletion/closure and access revocation, physical retention deletion and documented holds, independent corrections/filer updates |
+| 1 | Implement and verify the designed lifecycle/correction workflow | PRD-F12, PRD-F13: SDD §§3.8–3.11 defines responsible requests/outcomes, secure export, assessed closure/access revocation, physical erasure/backup disposition, bounded holds and independent correction/update rounds |
 | 2 | Implement log review and publication | PRD-F4, INV-1: log queue, claim, approve/ask-changes/reject, reason/history and publication transition; additive migration after lifecycle migrations |
-| 3 | Enable intake on dev when the prerequisite is verified | Apply reviewed migrations starting at 0009 to backed-up dev, update applicable privacy/terms text and versions, enable intake and perform owner smoke checks; OPS §5 |
+| 3 | Enable only authorized acceptance intake on dev after verified prerequisites | Apply reviewed migrations starting at 0009 to backed-up dev, align privacy/terms versions, deploy and perform isolated synthetic acceptance; owner smoke and real-proof readiness remain explicit, OPS §5 |
 | 4 | Implement client search, records and aggregates | PRD-F6, PRD-F14: latest eligible rating per contributor, counts, tags, Limited record and empty state |
 | 5 | Promote the intended product slice when the owner chooses | Green CI and manual smoke; OPS §7 |
 
@@ -220,14 +247,24 @@ records them. Minimum safe lifecycle and correction capabilities must exist
 before **real proof collection or publication**. Read-time hiding does not
 perform erasure. A polished self-service request interface may follow later.
 
-Lifecycle and log moderation may share one implementation milestone using
-synthetic data while intake stays disabled. Before migrations, finish the ERD
-for responsible staff/outcomes, actual case-close and review-round history,
-correction evidence, documented holds and assessed early-erasure/backup handling.
-Protect decided rows during ordinary writes; design an explicit maintenance path
-before changing freeze guards. The old draft ERD is reference material, not a
-ready migration contract.
+Lifecycle and log moderation share an authorized implementation milestone using
+synthetic data while development intake stays disabled. The design-first ERD,
+register/constraints and concrete interfaces are now in SDD §3/§4.1; schema and
+feature implementation must follow them after independent design review. The
+feature branch now contains the designed entities, new migrations 0010/0011,
+staff tools, review flows and records. The candidate remains on the feature
+branch and unapplied remotely while final integration is completed. Independent source reviews found
+eight defects across writer ownership, retention deadlines and claim recovery;
+the repairs were independently reread and exercised by focused tests. Further
+dev-merge review found exact typed-OTP cleanup, assessed read-deadline and
+proof-denial-header gaps. The repairs pass their focused runtime sets and bounded
+independent source rereview; whole-candidate validation still precedes integration. The full
+regression and actual browser gates remain pending. Preserve ordinary freeze
+guards and add only the scoped
+maintenance path. This is work in progress, not a completed release,
+remote physical-erasure evidence, dev migration/deployment or full acceptance.
 
 Deferred: notifications, QR automation, and unapproved PRD §6 candidates. All
 IDEA exclusions and eight invariants continue to apply. This queue describes
-remaining scope; it is not an instruction to start every feature.
+remaining approved pilot scope under the 2026-11-02 authorization; optional and
+excluded features remain outside it. Main merge still needs later owner approval.

@@ -42,14 +42,13 @@ export function setup() {
 }
 
 // Independent fixtures keep constraint tests below the action/validation layer.
-export async function seedLog() {
+export async function seedEngagement() {
   const db = createDb(env.DB);
   const id = crypto.randomUUID();
   const freelancerId = `freelancer-${id}`;
   const clientUserId = `client-user-${id}`;
   const clientId = `client-${id}`;
   const engagementId = `engagement-${id}`;
-  const logId = `log-${id}`;
   await db.batch([
     db.insert(user).values([
       { id: freelancerId, name: "Test Freelancer", email: `${freelancerId}@example.invalid`, role: "freelancer" },
@@ -64,10 +63,19 @@ export async function seedLog() {
     }),
     db.insert(policyAcceptance).values({ id: `consent-${id}`, userId: clientUserId, policy: "client_consent", version: POLICY_VERSIONS.client_consent }),
     db.insert(engagementConsent).values({ engagementId, policyAcceptanceId: `consent-${id}` }),
-    db.insert(engagementLog).values({
-      id: logId, ref: `FL-${id}`, engagementId, freelancerId, clientId,
-      anchorKind: "completed", anchorDate: "2026-10-14",
-    }),
   ]);
-  return { db, logId, engagementId, freelancerId, clientId, clientUserId };
+  return { db, engagementId, freelancerId, clientId, clientUserId };
+}
+
+// Raw draft fixture remains useful for lower-level constraint tests. Intake
+// acceptance instead starts with seedEngagement and calls the real draft action.
+export async function seedLog() {
+  const seeded = await seedEngagement(), id = crypto.randomUUID();
+  const logId = `log-${id}`;
+  await seeded.db.insert(engagementLog).values({
+    id: logId, ref: `FL-${id}`, engagementId: seeded.engagementId,
+    freelancerId: seeded.freelancerId, clientId: seeded.clientId,
+    anchorKind: "completed", anchorDate: "2026-10-14",
+  });
+  return { ...seeded, logId };
 }
