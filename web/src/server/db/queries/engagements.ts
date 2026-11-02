@@ -10,8 +10,8 @@ export const inviteNow = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 export function engagementActor(role: "freelancer" | "client", actorId: string) {
   const policies = role === "freelancer" ? ["privacy", "terms", "freelancer_ack"] as const : ["privacy", "terms"] as const;
   return {
-    text: `EXISTS (SELECT 1 FROM user actor WHERE actor.id=? AND actor.role='${role}' AND actor.banned=0
-      ${policies.map(() => "AND EXISTS (SELECT 1 FROM policy_acceptance p WHERE p.user_id=actor.id AND p.policy=? AND p.version=?)").join(" ")})`,
+    text: `EXISTS (SELECT 1 FROM user actor WHERE actor.id=? AND actor.role='${role}' AND actor.banned=0 AND actor.deactivated_at IS NULL
+      ${policies.map(() => "AND EXISTS (SELECT 1 FROM policy_acceptance p WHERE p.user_id=actor.id AND p.policy=? AND p.version=? AND p.retired_at IS NULL)").join(" ")})`,
     args: [actorId, ...policies.flatMap(p => [p, POLICY_VERSIONS[p]])],
   };
 }

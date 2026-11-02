@@ -1,12 +1,64 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { spawnSync } from "node:child_process";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { checkCiTarget, getCliEnvironment } from "./check-ci-target.mjs";
 import { unstable_readConfig } from "wrangler";
 import { checkDeployedBindings, checkResourceBindings } from "./check-resource-bindings.mjs";
 
 const dev = { WORKERS_CI: "1", WORKERS_CI_BRANCH: "dev", WRANGLER_CI_OVERRIDE_NAME: "flag-dev" };
 const production = { WORKERS_CI: "1", WORKERS_CI_BRANCH: "main", WRANGLER_CI_OVERRIDE_NAME: "flag" };
+
+// Evaluate the harness's actual serialized config without launching an app or
+// Worker. This keeps the regression coupled to the config we really execute.
+const smokeSource = await readFile(new URL("./smoke-built-worker.mjs", import.meta.url), "utf8");
+const smokeConfigExpression = smokeSource.match(/await writeFile\(config, JSON\.stringify\((\{[\s\S]*?\n  \})\)\);/)?.[1];
+assert.ok(smokeConfigExpression, "Packaged smoke config generation must remain covered");
+const generatedSmokeConfig = new Function("root", "temporary", "worker", "sourceConfig", "base", "join", "relative", `return (${smokeConfigExpression});`);
+const smokeConfig = (paths, root, temporary) => generatedSmokeConfig(root, temporary,
+  paths.join(root, "synthetic-worker.ts"), { compatibility_date: "2026-10-01", compatibility_flags: [] },
+  "http://127.0.0.1:12345", paths.join, paths.relative);
+
+test("packaged smoke config locates its project tsconfig from a separate POSIX or Win32 temporary directory", () => {
+  for (const [paths, root, temporary] of [
+    [path.posix, "/home/runner/work/FLAG/FLAG/web", "/tmp/flag-smoke-synthetic"],
+    [path.win32, "C:\\project with spaces\\web", "C:\\temp\\flag-smoke-synthetic"],
+  ]) {
+    const config = smokeConfig(paths, root, temporary);
+    assert.equal(paths.isAbsolute(config.tsconfig), false, "Wrangler expects a config-relative tsconfig");
+    assert.equal(paths.resolve(temporary, config.tsconfig), paths.join(root, "tsconfig.json"));
+    assert.equal(config.main, paths.join(root, "synthetic-worker.ts"));
+    assert.equal(config.assets.directory, paths.join(root, ".open-next/assets"));
+  }
+});
+
+test("installed Wrangler resolves the generated smoke tsconfig to the real project file", async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), "flag-smoke-config-test-"));
+  const originalCwd = process.cwd();
+  try {
+    const root = path.join(temporary, "project with spaces");
+    const isolated = path.join(temporary, "isolated");
+    await mkdir(root);
+    await mkdir(isolated);
+    const target = path.join(root, "tsconfig.json");
+    await writeFile(target, JSON.stringify({ compilerOptions: { strict: true } }));
+    const config = smokeConfig(path, root, isolated);
+    const configPath = path.join(isolated, "wrangler.json");
+    await writeFile(configPath, JSON.stringify(config));
+    // Production Wrangler children also run with cwd at the isolated directory.
+    process.chdir(isolated);
+    const normalized = unstable_readConfig({ config: configPath });
+    assert.equal(path.resolve(normalized.tsconfig), target);
+    assert.deepEqual(JSON.parse(await readFile(path.resolve(normalized.tsconfig), "utf8")), { compilerOptions: { strict: true } });
+    assert.equal(normalized.main, config.main);
+    assert.equal(normalized.assets.directory, config.assets.directory);
+  } finally {
+    process.chdir(originalCwd);
+    await rm(temporary, { recursive: true, force: true });
+  }
+});
 
 test("rejects the legacy default deploy to flag-dev even when CI overrides its name", () => {
   assert.throws(() => checkCiTarget(getCliEnvironment(["deploy"], dev), dev), /selected environment targets flag/);

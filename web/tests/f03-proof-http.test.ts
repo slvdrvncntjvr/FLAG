@@ -23,7 +23,10 @@ describe("proof HTTP route composition", () => {
     vi.mocked(getCloudflareContext).mockResolvedValue({ env, cf: undefined, ctx: createExecutionContext() });
     vi.mocked(getViewer).mockResolvedValue(null);
     expect((await POST(uploadRequest(), { params: Promise.resolve({ id: f.logId }) })).status).toBe(404);
-    expect((await GET(new Request("https://flag.invalid"), { params: Promise.resolve({ id: "missing" }) })).status).toBe(404);
+    const anonymous = await GET(new Request("https://flag.invalid"), { params: Promise.resolve({ id: "missing" }) });
+    expect(anonymous.status).toBe(404);
+    expect(anonymous.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(anonymous.headers.get("X-Content-Type-Options")).toBe("nosniff");
     vi.mocked(getViewer).mockResolvedValue(await loadViewer(f.db, f.freelancerId));
     const forbidden = uploadRequest(); forbidden.headers.set("origin", "https://evil.invalid");
     expect((await POST(forbidden, { params: Promise.resolve({ id: f.logId }) })).status).toBe(403);
@@ -40,5 +43,7 @@ describe("proof HTTP route composition", () => {
     vi.mocked(getDb).mockRejectedValue(new Error("synthetic database failure with private content"));
     const failed = await GET(new Request("https://flag.invalid"), { params: Promise.resolve({ id: body.data.proofId }) });
     expect(failed.status).toBe(404); expect(await failed.text()).not.toContain("private content");
+    expect(failed.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(failed.headers.get("X-Content-Type-Options")).toBe("nosniff");
   });
 });

@@ -7,6 +7,7 @@ import { POLICY_VERSIONS, requiredPolicies } from "@/lib/policies";
 import { acceptInvitation } from "@/features/engagements/handlers";
 import { acceptEngagement } from "@/features/engagements/actions";
 import { loadInviteForClient } from "@/server/db/queries/engagements";
+import { assessPrivacyRequest, executePrivacyRequest, recordPrivacyRequest } from "@/features/privacy/handlers";
 
 const mocks = vi.hoisted(() => ({ db: vi.fn(), viewer: vi.fn(), cookieHash: "", cookieSet: vi.fn() }));
 vi.mock("@/server/db", async importOriginal => ({ ...await importOriginal<typeof import("@/server/db")>(), getDb: mocks.db }));
@@ -31,6 +32,22 @@ async function fixture() {
   await db.insert(engagement).values(invites.map(i => ({ id: i.id, freelancerId: owner, title: "Work", clientNameHint: "Client", startedOn: "2026-10-01",
     inviteTokenHash: i.hash, inviteExpiresAt: new Date(Date.now() + 86400000).toISOString() })));
   return { client, invites };
+}
+// Model a legitimate concurrent assessed erasure, with production guards active.
+async function eraseUnassociatedProfile(subject: string, profileId: string) {
+  const admin = crypto.randomUUID(), iso = (delta: number) => new Date(Date.now() + delta).toISOString();
+  await db.insert(user).values({ id: admin, name: "Synthetic privacy operator", email: `${admin}@example.invalid`, role: "admin" });
+  await db.insert(policyAcceptance).values(requiredPolicies("admin").map(policy => ({ id: crypto.randomUUID(), userId: admin, policy, version: POLICY_VERSIONS[policy] })));
+  const request = await recordPrivacyRequest(db, admin, { subjectUserId: subject, responsibleId: admin, kind: "deletion", receivedAt: iso(-1000), dueAt: iso(86400000) });
+  expect(request.ok).toBe(true);
+  if (!request.ok || !request.id) throw new Error("Synthetic erasure request failed");
+  expect(await assessPrivacyRequest(db, admin, request.id, {
+    identity: { method: "non_id_control", evidenceReference: "synthetic-profile-control", verifiedSubjectId: subject, verifiedAt: iso(-1000) },
+    targets: [{ targetType: "client_profile", targetId: profileId, operation: "purge", basis: "assessed_erasure", dueAt: iso(-1000) }],
+    categories: [{ category: "identity", disposition: "remove", basis: "Synthetic unassociated profile erasure", until: iso(86400000) }], backups: "unverified",
+  })).toEqual({ ok: true });
+  expect(await executePrivacyRequest(db, env, admin, request.id)).toMatchObject({ ok: true });
+  expect(await db.query.clientProfile.findFirst({ where: eq(clientProfile.id, profileId) })).toBeUndefined();
 }
 async function snapshot() {
   return {
@@ -145,7 +162,7 @@ describe("profile-bound consent transaction", () => {
     mocks.db.mockResolvedValueOnce(db).mockImplementationOnce(async () => {
       // matchesRenderedInvite has completed its live SELECT. Change the
       // displayed profile before acceptInvitation executes its atomic batch.
-      await db.delete(clientProfile).where(eq(clientProfile.id, id));
+      await eraseUnassociatedProfile(client, id);
       if (change === "replaced") await db.insert(clientProfile).values({ id: crypto.randomUUID(), userId: client, displayName: "Profile A", kind: "business" });
       before = await snapshot();
       return db;

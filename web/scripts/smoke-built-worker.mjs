@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { access, writeFile } from "node:fs/promises";
 import net from "node:net";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { unstable_readConfig } from "wrangler";
 import { getCliEnvironment } from "./check-ci-target.mjs";
 import { checkResourceBindings } from "./check-resource-bindings.mjs";
@@ -14,12 +14,13 @@ import { createOwnedDirectory, finishOwnedRun, lifecycleDiagnostic, stopOwnedChi
 // Run the deployable artifact in workerd, never `next dev`. All mutable state,
 // config and credentials are synthetic and confined to an OS temporary folder.
 const root = resolve(import.meta.dirname, "..");
-const worker = join(root, ".open-next", "worker.js");
-await access(worker);
 // Existing invocations select dev; --env= explicitly selects the production
 // compatibility settings while runtime bindings remain entirely synthetic.
 const environment = getCliEnvironment() ?? "dev";
 const sourceConfig = unstable_readConfig({ config: join(root, "wrangler.jsonc"), env: environment });
+const worker = resolve(root, sourceConfig.main);
+await access(worker);
+await access(join(root, ".open-next", "worker.js"));
 checkResourceBindings(sourceConfig, environment);
 const directory = await createOwnedDirectory("flag-worker-smoke-");
 const temporary = directory.root;
@@ -77,7 +78,10 @@ try {
   const config = join(temporary, "wrangler.json");
   const persist = join(temporary, "state");
   await writeFile(config, JSON.stringify({
-    name: "flag-packaged-smoke", main: worker,
+    // Wrangler joins tsconfig to the config directory; an absolute POSIX path
+    // would be prefixed with this temporary directory instead of replacing it.
+    name: "flag-packaged-smoke", main: worker, tsconfig: relative(temporary, join(root, "tsconfig.json")),
+    triggers: { crons: ["0 * * * *"] },
     compatibility_date: sourceConfig.compatibility_date, compatibility_flags: sourceConfig.compatibility_flags,
     assets: { directory: join(root, ".open-next/assets"), binding: "ASSETS" },
     d1_databases: [{ binding: "DB", database_name: "flag-smoke", database_id: "00000000-0000-0000-0000-000000000001", migrations_dir: join(root, "drizzle"), remote: false }],
@@ -88,7 +92,7 @@ try {
   await done(run(["d1", "migrations", "apply", "flag-smoke", "--local", "--persist-to", persist, "--config", config]));
   diagnostics = "";
   const server = run(["dev", "--local", "--config", config, "--persist-to", persist,
-    "--ip", "127.0.0.1", "--port", String(port), "--inspector-port", "0", "--show-interactive-dev-session=false"]);
+    "--ip", "127.0.0.1", "--port", String(port), "--inspector-port", "0", "--test-scheduled", "--show-interactive-dev-session=false"]);
   const deadline = Date.now() + 120000;
   while (true) {
     if (spawnError) throw spawnError;
@@ -110,6 +114,16 @@ try {
     } catch (error) { failures.push(error.message); }
   }
   assert.deepEqual(failures, [], "Packaged Worker anonymous route checks failed");
+  // Exercise the packaged custom entry point through a real local scheduled
+  // event. A config cron alone does not prove the handler survived bundling.
+  // All D1/R2 state belongs to this disposable local smoke run.
+  const scheduled = await fetch(base + "/cdn-cgi/local/scheduled?format=json&cron=0+*+*+*+*", {
+    signal: AbortSignal.timeout(20000),
+  });
+  assert.equal(scheduled.status, 200, "Packaged scheduled handler failed");
+  const scheduledResult = await scheduled.json();
+  assert.equal(scheduledResult.outcome, "ok", "Packaged scheduled handler did not complete");
+  console.log(JSON.stringify({ packagedScheduledVerified: true }));
   // Invalid verification codes touch only synthetic local limiter state. They
   // never call a send-code endpoint, print a code or create an account.
   const statuses = [];

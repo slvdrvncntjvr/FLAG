@@ -7,6 +7,8 @@ import { runPrivateIntakeCleanup } from "@/features/logs/cleanup";
 import { submitLog } from "@/features/logs/submit";
 import { addProof, intakeFixture, uploadRequest } from "./private-intake-fixtures";
 
+import { ageSyntheticDrafts, finiteSyntheticHold } from "./synthetic-retention-clock";
+
 type Fixture = Awaited<ReturnType<typeof intakeFixture>>;
 const oldActivity = "2026-01-01T00:00:00.000Z";
 function deferred() {
@@ -56,7 +58,7 @@ async function proofState(id: string) {
   return env.DB.prepare("SELECT status,purge_attempts,purge_inflight FROM proof_file WHERE id=?").bind(id).first();
 }
 async function ageActivity(f: Fixture) {
-  await env.DB.prepare("UPDATE engagement_log SET draft_updated_at=? WHERE id=?").bind(oldActivity, f.logId).run();
+  await ageSyntheticDrafts([f.logId], oldActivity);
 }
 
 describe("atomic explicit proof removal", () => {
@@ -143,7 +145,7 @@ describe("atomic explicit proof removal", () => {
     const pending = removeDraftProof(barrier.db, r2.bucket, f.freelancerId, id);
     await barrier.reached;
     try {
-      if (winner === "hold") await env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run();
+      if (winner === "hold") await finiteSyntheticHold(f.logId);
       else expect(await submitLog(f.db, env.PROOFS, f.freelancerId, f.logId)).toMatchObject({ ok: true });
       const before = await activity(f), state = await proofState(id);
       barrier.resume();
@@ -238,7 +240,7 @@ describe("atomic explicit proof removal", () => {
       const acceptedAt = await activity(f);
       expect(acceptedAt).not.toBe(oldActivity);
       await env.DB.prepare("UPDATE user SET banned=1 WHERE id=?").bind(f.freelancerId).run();
-      await expect(env.DB.prepare("UPDATE engagement_log SET hold_kind='legal',hold_placed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?").bind(f.logId).run()).rejects.toThrow(/cleanup is in progress/);
+      await expect(finiteSyntheticHold(f.logId)).rejects.toThrow(/purge.*claimed/);
       resume.resolve();
       expect(await pending).toMatchObject({ ok: true });
       expect(await activity(f)).toBe(acceptedAt);
@@ -317,15 +319,11 @@ describe("atomic explicit proof removal", () => {
     await ageActivity(f);
     expect(await removeDraftProof(f.db, env.PROOFS, f.freelancerId, id)).toMatchObject({ ok: true });
     const acceptedAt = (await activity(f))!;
-    // Advance only the cleanup eligibility clock in SQL (D1 uses its own clock,
-    // not Date.now). This exercises real D1/R2 at both sides of the deadline.
+    // Move the synthetic activity against the real SQL clock, with all guards
+    // restored before cleanup. No production clock/authorization is bypassed.
     async function cleanupAt(days: number) {
-      const cutoff = new Date(Date.parse(acceptedAt) + (days - 30) * 86400000).toISOString();
-      const client = new Proxy(env.DB, { get(target, key) {
-        if (key === "prepare") return (sql: string) => target.prepare(sql.replaceAll("strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days')", `'${cutoff}'`));
-        const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
-      } });
-      return runPrivateIntakeCleanup(withClient(f.db, client), env.PROOFS, { limit: 25 });
+      if (days >= 30) await ageSyntheticDrafts([f.logId], new Date(Date.now() - days * 86400000).toISOString());
+      return runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     }
     await cleanupAt(1);
     expect(await activity(f)).toBe(acceptedAt);

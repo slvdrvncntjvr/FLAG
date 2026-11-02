@@ -6,7 +6,7 @@ export const nowSql = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 export function actorPredicate(role: "freelancer" | "moderator", actorIdSql: "?" | "verification_case.freelancer_id" = "?") {
   const policies = role === "freelancer" ? ["privacy", "terms", "freelancer_ack"] as const : ["privacy", "terms"] as const;
   return {
-    text: `EXISTS (SELECT 1 FROM user actor WHERE actor.id = ${actorIdSql} AND actor.role = '${role}' AND actor.banned = 0 ${policies.map(() => "AND EXISTS (SELECT 1 FROM policy_acceptance pa WHERE pa.user_id = actor.id AND pa.policy = ? AND pa.version = ?)").join(" ")})`,
+    text: `EXISTS (SELECT 1 FROM user actor WHERE actor.id = ${actorIdSql} AND actor.role = '${role}' AND actor.banned = 0 AND actor.deactivated_at IS NULL ${policies.map(() => "AND EXISTS (SELECT 1 FROM policy_acceptance pa WHERE pa.user_id = actor.id AND pa.policy = ? AND pa.version = ? AND pa.retired_at IS NULL)").join(" ")})`,
     args: (actorId: string) => [...(actorIdSql === "?" ? [actorId] : []), ...policies.flatMap((p) => [p, POLICY_VERSIONS[p]])],
   };
 }

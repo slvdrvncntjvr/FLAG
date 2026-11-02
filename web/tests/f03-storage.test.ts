@@ -2,7 +2,8 @@ import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { proofFile } from "@/server/db/schema";
-import { seedLog, setup } from "./helpers";
+import { setup } from "./helpers";
+import { seedCurrentLog as seedLog } from "./current-schema-fixtures";
 
 describe("PRD-F3 local D1/R2 foundation", () => {
   it("streams proof bytes through the R2 binding and matches D1 metadata", async () => {
@@ -43,6 +44,6 @@ describe("PRD-F3 local D1/R2 foundation", () => {
     await env.PROOFS.delete(objectKey);
     expect(await env.PROOFS.head(objectKey)).toBeNull();
     expect((await db.query.proofFile.findFirst({ where: eq(proofFile.id, id) }))?.status).toBe("pending_purge");
-    // This tests storage primitives, not the future eligibility/hold/retention runner.
+    // Storage retry primitives preserve tracking; assessed erasure is covered by lifecycle tests.
   });
 });

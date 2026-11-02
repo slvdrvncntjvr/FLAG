@@ -9,6 +9,7 @@ import { loadViewer } from "@/server/db/queries/viewer";
 import { loadVerificationQueue, loadVerificationReview, loadVerificationStatus } from "@/server/db/queries/verification";
 import { submitVerification } from "@/features/verification/submit";
 import { claimVerification, decideVerification, inspectVerification, releaseVerification } from "@/features/moderation/handlers";
+import { pendingFixture } from "./f04-log-review-fixtures";
 
 const db = createDb(env.DB);
 const request = { name: "Alex Rivera", portfolioLinks: [{ url: "https://example.com/portfolio", label: "Portfolio" }] };
@@ -164,9 +165,17 @@ describe("PRD-F1 verification backend", () => {
     }
     await db.update(user).set({ role: "moderator" }).where(eq(user.id, f.owner));
     expect((await claimVerification(db, f.owner, { caseId: f.caseId })).ok).toBe(false);
-    const ids = [crypto.randomUUID(), crypto.randomUUID()];
-    await db.insert(moderationCase).values([{ id: ids[0], kind: "log", subjectId: f.requestId }, { id: ids[1], kind: "verification", subjectId: "missing" }]);
-    for (const caseId of ids) expect((await claimVerification(db, f.mod, { caseId })).ok).toBe(false);
+    const wrongKind = await pendingFixture(), missingId = crypto.randomUUID();
+    // Typed subjects are now protected at insertion as well as in every handler.
+    await expect(db.insert(moderationCase).values({ id: missingId, kind: "verification", subjectId: "missing" })).rejects.toThrow();
+    for (const caseId of [wrongKind.caseId, missingId]) {
+      expect((await claimVerification(db, f.mod, { caseId })).ok).toBe(false);
+      expect((await inspectVerification(db, f.mod, { ...f.lease, caseId, idKind: "passport", result: "pass", nameMatch: true })).ok).toBe(false);
+      expect((await decideVerification(db, f.mod, { ...f.lease, caseId, decision: "reject", reason: "Wrong subject" })).ok).toBe(false);
+      expect((await releaseVerification(db, f.mod, { ...f.lease, caseId })).ok).toBe(false);
+    }
+    expect((await env.DB.prepare("SELECT status FROM moderation_case WHERE id=?").bind(wrongKind.caseId).first())!.status).toBe("open");
+    expect(await env.DB.prepare("SELECT id FROM moderation_case WHERE id=?").bind(missingId).first()).toBeNull();
     expect(await loadVerificationReview(db, f.owner, f.caseId)).toBeNull();
     expect(await loadVerificationQueue(db, await actor("admin"))).toEqual([]);
     expect(await loadVerificationReview(db, null, f.caseId)).toBeNull();
@@ -254,7 +263,14 @@ describe("PRD-F1 verification backend", () => {
 
   it("expired lease is reclaimable; new claimant must reinspect and stale releases/decisions change nothing", async () => {
     const f = await inspected();
-    await db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId));
+    const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_case_update'").first<{ sql: string }>();
+    if (!guard) throw new Error("Case authority guard unavailable");
+    await expect(db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId))).rejects.toThrow();
+    // Simulate elapsed time only in fixture setup, restoring the exact production
+    // guard before exercising release, reclaim, inspection or decision actions.
+    await env.DB.prepare("DROP TRIGGER pilot_case_update").run();
+    try { await db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId)); }
+    finally { await env.DB.prepare(guard.sql).run(); }
     expect((await releaseVerification(db, f.mod, f.lease)).ok).toBe(false);
     const reclaim = await claimVerification(db, f.other, { caseId: f.caseId });
     expect(reclaim.ok).toBe(true); if (!reclaim.ok) return;

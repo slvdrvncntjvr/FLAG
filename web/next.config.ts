@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
         source: "/invite/:path*",
         headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
       },
+      ...["clients", "logs", "moderation", "admin"].map(path => ({
+        source: `/${path}/:path*`,
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
+      })),
     ];
   },
 };

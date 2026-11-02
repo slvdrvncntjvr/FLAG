@@ -6,8 +6,15 @@ import { downloadProof } from "@/features/logs/proofs";
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const viewer = await getViewer();
-    if (!viewer) return Response.json({ error: "This log or proof is unavailable." }, { status: 404, headers: { "Cache-Control": "private, no-store" } });
+    if (!viewer) return unavailable();
     const [{ id }, db, { env }] = await Promise.all([context.params, getDb(), getCloudflareContext({ async: true })]);
     return downloadProof(db, env.PROOFS, viewer.id, id);
-  } catch { return Response.json({ error: "This log or proof is unavailable." }, { status: 404, headers: { "Cache-Control": "private, no-store" } }); }
+  } catch { return unavailable(); }
+}
+
+function unavailable() {
+  return Response.json({ error: "This log or proof is unavailable." }, {
+    status: 404,
+    headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" },
+  });
 }

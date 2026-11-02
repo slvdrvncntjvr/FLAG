@@ -8,6 +8,24 @@ import { spawn } from 'node:child_process';
 import { normalizeIP } from '@better-auth/core/utils/ip';
 import { assertPortFree, ownsReadyServer, scenarioIp, stopOwnedChild } from './e2e-isolation.mjs';
 import { lifecycleDiagnostic } from './process-lifecycle.mjs';
+import { playwrightChildWait } from './e2e-timeout.mjs';
+
+test('browser child wait preserves the default and accommodates a bounded explicit suite timeout', () => {
+  assert.equal(playwrightChildWait([]), 960_000);
+  assert.equal(playwrightChildWait(['--project=desktop']), 960_000);
+  assert.equal(playwrightChildWait(['--global-timeout=1800000']), 1_860_000);
+  assert.equal(playwrightChildWait(['--project', 'mobile-360', '--global-timeout', '1200000']), 1_260_000);
+  assert.equal(playwrightChildWait(['--global-timeout=1']), 60_001);
+  assert.equal(playwrightChildWait(['--', '--global-timeout=0']), 960_000);
+});
+
+test('browser child wait rejects missing, invalid, unbounded and ambiguous suite timeouts', () => {
+  for (const args of [
+    ['--global-timeout'], ['--global-timeout', '--project=desktop'],
+    ...['', '0', '-1', '1.5', 'NaN', 'Infinity', '1800001', '9007199254740993'].map(value => [`--global-timeout=${value}`]),
+    ['--global-timeout=900000', '--global-timeout', '1800000'],
+  ]) assert.throws(() => playwrightChildWait(args), /E2E global timeout/);
+});
 
 test('actors in one scenario retain one real OTP bucket; other cases, projects and retries separate', () => {
   const ip = scenarioIp('desktop', 'synthetic-case', 0);

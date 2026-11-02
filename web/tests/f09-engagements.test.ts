@@ -59,7 +59,7 @@ describe("PRD-F9 real D1 invitation/consent workflow", () => {
     expect(await loadOwnEngagements(db, client)).toEqual([expect.objectContaining({ id: f.id, consentVersion: POLICY_VERSIONS.client_consent })]);
     expect(await loadOwnEngagements(db, await actor("client"))).toEqual([]);
     await expect(env.DB.prepare("UPDATE engagement_consent SET policy_acceptance_id=policy_acceptance_id WHERE engagement_id=?").bind(f.id).run()).rejects.toThrow(/append-only/);
-    await expect(env.DB.prepare("DELETE FROM engagement_consent WHERE engagement_id=?").bind(f.id).run()).rejects.toThrow(/append-only/);
+    await expect(env.DB.prepare("DELETE FROM engagement_consent WHERE engagement_id=?").bind(f.id).run()).rejects.toThrow(/exact claimed purge task required/);
     await expect(env.DB.prepare("UPDATE engagement SET accepted_at='2026-01-01' WHERE id=?").bind(f.id).run()).rejects.toThrow(/closed/);
     await expect(env.DB.prepare("UPDATE client_profile SET user_id=? WHERE id=?").bind(await actor("client"), profile!.id).run()).rejects.toThrow(/immutable/);
     await expect(env.DB.prepare("DELETE FROM user WHERE id=?").bind(client).run()).rejects.toThrow();

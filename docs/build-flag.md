@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.40
+doc_version: 2.43
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-01
+updated: 2026-11-02
 reconciled: 2026-10-13
 ---
 
@@ -100,6 +100,7 @@ and npx.cmd if execution policy blocks the .ps1 shims; no policy change needed.
 | Deployment, redirects, harness, observability and migration-generation tests | npm run test:deploy |
 | Local setup regression tests | node --test scripts/setup-local.test.mjs |
 | Isolated browser suite | npm run test:e2e |
+| Slower local full browser run, bounded 30-minute suite budget | npm run test:e2e -- --global-timeout=1800000 |
 | Dev Worker build | npm run build:worker:dev |
 | Production Worker build | npm run build:worker |
 | Packaged local workerd smoke | npm run test:worker:smoke |
@@ -115,12 +116,73 @@ requires HTTP localhost and both mail keys absent; setting a key sends real mail
 The setup/check scripts print no secrets and preserve existing .dev.vars by
 default. See web/README.md for the short setup path.
 
+The isolated browser harness keeps its default 15-minute Playwright suite budget
+and 16-minute child wait. An explicit positive integer global-timeout argument
+up to 1,800,000 milliseconds extends the enclosing wait by the existing one-minute
+completion margin; invalid, duplicate or unbounded values fail before creating
+temporary data. Per-test/assertion limits, zero retries and verified teardown
+are unchanged. CI keeps its default invocation.
+
 ### 3.1 Deploy and migrations
 
 OPS owns remote procedures. The package scripts include db:migrate:dev,
 db:migrate:remote, deploy:dev and deploy, but running a local check is not release
 authorization. Build and deployment do not apply SQL. Disabled intake must work
 on 0008; enabled intake needs 0009 and later prerequisite migrations first.
+
+### 3.2 Encrypted D1 backup command (Windows)
+
+Run from the repo root with installed `web/node_modules` and Node/npm available.
+These review commands validate the source configuration against the existing
+approved binding guard and print the intended command without exporting data:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/backup-d1.ps1 -Target dev
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/backup-d1.ps1 -Target production
+python -m unittest discover -s scripts -p test_backup_d1.py -v
+```
+
+`-Mode SelfTest` runs the same synthetic DPAPI/cleanup cases directly, without
+Wrangler, developer data or network. The Python suite skips on non-Windows.
+Both targets use account `1af65da586efd62d6f6d429240395f28`: dev is
+`flag-db-dev` / `54aca5df-2ae7-4150-bd75-0f6365e5bfa3`; production is
+`flag-db` / `e196d1b5-82e7-45bf-b1c5-725fa1faf184`. There is no implicit target.
+
+Only after the approved dev prerequisites and target/ledger review in
+[OPS](ops-flag.md#6-backup-and-recovery), execute:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/backup-d1.ps1 -Target dev -Mode Backup -PrerequisitesVerified
+```
+
+Production execution additionally requires later owner release approval and
+`-Target production -Mode Backup -PrerequisitesVerified -ProductionReleaseApproved`.
+These switches attest to approval and prerequisite review; the script cannot
+establish either. Preparing or reviewing the command grants no release approval.
+
+The helper invokes the installed Node executable and the absolute project-local
+Wrangler entrypoint directly, with an isolated configuration for the validated
+target and explicit remote export/environment flags. Redirected native streams
+are drained without displaying their content and the actual process exit code
+is checked; native stderr cannot become a PowerShell terminating error before
+the result is assessed. No packages are installed or upgraded. It encrypts the
+SQL bytes with Windows DPAPI CurrentUser (no optional entropy) into a new unique
+`.sql.dpapi` in existing `C:/Users/Vincent/FLAG-backups`; optional `-OutputName`
+accepts only a new filename there. Existing output is never replaced. SQL and
+Wrangler scratch files stay in a private OS temporary directory outside the repo.
+The helper disables Wrangler disk logging/telemetry, suppresses subprocess
+output and exception content, verifies the written artifact by in-memory decrypt,
+length and SHA-256, clears sensitive byte arrays and removes its plaintext in
+`finally`. Success emits only target, time, encrypted path and integrity result;
+failure exits nonzero and removes an artifact created by the failed operation.
+
+Preserve the original Windows profile for recovery. This verifies encrypted
+byte recovery, not SQL restore compatibility, D1/R2 restore, finite backup
+disposition or release prerequisites. Forced process/OS termination can interrupt
+`finally`; a cleanup-permission failure is a failed backup, never verified
+success. Follow OPS for assessed retention and recovery. Export flags were
+checked against installed Wrangler 4.149.0 `d1 export --help` and the
+[official command reference](https://developers.cloudflare.com/d1/wrangler-commands/#d1-export).
 
 ## 4. Repo conventions
 

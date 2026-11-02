@@ -11,6 +11,7 @@ import { submitLog } from "./submit";
 import { removeDraftProof } from "./proofs";
 import { failure, idInput, type LogResult } from "./schema";
 import { isPrivateIntakeEnabled } from "./rollout";
+import { removeProposalEvidence } from "@/features/updates/remove";
 
 type Saved = LogResult<{ logId: string; ref: string }>;
 type Target = { engagementId: string; logId?: string };
@@ -62,7 +63,7 @@ export async function removeProofAction(logId: string, proofId: string, _previou
     const log = await loadPrivateLog(db, viewer.id, logId);
     if (!log?.canEdit || !log.proofs.some(proof => proof.id === proofId)) return failure("not_found");
     const { env } = await getCloudflareContext({ async: true });
-    const result = await removeDraftProof(db, env.PROOFS, viewer.id, proofId);
+    const result = log.status === "ask_changes" ? await removeProposalEvidence(db, env.PROOFS, viewer.id, logId, proofId) : await removeDraftProof(db, env.PROOFS, viewer.id, proofId);
     if (result.ok) revalidatePath(`/logs/${logId}`);
     return result;
   } catch { return failure("unavailable"); }

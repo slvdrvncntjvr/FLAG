@@ -8,7 +8,7 @@ export default async function ModerationLayout({ children }: { children: React.R
   const viewer = await viewerOrRedirect();
   if (viewer.role !== "moderator") notFound();
   return <PageShell aside={<div className="flex min-w-0 flex-wrap items-center justify-end gap-3 pl-4"><Link href="/home" className="text-sm underline">Account home</Link><SignOutButton /></div>}>
-    <nav className="mb-6 text-sm"><Link href="/moderation/verification" className="underline">Verification queue</Link></nav>
+    <nav className="mb-6 flex flex-wrap gap-5 text-sm"><Link href="/moderation/verification" className="underline">Verification queue</Link><Link href="/moderation/logs" className="underline">Logs and updates</Link><Link href="/moderation/corrections" className="underline">Private corrections</Link></nav>
     {children}
   </PageShell>;
 }

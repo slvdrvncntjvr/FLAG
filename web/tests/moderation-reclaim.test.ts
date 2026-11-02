@@ -41,7 +41,15 @@ describe("reviewer-owned inspection across claim renewal", () => {
       it(`${returning ? "same" : "different"} reviewer after ${renewal}/reclaim retains evidence and enforces the current lease`, async () => {
         const f = await fixture(), inspected = (await f.snapshot()).request!;
         if (renewal === "release") expect(await releaseVerification(db, f.reviewer, f.lease)).toEqual({ ok: true });
-        else await db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId));
+        else {
+          const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_case_update'").first<{ sql: string }>();
+          if (!guard) throw new Error("Case authority guard unavailable");
+          await expect(db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId))).rejects.toThrow();
+          // Clock-only setup; all real actions below retain the production guard.
+          await env.DB.prepare("DROP TRIGGER pilot_case_update").run();
+          try { await db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId)); }
+          finally { await env.DB.prepare(guard.sql).run(); }
+        }
         const inactive = await f.snapshot();
         expect((await decideVerification(db, f.reviewer, { ...f.lease, decision: "approve", reason: "Earlier inspection" })).ok).toBe(false);
         expect(await f.snapshot()).toEqual(inactive);
