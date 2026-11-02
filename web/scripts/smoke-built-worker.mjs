@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { access, writeFile } from "node:fs/promises";
 import net from "node:net";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { unstable_readConfig } from "wrangler";
 import { getCliEnvironment } from "./check-ci-target.mjs";
 import { checkResourceBindings } from "./check-resource-bindings.mjs";
@@ -78,7 +78,9 @@ try {
   const config = join(temporary, "wrangler.json");
   const persist = join(temporary, "state");
   await writeFile(config, JSON.stringify({
-    name: "flag-packaged-smoke", main: worker, tsconfig: join(root, "tsconfig.json"),
+    // Wrangler joins tsconfig to the config directory; an absolute POSIX path
+    // would be prefixed with this temporary directory instead of replacing it.
+    name: "flag-packaged-smoke", main: worker, tsconfig: relative(temporary, join(root, "tsconfig.json")),
     triggers: { crons: ["0 * * * *"] },
     compatibility_date: sourceConfig.compatibility_date, compatibility_flags: sourceConfig.compatibility_flags,
     assets: { directory: join(root, ".open-next/assets"), binding: "ASSETS" },
