@@ -144,6 +144,32 @@ describe("PRD-F12 actual privacy processing and private exports", () => {
     expect(await env.DB.prepare("SELECT id FROM policy_acceptance WHERE id=?").bind(policyId).first()).toBeNull();
     expect((await env.DB.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
   });
+  it("reports held assessed actions while purging unrelated targets, then resumes after release", async () => {
+    const subject = await actor(), admin = await actor("admin");
+    const heldPolicy = crypto.randomUUID(), readyPolicy = crypto.randomUUID(), dueAt = iso(-1000);
+    for (const [policyId, version] of [[heldPolicy, "synthetic-held"], [readyPolicy, "synthetic-ready"]]) {
+      await env.DB.prepare("INSERT INTO policy_acceptance(id,user_id,policy,version,retired_at) VALUES(?,?,'privacy',?,?)")
+        .bind(policyId, subject, version, iso(-1000)).run();
+    }
+    expect(await placeRetentionHold(db, admin, { targetType: "policy", targetId: heldPolicy, kind: "review", reason: "Synthetic exact policy hold", reviewDueAt: iso(3600000), expiresAt: iso(86400000) })).toEqual({ ok: true });
+    const id = await request(admin, subject, "deletion", assessment(subject, [heldPolicy, readyPolicy].map(targetId => ({
+      targetType: "policy_acceptance", targetId, operation: "purge", basis: "assessed_erasure", dueAt,
+    }))));
+    const first = await executePrivacyRequest(db, env, admin, id);
+    expect(first).toMatchObject({ ok: true, message: expect.stringContaining("1 held") });
+    expect(first).toMatchObject({ message: expect.stringContaining("1 remain") });
+    expect(await env.DB.prepare("SELECT id FROM policy_acceptance WHERE id=?").bind(heldPolicy).first()).not.toBeNull();
+    expect(await env.DB.prepare("SELECT id FROM policy_acceptance WHERE id=?").bind(readyPolicy).first()).toBeNull();
+    expect(await env.DB.prepare("SELECT 1 FROM maintenance_task WHERE privacy_request_id=? AND target_id=?").bind(id, heldPolicy).first()).toBeNull();
+    const hold = await env.DB.prepare("SELECT id FROM retention_hold WHERE target_id=?").bind(heldPolicy).first<{ id: string }>();
+    expect(await releaseRetentionHold(db, admin, hold!.id)).toEqual({ ok: true });
+    expect((await executePrivacyRequest(db, env, admin, id)).ok).toBe(true);
+    expect(await env.DB.prepare("SELECT id FROM policy_acceptance WHERE id=?").bind(heldPolicy).first()).toBeNull();
+    const receipts = await env.DB.prepare("SELECT target_id,status,attempts,due_at FROM maintenance_task WHERE privacy_request_id=? ORDER BY target_id").bind(id).all();
+    expect(receipts.results).toHaveLength(2);
+    for (const receipt of receipts.results) expect(receipt).toMatchObject({ status: "completed", attempts: 1, due_at: dueAt });
+    expect((await env.DB.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
+  });
   it("requires exact backup scope, real elapsed expiry and physical-copy evidence beyond restore filtering", async () => {
     const subject = await actor(), admin = await actor("admin"), other = await actor();
     const policyId = crypto.randomUUID();

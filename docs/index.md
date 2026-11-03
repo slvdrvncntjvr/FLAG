@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.105
+doc_version: 0.106
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.42 | Review | 2026-11-03 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.57 | Review | 2026-11-03 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.58 | Review | 2026-11-03 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.23 | Draft | 2026-11-03 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.24 | Draft | 2026-11-03 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -165,15 +165,22 @@ without migration. Successful normal Workers Build
 `6c1e60b2-295c-44ad-b794-45b9a2f9830b` identifies deployed version
 `f8b5b037-e2cc-4e7e-ada7-15df85b392eb`, observed at 100% at 11:28:22 UTC.
 All 22 anonymous checks pass, including three early export-denial paths;
-original failures remain preserved. PR29 merge CI is running at this checkpoint.
-QAD §1.4 owns the acceptance matrix and unexecuted workflows.
-No authenticated hosted lifecycle/publication/correction/ratings or physical
-D1/R2-erasure acceptance is claimed. Dev has three verified controlled
-freelancers (one currently policy-eligible), one moderator, no admin and no
-existing logs/tasks; browser staff
-sessions, controlled inbox access and actual processor assessments are missing.
-Intake stays false until prerequisites are demonstrated. Owner manual acceptance
-and later production promotion approval remain pending; PR20 remains draft.
+original failures remain preserved. Both PR29 and PR30 merge CI runs passed.
+Docs-only PR30 merged as `02f9de61f38e17918f85eddc60fa1193c0a3507a`;
+its normal build deployed version `fb6fe2e3-aff8-4e55-84d8-2d16577c1e6b`
+at 100%. The owner supplied authenticated dev access and broader release-work
+authorization; current LOG §23 records that scope and agent recovery.
+QAD §1.4 owns the acceptance matrix: actual same-subject metadata export,
+one-use denial and R2 artifact erasure pass; an exact held synthetic audit row
+was retained, then physically erased through the staff runner after release.
+The held execution returned `unavailable`; the scoped source repair passes
+17 privacy runtime tests and still needs protected CI, deployment and hosted
+verification. Closure, full subject/proof/case erasure, independent correction,
+publication, ratings and owner manual acceptance remain incomplete. A dedicated
+normally authenticated synthetic admin now exists; existing roles are unchanged.
+Intake stays false until prerequisites are demonstrated; no window has opened.
+Production planning follows accepted dev evidence; main and production remain
+unchanged and PR20 remains draft.
 The latest full local Windows result remains failed at 1,301/1,311 with ten
 unchanged five-second timeouts, separately from green hosted PR28 checks.
 
@@ -191,12 +198,12 @@ broaden the limited owner acceptance report stated below.
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
 | Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
-| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29 integrated with green candidate CI; full local Windows verification unresolved | Repair Worker/hourly handler delivered; export early-denial headers pass hosted probes; authenticated and actual physical-erasure acceptance pending |
+| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29 integrated; held-assessment handling repair under verification; full local Windows verification unresolved | Scoped metadata export/R2 erasure and audit hold/release/D1 erasure observed; closure, broader lifecycle and correction acceptance pending |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR29 merge `b9a7d33`; version `f8b5b037-e2cc-4e7e-ada7-15df85b392eb` at 100%, observed 2026-11-03 | 0000-0012 applied; no pending migration; foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR30 merge `02f9de6`; version `fb6fe2e3-aff8-4e55-84d8-2d16577c1e6b` at 100%, observed 2026-11-03 | 0000-0012 applied; no pending migration; foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers

@@ -1,6 +1,6 @@
 import type { Db } from "@/server/db";
 import { adminGate, auditPrivacy, clock, currentAdmin, getPrivacyRequest, responsibleGate } from "@/server/db/queries/privacy";
-import { assessment, backupInput, failure, holdInput, id, recordInput, type PrivacyResult } from "./schema";
+import { assessment, backupInput, failure, holdInput, id, recordInput, type Assessment, type PrivacyResult } from "./schema";
 import { hasNoVerificationReason } from "@/features/verification/privacy";
 import { runMaintenance } from "@/features/lifecycle/maintenance";
 import { addTwelveMonthsUtc } from "@/features/lifecycle/calendar";
@@ -94,6 +94,7 @@ export async function executePrivacyRequest(db: Db, env: Pick<CloudflareEnv, "DB
         : auditPrivacy(db, actor, requestId, "privacy_executed"),
     ]);
     if (p.status === "deferred" ? !r[0].results.length : !r[0].meta.changes) return failure("conflict");
+    const heldAtIssue: Assessment["targets"] = [];
     for (const t of parsed.data.targets.filter(t => t.dueAt <= new Date().toISOString())) {
       // Keep a verification case's close anchor until the independently
       // authorized subject purge has actually finished, including batch limits.
@@ -102,11 +103,30 @@ export async function executePrivacyRequest(db: Db, env: Pick<CloudflareEnv, "DB
       ).bind(t.targetId).first()) continue;
       const existing = await db.$client.prepare("SELECT 1 FROM maintenance_task WHERE privacy_request_id=? AND target_type=? AND target_id=? AND operation=? AND status!='abandoned'").bind(p.id, t.targetType, t.targetId, t.operation).first();
       if (existing) continue;
-      await db.$client.prepare(`INSERT INTO maintenance_task(id,privacy_request_id,authorized_by,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at)
-        VALUES(?,?,?,?,?,?,?,?,${clock},strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'))`).bind(crypto.randomUUID(), p.id, actor, t.targetType, t.targetId, t.operation, t.basis, t.dueAt).run();
+      try {
+        await db.$client.prepare(`INSERT INTO maintenance_task(id,privacy_request_id,authorized_by,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at)
+          VALUES(?,?,?,?,?,?,?,?,${clock},strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'))`).bind(crypto.randomUUID(), p.id, actor, t.targetType, t.targetId, t.operation, t.basis, t.dueAt).run();
+      } catch {
+        // A hold may already exist or win the issuance race. Keep its exact
+        // assessment pending while allowing other eligible actions to run.
+        const held = await db.$client.prepare(`SELECT 1 FROM pilot_maintenance_target x WHERE x.target_type=? AND x.target_id=?
+          AND NOT EXISTS(SELECT 1 FROM pilot_unheld_target u WHERE u.target_type=x.target_type AND u.target_id=x.target_id)`)
+          .bind(t.targetType, t.targetId).first();
+        if (!held) throw new Error("assessed_task_issue_failed");
+        heldAtIssue.push(t);
+      }
     }
     const result = await runMaintenance(env);
-    return { ok: true, message: `${result.completed} tasks completed; ${result.blocked} blocked; ${result.remaining} remain.` };
+    let held = 0;
+    for (const t of heldAtIssue) {
+      // A concurrently released hold may have allowed the shared runner to
+      // issue or finish this action. Do not count it again as unqueued work.
+      if (await db.$client.prepare(`SELECT 1 FROM pilot_maintenance_target x WHERE x.target_type=? AND x.target_id=?
+        AND NOT EXISTS(SELECT 1 FROM maintenance_task m WHERE m.privacy_request_id=? AND m.target_type=x.target_type AND m.target_id=x.target_id
+          AND m.operation=? AND m.basis=? AND m.due_at=? AND m.status IN ('planned','claimed','blocked','completed'))`)
+        .bind(t.targetType, t.targetId, p.id, t.operation, t.basis, t.dueAt).first()) held++;
+    }
+    return { ok: true, message: `${result.completed} tasks completed; ${result.blocked} blocked; ${held} held; ${result.remaining + held} remain.` };
   } catch { return failure("unavailable"); }
 }
 export async function recordPrivacyOutcome(db: Db, actor: string | null, requestId: string, status: "completed" | "deferred" | "denied", reason: string, followUpAt?: string, deliveryReceiptReference?: string): Promise<PrivacyResult> {
