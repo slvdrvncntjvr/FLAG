@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.23
+doc_version: 0.24
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -25,6 +25,7 @@ additions has been verified. Read history only for a specific decision or incide
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-11-03 | Owner supplies authenticated Orca dev access and grants broad authority for work contributing to production | Continue necessary synthetic roles/fixtures, supported acceptance, repairs and protected release preparation without repeated permission requests. Actual human decisions and manual acceptance must still be observed; immediate phase remains dev acceptance with real intake disabled and main/production unchanged | INDEX, QAD, current LOG |
 | 2026-11-03 | Owner authorizes confirmed retention and documentation/release repairs on slvdrvncntjvr/fix-pilot-retention-20261103, based on dev e2bab1d, while governing docs remain Review | Repair all three confirmed retention defects and scoped operator/build/QA guidance; verify and prepare the repair PR and corrected PR20 description, keeping PR20 draft. Production and intake stay unchanged; no remote migration/deploy, optional/paid scope, invariant change, reconciliation advance or history restore. Coordinator reviews and publishes metadata; this worker prepares local documentation only | SDD, BUILD, QAD, OPS, INDEX, current LOG |
 | 2026-11-02 | Owner authorizes the remaining approved pilot on feat/pilot-readiness-20261102 while governing docs remain Review | Complete PRD-F12/PRD-F13 lifecycle/corrections, PRD-F4 log moderation/publication and PRD-F6/PRD-F14 records/ratings on dev before main; necessary docs/schema/implementation approved. Keep development intake disabled; backed-up dev migrations/deploy and synthetic acceptance intake only after prerequisites. Later main merge needs owner approval; no paid upgrades or optional scope; preserve SPINE 0.3.0, invariant meanings, SQL/history and deleted-LOG finding | SDD, QAD, OPS, INDEX, current LOG |
 | 2026-11-01 | Owner authorizes implementing the prior review recommendations, verifying the candidate and merging dev-2 into dev while docs remain Review | Restore PRD-F9 city wording and require city for new client profiles only; existing profiles including legacy NULL city remain reusable, freelancer verification city remains optional, no migration/backfill. Repair composed government-ID URL labels with bounded decoding, separate query pairs and first/corrected-submission zero-write regressions. Preserve SPINE 0.3.0, invariants, owner work and historical rows; retain the known checkpoint deletion finding. Final checks, review and merge outcomes remain pending in INDEX; no deployment or human acceptance is implied | PRD, SDD, QAD, BUILD, INDEX, current LOG |
@@ -587,3 +588,49 @@ inputs still blocks truthful execution of assessed lifecycle, physical erasure,
 independent correction/publication and record/rating acceptance. Keep intake
 false and return the exact human-access needs through Orca; source/CI/anonymous
 success cannot settle these unexecuted workflows.
+
+## 23. Authenticated synthetic acceptance and held-action repair, 2026-11-03
+
+The owner supplied the existing verified freelancer's authenticated Orca dev
+session and broad authorization to carry necessary work toward production.
+The immediate execution phase remains controlled dev acceptance. Dedicated
+synthetic roles/fixtures and supported processing may proceed without repeating
+permission questions; account control, human publication decisions and owner
+manual acceptance must still describe real observed actions. No existing user's
+role was changed, and main/production and real intake remain unchanged.
+
+The owner completed normal private OTP entry for a new isolated processor.
+Its supported scoped metadata export was received and parsed in the same
+subject's browser, refused without its session and on replay, and independently
+confirmed absent in R2 with cleared D1 token/object tracking. The recorded
+recipient receipt explicitly describes automated browser observation; it is
+not a claim of owner manual acceptance. QAD owns the observed coverage.
+
+An exact finite hold retained one synthetic processor audit row. The deployed
+staff execution returned unavailable because task issuance rejected that held
+target before other assessed actions could run. After supported hold release,
+the staff retry physically erased the row and recorded its exact completed
+task on one claim. Backup inventory is still unverified; this is a scoped live
+row/artifact result, not completed erasure of every retained copy. A focused
+runtime regression reproduced unavailable and then passed with the repair;
+the 17-test privacy suite passes. The candidate now preserves held work,
+continues unrelated eligible actions and reports pending held counts while
+retaining the database's exact issue/claim/use guards. INDEX owns delivery.
+
+The Orca Codex worker hit an explicit account usage limit after preparing the
+export. Guarded stop confirmed its process stopped and its transcript was
+preserved. The configured Claude fallback could not start because its official
+runtime path was missing; the failed launch was inspected and released without
+running the task. No credits/upgrade were purchased or agent installation
+changed. The coordinator continued through Orca's browser and scoped read-only
+inspectors, preserving the original release and Windows failure evidence.
+
+One earlier browser submission remained pending without a recorded task; fresh
+native form execution supplied the observed held error and later physical
+erasure. Bounded diagnostic reads found ordinary auth/home reads working,
+13 ms staff-target SQL and 61 ms EXPLAIN compilation; these do not identify the
+pending submission's cause or resolve the separate Windows test timeouts.
+No timeout was increased and no uncertain purge owner was adopted. Closure,
+independent correction/publication, records/ratings and owner manual acceptance
+remain incomplete; the disposable closure subject needs its normal private
+sign-in before testing deactivation without closing the owner's real account.

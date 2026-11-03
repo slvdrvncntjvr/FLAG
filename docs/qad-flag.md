@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.57
+doc_version: 2.58
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -193,6 +193,7 @@ INDEX owns current delivery state and section 1.4 records hosted observations.
 | Verification audit events lack their actual case retention clock | H-22, H-33 | Exercise request/claim/reclaim/release/inspection/decision writers and provable legacy associations; verify exact case linkage and expiry 12 months after actual close, with unrelated subjects isolated and no fabricated receipt or fresh cleanup-time deadline |
 | Case-first erasure strands verification snapshot/inspection data | H-22, H-33 | Exercise both lexical ID orders, one-task batches, retries and exact holds; verification data erases before its close anchor, and SQL independently blocks premature case deletion without orphaning the remaining deadline |
 | Assessed request-first erasure loses surviving verification history's subject authority | H-18, H-22, H-33, S-41 | Erase the verification request before its case/audit/rounds; exact immutable case owner preserves claimed audit eligibility and later assessed task issuance across one-task batches, executing/deferred requests, holds and retries. Reject alternate-owner INSERTs/updates; backfill only provable owners, leave unknown legacy ownership unknown. Retained case FK blocks user-shell deletion; injected failure rolls back case deletion and its receipt |
+| A held assessed target aborts staff execution before unrelated eligible work | H-22, S-29 | Execute a mixed assessment with one exact held target and one unheld target; retain the held row, report its pending work and erase only the eligible row. Release the hold and retry; require exact completed receipts, one claim each and clean foreign keys |
 
 Use focused D1 integration and migration checks under section 1.1; read-only
 SQLite reproductions establish the reported defects, not repaired runtime or
@@ -215,21 +216,29 @@ This checkpoint is automated operator evidence, never owner manual acceptance.
 |---------------|----------------------|---------------------------|
 | PRD-F7/F8, INV-7; signed-out protected pages and current public notices | Pass for 18 established page probes | Protected pages redirect to sign-in; privacy/terms visibly 2026-11-02; no signed-in reacceptance exercised |
 | PRD-F3, INV-4; anonymous nonexistent proof | Pass for 404/no-store/nosniff | No real proof identifiers used; unrelated/bare-admin and authorized proof reads unexecuted |
-| PRD-F12, AB-24; anonymous export HTTP early denial | Initial fail preserved; post-PR29 pass for missing authorization, wrong scheme and query-token refusal | 404/no-store/nosniff on all three, no-referrer confirmed on scheme/query paths; actual delivery/one-use/artifact cleanup unexecuted |
-| H-17/H-18/H-21/H-27/H-28, S-39–S-42; assessed export, closure/revocation, post-closure delivery and backup outcomes | Unexecuted | No dev admin or authenticated controlled subject; actual processor assessment, private delivery and recipient evidence needed |
-| H-22/H-33, S-26–S-30; physical D1/R2 erasure, exact holds/release/retry and case history | Unexecuted | Cron and scheduled handler exist; no due synthetic fixture/task was executed, and no erasure is inferred from empty tables |
+| PRD-F12, AB-24; anonymous export HTTP early denial | Initial fail preserved; post-PR29 pass for missing authorization, wrong scheme and query-token refusal | 404/no-store/nosniff on all three, no-referrer confirmed on scheme/query paths |
+| H-17/H-27, AB-24; assessed same-subject metadata export and one-use delivery | Pass for the scoped synthetic export | Actual browser received and parsed a 665-byte own-account/policy projection with attachment/no-store/nosniff/no-referrer; no-session and replay returned 404. Direct R2 checks changed from 200/present to 404/absent; D1 token/object tracking cleared and consumption/purge timestamps recorded. Automated recipient receipt is distinguished from owner manual acceptance |
+| H-18/H-21/H-28, S-39–S-42; closure/revocation, post-closure delivery and backup outcomes | Unexecuted | Dedicated disposable closure-subject normal login pending; backup disposition remains unverified, with no whole-request erasure completion claimed |
+| H-22/H-33, S-26–S-30; physical D1/R2 erasure, exact holds/release/retry and case history | Partial: actual export-artifact erasure and one assessed audit-row erasure observed | Exact audit hold retained the row and prevented task issuance; staff action returned `unavailable` (repair required). Release plus supported retry physically removed the row and completed its exact task on one claim. Proof/subject/case-history erasure and due-work execution by the hourly cron remain unexecuted |
 | H-04/H-12/H-29, NT-13; claims, proof inspection, ask-changes/reject/approve | Unexecuted | One moderator in dev inventory; additional independent controlled staff/account access required; no logs exist |
 | H-13/H-14/H-30; independent private correction and filer update | Unexecuted | Authenticated parties/independent reviewer and synthetic publication prerequisite absent |
 | H-06/H-11/H-15/H-16/H-20/H-31/H-32; records/ratings/fallback/counts/tags/Limited/empty | Unexecuted | Known controlled publication fixtures and five verified contributors still needed |
-| PRD-F2/F3; disabled-intake mutation refusal, then bounded synthetic intake | Unexecuted authenticated mutation checks; actual configuration false | No intake window opened; minimum lifecycle/correction/erasure prerequisites remain undemonstrated |
+| PRD-F2/F3; disabled-intake mutation refusal, then bounded synthetic intake | Authenticated upload denied 503/no-store/nosniff; create-log GET 404; actual configuration false | Draft-save/submit and authorized existing-proof reads still unexecuted. No intake window opened; full prerequisite acceptance remains incomplete |
 
-Inventory is aggregate-only: three verified freelancers match the owner's LOG
-§16 controlled-account report; one moderator, no admin, zero engagement logs and
-zero maintenance tasks. All three verified profiles are active; one currently
-satisfies the latest policy gates. Historical policy/engagement-consent receipt
-versions remain present; no authenticated reacceptance is claimed. No existing
-user was promoted, no session was fabricated,
-and no raw purge or trigger override was used. Owner manual checkboxes in §7.1
+Initial inventory had three verified controlled freelancers, one moderator,
+no admin and no logs/tasks. After actual owner-inbox OTP authentication, a new
+dedicated synthetic processor was onboarded and assigned admin; existing users'
+roles are unchanged. The original owner freelancer session remains active.
+Scoped receipts are `temporary/synthetic-export-before-delivery.json`,
+`temporary/synthetic-export-delivery-receipt.json`,
+`temporary/synthetic-export-after-delivery.json`,
+`temporary/synthetic-d1-held-ui-response.json`,
+`temporary/synthetic-hold-release-confirmed.json` and
+`temporary/synthetic-d1-release-retry-observation.json`. They contain no capability
+or export body. No session was fabricated and no raw purge or trigger override
+was used. Source regression first reproduced the held-action failure, then all
+17 privacy runtime tests passed after repair; deployed repaired behavior remains
+to verify. Owner manual checkboxes in §7.1
 stay unchecked. The full local Windows timing failure remains separate from the
 green hosted candidate; no timeout was increased or failed evidence removed.
 
