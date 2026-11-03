@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.101
+doc_version: 0.102
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -33,7 +33,7 @@ verification and OPS for operations. The active decision log is
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.41 | Review | 2026-11-03 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.55 | Review | 2026-11-03 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.19 | Draft | 2026-11-03 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.20 | Draft | 2026-11-03 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -139,11 +139,15 @@ history and recorded changes. App correctness needs the checks in QAD. Human
 
 **2026-11-03 repair state:** original dev `e2bab1d` remains the delivered
 baseline (PR26 pilot plus PR27 documentation); the repair branch
-`slvdrvncntjvr/fix-pilot-retention-20261103` has locally implemented repairs and
-supplied focused verification, but remains unmerged and unpublished. The supplied
-full local run passed 1,298/1,308 tests, with ten failures at unchanged five-second
-timeouts; full-suite verification remains unresolved. Current-candidate hosted
-CI and independent rereview remain pending.
+`slvdrvncntjvr/fix-pilot-retention-20261103` is published as
+[draft PR28](https://github.com/slvdrvncntjvr/FLAG/pull/28), unmerged.
+Independent rereview of implementation `14baafc` clears the assessed-authority
+blocker and finds no remaining substantive correctness issue within its bounded
+scope. Supplied checks pass 193/193 focused actual-D1 tests in 12 files,
+typecheck/lint and 7/7 metadata checks. The full local Windows run failed with
+1,298/1,308 passing and ten failures at unchanged five-second timeouts; complete
+local verification remains unresolved. PR28 owns current-head default hosted
+CI results; source clearance and focused passes do not imply full verification.
 Three confirmed retention defects affect final assessed user-shell erasure,
 verification audit clocks and verification/case deletion order; current LOG §20
 records the focused evidence and assessed early-erasure follow-up, and QAD §1.3
@@ -152,8 +156,9 @@ owner schema field defined in SDD 2.41 alongside the retention guard repairs.
 Dev's deployed ledger remains **0000–0011; 0012 is not applied or deployed**.
 Intake remains false, production unchanged, and hosted authenticated
 pilot plus actual synthetic D1/R2 erasure/recipient/backup acceptance are pending.
-The coordinator must add final repair verification and delivery evidence later;
-earlier passing checks below do not validate these repairs.
+PR20's corrected metadata links PR28 and remains draft; production promotion
+still needs the owner's later approval. Earlier passing checks below do not
+validate these repairs, and PR checks do not establish hosted product acceptance.
 
 This is the only current delivery-state map. The approved pilot merged into dev
 through [PR26](https://github.com/slvdrvncntjvr/FLAG/pull/26) as `f46be4c` on
@@ -169,7 +174,7 @@ broaden the limited owner acceptance report stated below.
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
 | Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
-| Full retention, assessed account closure/export, private corrections and filer updates | PR26 baseline integrated; retention repairs locally implemented with supplied focused verification, full verification/rereview pending (current LOG §20) | Baseline Worker/hourly handler delivered; repair delivery and actual physical-erasure acceptance pending |
+| Full retention, assessed account closure/export, private corrections and filer updates | PR26 baseline integrated; draft PR28 has focused verification and bounded independent correctness clearance; full local verification unresolved, current hosted checks linked in PR28 (current LOG §20) | Baseline Worker/hourly handler delivered; repair delivery and actual physical-erasure acceptance pending |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
@@ -256,7 +261,7 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 0 | Verify and deliver the confirmed retention repairs | PRD-F12: local implementation and focused worker checks supplied, including durable assessed verification ownership; full local run 1,298/1,308 with ten five-second timeouts, full verification unresolved; current hosted CI/independent rereview pending, QAD §1.3. Repair branch unmerged/unpublished; 0012 not applied/deployed |
+| 0 | Verify and deliver the confirmed retention repairs | PRD-F12: draft PR28 published and unmerged, focused worker checks and bounded independent correctness clearance supplied; full local run 1,298/1,308 with ten five-second timeouts remains unresolved; PR28 carries current hosted checks, QAD §1.3 owns regressions. 0012 not applied/deployed |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
 | 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |

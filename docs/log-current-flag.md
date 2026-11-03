@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.19
+doc_version: 0.20
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -484,3 +484,20 @@ establish that the candidate cannot contribute to timing failures. Current
 default hosted CI and independent rereview remain pending. No full green,
 browser/build, hosted acceptance, merge or deployment result is added here;
 the coordinator will record final verification and delivery after actual results.
+
+**Publication and bounded rereview clearance, 2026-11-03:**
+[Draft PR28](https://github.com/slvdrvncntjvr/FLAG/pull/28) now publishes the
+repairs against dev; it is unmerged. Independent rereview ctx_46d17603d775 of
+commit `14baafc01b2ed52ae3dc018500a306bdef5aad98` clears the assessed-authority
+blocker and finds no remaining substantive correctness issue within the bounded
+repair scope. Its unchanged 20-file implementation/SDD fingerprint is
+`7a9aa41ee8e992483fc567ff8538f538b21bedc15c949245802de5f1d451b524`.
+Supplied 193/193 focused actual-D1 tests in 12 files, typecheck/lint and 7/7
+metadata passes remain distinct from the failed full local Windows run:
+1,298/1,308 passing with ten unchanged five-second timeouts, still unresolved.
+Current-head default hosted CI results belong in PR28; bounded rereview does
+not establish full runtime, scale or hosted acceptance. PR20's corrected title
+and body are published with the PR28 link and remain draft. Dev e2bab1d,
+production 3582f7e, disabled intake and deployed ledger 0000–0011 are unchanged;
+0012 is unapplied, and repair delivery plus actual hosted authenticated and
+D1/R2 erasure/recipient/backup acceptance remain outstanding.
