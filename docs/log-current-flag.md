@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.21
+doc_version: 0.22
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -521,3 +521,40 @@ timeouts, so complete local verification remains unresolved. Original assertions
 real-action fixtures, deadlines, concurrency and migration bytes are unchanged.
 PR28 needs new current-head CI for this optimization. No merge, migration,
 deployment or intake change is included; existing hosted acceptance limits remain.
+
+## 21. Controlled dev release and acceptance dependency, 2026-11-03
+
+The owner authorized execution of PR28's backed-up migration-before-merge dev
+release and controlled synthetic acceptance, including necessary defect repair
+through existing protections. This does not authorize main/production mutation,
+real proof intake, historical restoration, paid upgrades or manual acceptance.
+All eight invariant meanings and human reconciliation dates remain unchanged.
+
+Actual target/ledger review found only 0012 pending on dev. The existing helper
+created `C:/Users/Vincent/FLAG-backups/flag-dev-20261103T105738793Z-792f2207.sql.dpapi`
+at 10:57:45 UTC and verified DPAPI CurrentUser decrypt, byte length and SHA-256
+in memory, with operation plaintext cleanup confirmed. This fresh artifact
+preceded migration; it establishes encrypted byte recovery, not restore safety
+or completed assessed backup disposition. INDEX owns merge/deployed state;
+QAD §1.4 owns actual hosted coverage and gaps.
+
+Normal dev protections remained enforced: strict verify/dependency-audit checks,
+administrator enforcement, no force push/deletion and no admin merge bypass.
+The original repair branch and its 352603-byte evidence archive are preserved.
+The migration leaves published SQL and old consent/decision clocks unchanged;
+read-only post-apply foreign keys and provable verification-owner matches pass.
+The prior Worker has readable additive schema through deployment, but old
+verification creation omits the new immutable owner field and fails closed
+during the migration/build interval; no interim verification submission was
+attempted or asserted successful.
+
+Hosted anonymous probing exposed an export HTTP early-denial header gap:
+missing nosniff before resource access, while the shared export handler already
+sets it. Necessary repair is scoped to that route and its regression. No proof
+or account data was exposed by the probe. No authenticated browser was present;
+actual dev inventory has no admin, one moderator, three verified controlled
+freelancers, and no logs/tasks. Controlled inbox/staff access and actual named
+processor assessment/private delivery inputs are needed; the operator must not
+invent account-control, receipt or physical-copy evidence. Intake stays false
+and synthetic workflow acceptance remains incomplete. The known deleted LOG
+checkpoint finding and failed Windows evidence remain visible and preserved.
