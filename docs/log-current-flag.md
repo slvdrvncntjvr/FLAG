@@ -3,11 +3,11 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.16
+doc_version: 0.19
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
-updated: 2026-11-02
+updated: 2026-11-03
 reconciled: 2026-09-14
 ---
 
@@ -25,6 +25,7 @@ additions has been verified. Read history only for a specific decision or incide
 
 | Date | Decision | Rationale | Docs touched |
 |------|----------|-----------|--------------|
+| 2026-11-03 | Owner authorizes confirmed retention and documentation/release repairs on slvdrvncntjvr/fix-pilot-retention-20261103, based on dev e2bab1d, while governing docs remain Review | Repair all three confirmed retention defects and scoped operator/build/QA guidance; verify and prepare the repair PR and corrected PR20 description, keeping PR20 draft. Production and intake stay unchanged; no remote migration/deploy, optional/paid scope, invariant change, reconciliation advance or history restore. Coordinator reviews and publishes metadata; this worker prepares local documentation only | SDD, BUILD, QAD, OPS, INDEX, current LOG |
 | 2026-11-02 | Owner authorizes the remaining approved pilot on feat/pilot-readiness-20261102 while governing docs remain Review | Complete PRD-F12/PRD-F13 lifecycle/corrections, PRD-F4 log moderation/publication and PRD-F6/PRD-F14 records/ratings on dev before main; necessary docs/schema/implementation approved. Keep development intake disabled; backed-up dev migrations/deploy and synthetic acceptance intake only after prerequisites. Later main merge needs owner approval; no paid upgrades or optional scope; preserve SPINE 0.3.0, invariant meanings, SQL/history and deleted-LOG finding | SDD, QAD, OPS, INDEX, current LOG |
 | 2026-11-01 | Owner authorizes implementing the prior review recommendations, verifying the candidate and merging dev-2 into dev while docs remain Review | Restore PRD-F9 city wording and require city for new client profiles only; existing profiles including legacy NULL city remain reusable, freelancer verification city remains optional, no migration/backfill. Repair composed government-ID URL labels with bounded decoding, separate query pairs and first/corrected-submission zero-write regressions. Preserve SPINE 0.3.0, invariants, owner work and historical rows; retain the known checkpoint deletion finding. Final checks, review and merge outcomes remain pending in INDEX; no deployment or human acceptance is implied | PRD, SDD, QAD, BUILD, INDEX, current LOG |
 | 2026-11-01 | Hold dev-2 integration after independent run run_7438fbbffbd0 finds a residual R1 verification-URL privacy blocker | Three reviews completed: tooling has no substantive finding, documentation flags qualified city-optionality drift, application finds a composed-label bypass. Earlier passing checks remain dated evidence; main is assessment only and no hosted/human/full-product certification follows | INDEX, current LOG |
@@ -37,27 +38,20 @@ additions has been verified. Read history only for a specific decision or incide
 
 ## 2. Open questions
 
-**2026-11-01 update:** The owner accepted restoration of PRD-F9's original city
-wording and enforcement for new client profiles, preserving existing profiles.
-The city question recorded below is resolved by the new decision above; its
-earlier wording is retained as review history. INDEX owns pending repair,
-verification and integration status.
+As of 2026-11-03, no city or R1 product decision remains open: the owner approved
+the city requirement and the bounded repair was integrated (section 11; INDEX).
+The earlier findings remain dated evidence in section 9. The design milestone
+and pilot integration are recorded in sections 14 and 19.
 
-None blocking this consolidation. Future lifecycle/correction implementation
-needs a completed technical design, listed in INDEX; that is engineering work,
-not a request to reconfirm settled product decisions.
-
-**2026-11-02 update:** The scoped owner authorization and design milestone in
-§14 supersede the earlier engineering-design blocker above. Actual individual
-privacy/hold/backup assessments remain staff inputs; implementation and
-verification are still required. No product-scope or invariant decision is added.
-
-Current readiness review leaves city optionality unresolved: PRD-F9 now explicitly
-calls city optional, while the prior PRD lists city and calls only registration
-optional. Source optionality predates consolidation and does not establish owner
-intent. Preserve this qualified discrepancy for resolution without changing PRD
-or inferring a new requirement; see section 9. The residual R1 privacy defect
-holds merge independently of that wording question.
+Present operational questions are who will perform/sign off the outstanding
+hosted authenticated pilot and actual synthetic D1/R2 erasure/recipient/backup
+acceptance, and when; later production promotion remains the owner's choice
+after that evidence. Actual privacy/hold/backup assessments remain staff inputs.
+The owner already confirmed that the three verified dev freelancer accounts are
+controlled test accounts (section 16); maintain containment if eligibility
+changes before any authorized synthetic window. Intake remains false.
+See [INDEX remaining work](index.md#7-remaining-work) and section 20 for the
+current repair state; these are not requests to reconfirm settled scope.
 
 ## 3. Resolved questions
 
@@ -432,3 +426,61 @@ the hourly cron. This does not execute a live erasure task, prove recipient
 handover/backup disposition, or establish authenticated hosted/manual acceptance.
 Main, production configuration, real intake, invariant meanings, reconciliation
 dates and historical deletion evidence remain unchanged.
+
+## 20. Confirmed retention and release repairs authorized, 2026-11-03
+
+The 2026-11-02 independent application and documentation/release reviews examined
+dev e2bab1d. The owner authorizes their confirmed repairs on the isolated repair
+branch; the original dev baseline and its deployment are unchanged at this
+checkpoint. This entry records authorization and pending work, not repaired,
+tested, merged or deployed behavior.
+
+Three PRD-F12 defects are confirmed: final assessed user-shell purge either
+fails its subject FK or loses the nullable subject used for authority;
+verification audit writers omit the actual case association/deadline, leaving
+events without natural expiry and exact subject mapping; case-first erasure
+removes the verification request's only close anchor, stranding its snapshot/
+inspection data. Repair exact atomic authority, provable case associations and
+dependency ordering/guards, preserving finite actual-close clocks and holds.
+Focused acceptance mapping is in QAD §1.3; code/migration and runtime evidence
+remain the application worker/coordinator's work to establish.
+
+The documentation work corrects current OPS controls, BUILD's query-only 0008
+qualification, QAD outcomes/moderation transitions and startup orientation.
+Proposed replacement PR20 metadata describes the actual integrated pilot,
+pending production ledger inspection/verified backup/migrations before deploy,
+existing GitHub protections and current acceptance limits; the coordinator must
+review it before publication. PR20 stays draft and needs the final repair PR
+link after it exists. INDEX owns current delivery state; no new migration is
+claimed applied, and 0012 is not recorded deployed. Hosted authenticated pilot
+and actual physical-erasure/recipient/backup acceptance remain pending. No
+production promotion or intake change is authorized by this repair checkpoint.
+
+**Independent follow-up, 2026-11-03:** Rereview found that assessed early
+verification-request erasure could leave surviving case/audit/round history
+without exact subject authority. The code/SDD owner implemented the durable
+minimal owner receipt in SDD 2.41: nullable immutable
+`moderation_case.verification_subject_user_id`, with USER RESTRICT FK, exact
+live-owner INSERT validation and only provable legacy-owner backfill. Unknown
+legacy ownership stays unknown; retained case ownership keeps its existing
+clock and survives request-first erasure, holds and bounded retries. Migration
+0012 therefore includes a schema field, not only guard/view changes.
+
+Supplied application-worker evidence reports 193/193 focused actual-D1 tests in
+12 files and 7/7 metadata checks passing. These are focused worker results, not
+new executions by this documentation worker or full-candidate acceptance. The
+local repairs are implemented and focused-verified; independent rereview,
+full-suite verification and current-candidate CI remain pending, as do merge
+and publication. Dev e2bab1d and deployed ledger 0000–0011 remain unchanged;
+0012 is not applied/deployed. The coordinator will record final evidence after
+actual results; hosted acceptance, intake and production limits above persist.
+
+**Later supplied verification, 2026-11-03:** The application worker reports the
+full local Workers run failed: 1,298/1,308 tests passed across 52 files, with ten
+failures at the unchanged five-second timeouts. The same handoff supplies passing
+typecheck/lint, 193/193 focused actual-D1 tests in 12 files and 7/7 metadata
+checks. These results leave complete-suite verification unresolved; they do not
+establish that the candidate cannot contribute to timing failures. Current
+default hosted CI and independent rereview remain pending. No full green,
+browser/build, hosted acceptance, merge or deployment result is added here;
+the coordinator will record final verification and delivery after actual results.

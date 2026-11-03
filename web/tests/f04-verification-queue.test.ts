@@ -22,7 +22,7 @@ async function request(owner: string, createdAt: string, id = crypto.randomUUID(
   await db.insert(freelancerProfile).values({ userId: owner, displayName: "Sam Santos", status: "pending" });
   await db.insert(verificationCase).values({ id, freelancerId: owner, createdAt });
   const caseId = crypto.randomUUID();
-  await db.insert(moderationCase).values({ id: caseId, kind: "verification", subjectId: id, createdAt });
+  await db.insert(moderationCase).values({ id: caseId, kind: "verification", subjectId: id, verificationSubjectUserId: owner, createdAt });
   return { id, caseId };
 }
 

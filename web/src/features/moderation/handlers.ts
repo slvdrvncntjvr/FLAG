@@ -11,9 +11,9 @@ export async function claimVerification(db: Db, actorId: string | null, input: u
   try {
     const result = await db.$client.batch([
       statement(db, `UPDATE moderation_case SET status = 'claimed', claimed_by = ?, claimed_until = strftime('%Y-%m-%dT%H:%M:%fZ','now','+30 minutes') WHERE id = ? AND status = 'open' AND ${reviewPredicate()}`, [actorId, caseId, ...reviewArgs(actorId)]),
-      auditAfterChange(db, eventId, actorId, "moderation_claimed", "moderation_case", caseId),
+      auditAfterChange(db, eventId, actorId, "moderation_claimed", "moderation_case", caseId, caseId),
       statement(db, `UPDATE moderation_case SET claimed_by = ?, claimed_until = strftime('%Y-%m-%dT%H:%M:%fZ','now','+30 minutes') WHERE id = ? AND status = 'claimed' AND claimed_until <= ${nowSql} AND ${reviewPredicate()}`, [actorId, caseId, ...reviewArgs(actorId)]),
-      auditAfterChange(db, eventId, actorId, "moderation_reclaimed", "moderation_case", caseId),
+      auditAfterChange(db, eventId, actorId, "moderation_reclaimed", "moderation_case", caseId, caseId),
       statement(db, `SELECT claimed_until FROM moderation_case WHERE id = ? AND ${eventGate()}`, [caseId, eventId]),
     ]);
     const row = result[4].results[0] as { claimed_until: string } | undefined;
@@ -29,7 +29,7 @@ export async function releaseVerification(db: Db, actorId: string | null, input:
   try {
     const result = await db.$client.batch([
       statement(db, `UPDATE moderation_case SET status = 'open', claimed_by = NULL, claimed_until = NULL WHERE id = ? AND ${leasePredicate()}`, [caseId, ...reviewArgs(actorId), actorId, expectedClaimUntil]),
-      auditAfterChange(db, crypto.randomUUID(), actorId, "moderation_released", "moderation_case", caseId),
+      auditAfterChange(db, crypto.randomUUID(), actorId, "moderation_released", "moderation_case", caseId, caseId),
     ]);
     return result[0].meta.changes === 1 ? { ok: true } : failure("conflict");
   } catch { return failure("unavailable"); }
@@ -45,7 +45,7 @@ export async function inspectVerification(db: Db, actorId: string | null, input:
       statement(db, `UPDATE verification_case SET reviewer_id = ?, id_kind = ?, result = ?, name_match = ?, inspected_at = ${nowSql}
         WHERE decided_at IS NULL AND id IN (SELECT subject_id FROM moderation_case WHERE id = ? AND ${leasePredicate()})`,
       [actorId, idKind, result, nameMatch ? 1 : 0, caseId, ...reviewArgs(actorId), actorId, expectedClaimUntil]),
-      statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id) SELECT ?,?,'verification_inspected','verification_case',subject_id FROM moderation_case WHERE id = ? AND changes() = 1`, [crypto.randomUUID(), actorId, caseId]),
+      statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id,moderation_case_id) SELECT ?,?,'verification_inspected','verification_case',subject_id,id FROM moderation_case WHERE id = ? AND changes() = 1`, [crypto.randomUUID(), actorId, caseId]),
     ]);
     return rows[0].meta.changes === 1 ? { ok: true } : failure("conflict");
   } catch { return failure("unavailable"); }
@@ -68,8 +68,8 @@ export async function decideVerification(db: Db, actorId: string | null, input: 
             AND EXISTS (SELECT 1 FROM portfolio_link pl WHERE pl.freelancer_id = fp.user_id))
           AND ${subject.text}))`,
       [decision, reason, actorId, caseId, ...reviewArgs(actorId), actorId, expectedClaimUntil, decision, actorId, ...subject.args(actorId)]),
-      statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id,created_at)
-        SELECT ?,?,'verification_decided','verification_case',vc.id,vc.decided_at FROM verification_case vc JOIN moderation_case mc ON mc.subject_id = vc.id AND mc.kind = 'verification'
+      statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id,created_at,moderation_case_id)
+        SELECT ?,?,'verification_decided','verification_case',vc.id,vc.decided_at,mc.id FROM verification_case vc JOIN moderation_case mc ON mc.subject_id = vc.id AND mc.kind = 'verification'
         WHERE mc.id = ? AND changes() = 1`, [eventId, actorId, caseId]),
       statement(db, `UPDATE moderation_case SET status = 'decided', claimed_by = NULL, claimed_until = NULL,
         decision = ?, reason = ?, decided_by = ?, decided_at = (SELECT created_at FROM audit_event WHERE id = ?),

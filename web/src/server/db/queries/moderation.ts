@@ -15,8 +15,8 @@ export function statement(db: Db, text: string, args: (string | number | null)[]
 }
 export function eventGate() { return "EXISTS (SELECT 1 FROM audit_event WHERE id = ?)"; }
 export const REVIEW_AUDIT_ACTIONS = ["verification_requested", "moderation_claimed", "moderation_reclaimed", "moderation_released", "verification_inspected", "verification_decided"] as const;
-export function auditAfterChange(db: Db, eventId: string, actorId: string, action: (typeof REVIEW_AUDIT_ACTIONS)[number], type: "verification_case" | "moderation_case", subjectId: string) {
-  return statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id) SELECT ?,?,?,?,? WHERE changes() = 1`, [eventId, actorId, action, type, subjectId]);
+export function auditAfterChange(db: Db, eventId: string, actorId: string, action: (typeof REVIEW_AUDIT_ACTIONS)[number], type: "verification_case" | "moderation_case", subjectId: string, caseId: string) {
+  return statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id,moderation_case_id) SELECT ?,?,?,?,?,? WHERE changes() = 1`, [eventId, actorId, action, type, subjectId, caseId]);
 }
 export const moderatorPredicate = actorPredicate("moderator");
 // Future kinds remain inactive: each later handler must add its own conflict rules.

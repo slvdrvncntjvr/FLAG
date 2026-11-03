@@ -97,7 +97,7 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
     await env.DB.prepare("INSERT INTO log_tag (revision_id, tag) VALUES (?, 'Clear Scope')").bind(revisionId).run();
     await expect(env.DB.prepare("DELETE FROM log_revision WHERE id = ?").bind(revisionId).run()).rejects.toThrow(/foreign key constraint/i);
     await expect(env.DB.prepare("DELETE FROM engagement_log WHERE id = ?").bind(fixture.logId).run()).rejects.toThrow(/foreign key constraint/i);
-    await expect(env.DB.prepare("DELETE FROM user WHERE id = ?").bind(fixture.freelancerId).run()).rejects.toThrow(/erase dependents explicitly before user/i);
+    await expect(env.DB.prepare("DELETE FROM user WHERE id = ?").bind(fixture.freelancerId).run()).rejects.toThrow(/erase dependents explicitly before user|exact claimed purge task required/i);
   });
 
   it("allows a Positive rating with Late Payment and rejects invented or duplicate tags (H-16)", async () => {

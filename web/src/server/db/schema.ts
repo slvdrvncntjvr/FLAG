@@ -197,6 +197,7 @@ export const moderationCase = sqliteTable("moderation_case", {
   id: text("id").primaryKey(),
   kind: text("kind", { enum: MODERATION_KINDS }).notNull(),
   subjectId: text("subject_id").notNull(),
+  verificationSubjectUserId: text("verification_subject_user_id").references(() => user.id, { onDelete: "restrict" }),
   status: text("status", { enum: MODERATION_STATUSES }).notNull().default("open"),
   claimedBy: text("claimed_by").references(() => user.id, { onDelete: "restrict" }),
   claimedUntil: isoTime("claimed_until"),
@@ -211,6 +212,7 @@ export const moderationCase = sqliteTable("moderation_case", {
   closureKind: text("closure_kind", { enum: ["decision", "abandoned", "erased"] }),
 }, (t) => [
   uniqueIndex("moderation_case_subject_idx").on(t.kind, t.subjectId),
+  index("moderation_case_verification_subject_idx").on(t.verificationSubjectUserId),
   index("moderation_case_queue_idx").on(t.kind, t.status, t.createdAt),
   index("moderation_case_closed_idx").on(t.closedAt),
   uniqueIndex("moderation_case_live_initial_idx").on(t.logId).where(sql`${t.kind} = 'log' AND ${t.status} IN ('open','claimed','awaiting_changes')`),

@@ -131,14 +131,16 @@ async function runTask(db: Db, bucket: R2Bucket, t: MaintenanceTask, budget: Bud
     if (t.target_type === "moderation_case") {
       // Case-linked audit and round receipts have their own exact tasks; wait
       // rather than cascading or truncating independent held history.
-      const children = await db.$client.prepare("SELECT 1 WHERE EXISTS(SELECT 1 FROM review_round WHERE case_id=?) OR EXISTS(SELECT 1 FROM audit_event WHERE moderation_case_id=?)").bind(t.target_id, t.target_id).first();
+      const children = await db.$client.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM review_round WHERE case_id=?) OR EXISTS(SELECT 1 FROM audit_event WHERE moderation_case_id=?)
+        OR EXISTS(SELECT 1 FROM moderation_case c JOIN verification_case v ON c.kind='verification' AND v.id=c.subject_id WHERE c.id=?)`).bind(t.target_id, t.target_id, t.target_id).first();
       if (children) throw new Error("retained_case_history");
     }
     if (t.target_type === "user") {
       // Do not invoke USER cascades; shell deletion waits for explicit child erasure.
       const children = await db.$client.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM session WHERE user_id=?) OR EXISTS(SELECT 1 FROM account WHERE user_id=?) OR EXISTS(SELECT 1 FROM policy_acceptance WHERE user_id=?) OR EXISTS(SELECT 1 FROM freelancer_profile WHERE user_id=?) OR EXISTS(SELECT 1 FROM client_profile WHERE user_id=?)`).bind(...Array(5).fill(t.target_id)).first();
       if (children) throw new Error("retained_dependencies");
-      await guarded(db, t, "UPDATE privacy_request SET subject_user_id=NULL WHERE subject_user_id=? AND status IN ('completed','deferred','denied')", [t.target_id]);
+      // SQL's BEFORE DELETE trigger detaches nullable request FKs within the
+      // same statement, retaining the authorizing request's subject until last.
     }
     if (!targetTypes.includes(t.target_type as typeof targetTypes[number])) throw new Error("unsupported_target");
     const key = t.target_type === "freelancer_profile" ? "user_id" : t.target_type === "engagement_consent" ? "engagement_id" : "id";
@@ -179,7 +181,7 @@ export async function runMaintenance(env: Pick<CloudflareEnv, "DB" | "PROOFS">, 
     AND (e.target_type!='proof_file' OR e.id IN(SELECT id FROM pilot_maintenance_eligible ranked WHERE status='planned' AND target_type='proof_file'
       AND NOT EXISTS(SELECT 1 FROM proof_file p WHERE p.id=ranked.target_id AND (p.purge_inflight=1 OR p.write_inflight=1))
       AND authorization_expires_at>${clock} ORDER BY attempts,due_at,target_id,id LIMIT ?))
-    ORDER BY attempts,due_at,target_id,id LIMIT ?`).bind(budget.limit - budget.r2Deletes, limit).all<{ id: string }>();
+    ORDER BY CASE target_type WHEN 'verification_case' THEN 0 WHEN 'moderation_case' THEN 2 ELSE 1 END,attempts,due_at,target_id,id LIMIT ?`).bind(budget.limit - budget.r2Deletes, limit).all<{ id: string }>();
   const tasks: MaintenanceTask[] = [];
   for (const row of candidates.results) {
     try { const task = await claimMaintenanceTask(db, row.id); if (task) tasks.push(task); }
@@ -194,7 +196,7 @@ export async function runMaintenance(env: Pick<CloudflareEnv, "DB" | "PROOFS">, 
   for (const task of tasks.filter(t => t.target_type === "engagement_log" && t.operation === "purge")) {
     try { await prepareParent(db, task); } catch { /* Execution below records the blocked outcome. */ }
   }
-  const priority = (t: MaintenanceTask) => t.operation === "redact_identity" && t.target_type === "engagement_log" ? -1 : t.target_type === "proof_file" ? 0 : t.target_type === "log_revision" ? 1 : t.target_type === "engagement_log" ? 2 : t.target_type === "user" ? 9 : 3;
+  const priority = (t: MaintenanceTask) => t.operation === "redact_identity" && t.target_type === "engagement_log" ? -1 : t.target_type === "proof_file" ? 0 : t.target_type === "log_revision" ? 1 : t.target_type === "engagement_log" ? 2 : t.target_type === "verification_case" ? 3 : t.target_type === "moderation_case" ? 5 : t.target_type === "user" ? 9 : 4;
   tasks.sort((a, b) => priority(a) - priority(b));
   for (const t of tasks) {
     try {

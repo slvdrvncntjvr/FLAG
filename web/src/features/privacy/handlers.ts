@@ -95,6 +95,11 @@ export async function executePrivacyRequest(db: Db, env: Pick<CloudflareEnv, "DB
     ]);
     if (p.status === "deferred" ? !r[0].results.length : !r[0].meta.changes) return failure("conflict");
     for (const t of parsed.data.targets.filter(t => t.dueAt <= new Date().toISOString())) {
+      // Keep a verification case's close anchor until the independently
+      // authorized subject purge has actually finished, including batch limits.
+      if (t.targetType === "moderation_case" && t.operation === "purge" && await db.$client.prepare(
+        "SELECT 1 FROM moderation_case c JOIN verification_case v ON c.kind='verification' AND v.id=c.subject_id WHERE c.id=?",
+      ).bind(t.targetId).first()) continue;
       const existing = await db.$client.prepare("SELECT 1 FROM maintenance_task WHERE privacy_request_id=? AND target_type=? AND target_id=? AND operation=? AND status!='abandoned'").bind(p.id, t.targetType, t.targetId, t.operation).first();
       if (existing) continue;
       await db.$client.prepare(`INSERT INTO maintenance_task(id,privacy_request_id,authorized_by,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at)

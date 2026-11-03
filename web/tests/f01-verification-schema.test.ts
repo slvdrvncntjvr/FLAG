@@ -68,8 +68,8 @@ describe("PRD-F1/F4 direct D1 constraints", () => {
     const f = await seed();
     await expect(db.insert(verificationCase).values({ id: crypto.randomUUID(), freelancerId: f.owner })).rejects.toThrow();
     const reviewId = crypto.randomUUID();
-    await db.insert(moderationCase).values({ id: reviewId, kind: "verification", subjectId: f.id });
-    await expect(db.insert(moderationCase).values({ id: crypto.randomUUID(), kind: "verification", subjectId: f.id })).rejects.toThrow();
+    await db.insert(moderationCase).values({ id: reviewId, kind: "verification", subjectId: f.id, verificationSubjectUserId: f.owner });
+    await expect(db.insert(moderationCase).values({ id: crypto.randomUUID(), kind: "verification", subjectId: f.id, verificationSubjectUserId: f.owner })).rejects.toThrow();
     await expect(db.update(moderationCase).set({ subjectId: "replacement" }).where(eq(moderationCase.id, reviewId))).rejects.toThrow();
     await patch(f.id, { reviewer_id: f.reviewer, ...inspection, decision: "approve", reason: "Checked", decided_at: "2026-10-03T00:00:00.000Z" });
     await expect(patch(f.id, { result: "fail" })).rejects.toThrow();
@@ -90,7 +90,7 @@ describe("PRD-F1/F4 direct D1 constraints", () => {
         .bind(crypto.randomUUID(), f.id, row.status, "claimedBy" in row ? row.claimedBy : null, "claimedUntil" in row ? row.claimedUntil : null, "decision" in row ? row.decision : null, "reason" in row ? row.reason : null, "decidedBy" in row ? row.decidedBy : null, "decidedAt" in row ? row.decidedAt : null).run()).rejects.toThrow(/case must start open/i);
     }
     const id = crypto.randomUUID();
-    await db.insert(moderationCase).values({ id, kind: "verification", subjectId: f.id });
+    await db.insert(moderationCase).values({ id, kind: "verification", subjectId: f.id, verificationSubjectUserId: f.owner });
     await env.DB.prepare("UPDATE moderation_case SET status='claimed',claimed_by=?,claimed_until=strftime('%Y-%m-%dT%H:%M:%fZ','now','+30 minutes') WHERE id=?").bind(f.reviewer, id).run();
     // With a real claimed subject, malformed terminal tuples reach the current CHECKs.
     const terminal = { status: "decided", claimed_by: null, claimed_until: null, decision: "reject", reason: "Review grounds", decided_by: f.reviewer, decided_at: "2026-10-03T00:00:00.000Z", closed_at: "2026-10-03T00:00:00.000Z", closure_kind: "decision" };
@@ -101,7 +101,7 @@ describe("PRD-F1/F4 direct D1 constraints", () => {
     await updateCase(terminal);
     expect(await env.DB.prepare("SELECT status,closed_at,closure_kind FROM moderation_case WHERE id=?").bind(id).first()).toEqual({ status: "decided", closed_at: terminal.decided_at, closure_kind: "decision" });
     await expect(env.DB.prepare("UPDATE moderation_case SET reason='Changed history' WHERE id=?").bind(id).run()).rejects.toThrow(/terminal case is immutable/i);
-    await expect(env.DB.prepare("DELETE FROM moderation_case WHERE id=?").bind(id).run()).rejects.toThrow(/exact claimed purge task required/i);
+    await expect(env.DB.prepare("DELETE FROM moderation_case WHERE id=?").bind(id).run()).rejects.toThrow(/exact claimed purge task required|verification subject still needs case close anchor/i);
     const eventId = crypto.randomUUID();
     await db.insert(auditEvent).values({ id: eventId, actorId: f.reviewer, action: "verification_decided", subjectType: "verification_case", subjectId: f.id });
     await expect(db.update(auditEvent).set({ action: "forged" }).where(eq(auditEvent.id, eventId))).rejects.toThrow();
