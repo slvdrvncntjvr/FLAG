@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.22
+doc_version: 0.23
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -558,3 +558,32 @@ processor assessment/private delivery inputs are needed; the operator must not
 invent account-control, receipt or physical-copy evidence. Intake stays false
 and synthetic workflow acceptance remains incomplete. The known deleted LOG
 checkpoint finding and failed Windows evidence remain visible and preserved.
+
+## 22. Export-denial repair delivered; authenticated inputs pending, 2026-11-03
+
+The coordinator directed continued independent repair/release verification while
+human inbox/session and named-processor inputs remain pending. PR29 repairs the
+observed early export-denial headers without changing the schema, authority or
+retention rules. Focused HTTP/real-D1/R2 privacy tests pass 19/19, typecheck/lint
+pass, and full hosted candidate CI passes with unchanged limits. It merged
+normally through unchanged dev protections, and its normal Workers Build names
+the exact version observed at 100%. INDEX owns the source/version and CI receipts;
+QAD §1.4 records fresh hosted success and preserves the initial failure.
+
+A check during the build still observed the old version and failed export
+headers; these are retained as `temporary/pr29-dev-during-build.json` and
+`temporary/pr29-anonymous-during-build.json`, not mislabeled repaired deployment
+evidence. Subsequent checks after the successful build confirm the new version,
+all anonymous denial headers and actual intake=false. No new migration, intake
+enablement, session fabrication, existing-user role change, historical restore,
+production mutation or owner manual acceptance occurred. Original repair and
+follow-up branches, archive and Windows timing failures remain preserved.
+
+Actual eligibility is narrower than verified-profile count: three active
+verified controlled freelancers, one satisfying all current policies. Existing
+historical policy and engagement-consent versions remain present. The absence
+of an admin/authenticated controlled sessions and actual processor/handover
+inputs still blocks truthful execution of assessed lifecycle, physical erasure,
+independent correction/publication and record/rating acceptance. Keep intake
+false and return the exact human-access needs through Orca; source/CI/anonymous
+success cannot settle these unexecuted workflows.

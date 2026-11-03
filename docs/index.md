@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.104
+doc_version: 0.105
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.42 | Review | 2026-11-03 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.56 | Review | 2026-11-03 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.57 | Review | 2026-11-03 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.22 | Draft | 2026-11-03 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.23 | Draft | 2026-11-03 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -148,17 +148,29 @@ cleanup before exactly migration 0012 applied at 10:58:10 UTC. Actual ledger is
 mismatch. Historical SQL 0000–0011 is unchanged. Normal Workers Build
 `b125ae53-17f1-4097-b3cf-fcab82523bfb` succeeded; its GitHub check associates the
 merge with version `ee97d26e-37e8-4d0c-961a-d351e6f94bf8`, observed at 100%.
-Merge-push CI is still running at this checkpoint. Actual dev bindings, private
+Both PR28 merge CI runs
+[41623703769](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41623703769) and
+[41623711537](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41623711537)
+passed. Actual dev bindings, private
 bucket, disabled logging/persistence/traces, hourly cron and **intake=false**
 match OPS. Production is unchanged.
 
-Hosted anonymous page/proof checks pass; an additional export-denial probe
-found missing nosniff on the early HTTP rejection. A scoped follow-up repair is
-being verified on `slvdrvncntjvr/fix-dev-export-denial-20261103`; it is not yet
-delivered. QAD §1.4 owns the actual acceptance matrix and unexecuted workflows.
+Hosted probing found missing nosniff on early export rejection. The scoped
+[PR29 repair](https://github.com/slvdrvncntjvr/FLAG/pull/29), head
+`dd62a1a0dc1f05e24bae7054cd92366ecb4f2c61`, passed both required checks in
+[run 41625000991](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41625000991):
+1,314 Workers tests and 22 browser scenarios. It merged through unchanged
+protections as `b9a7d33ac11637a2693b002e7a2f5a3aabc8dfb9` at 11:25:15 UTC,
+without migration. Successful normal Workers Build
+`6c1e60b2-295c-44ad-b794-45b9a2f9830b` identifies deployed version
+`f8b5b037-e2cc-4e7e-ada7-15df85b392eb`, observed at 100% at 11:28:22 UTC.
+All 22 anonymous checks pass, including three early export-denial paths;
+original failures remain preserved. PR29 merge CI is running at this checkpoint.
+QAD §1.4 owns the acceptance matrix and unexecuted workflows.
 No authenticated hosted lifecycle/publication/correction/ratings or physical
 D1/R2-erasure acceptance is claimed. Dev has three verified controlled
-freelancers, one moderator, no admin and no existing logs/tasks; browser staff
+freelancers (one currently policy-eligible), one moderator, no admin and no
+existing logs/tasks; browser staff
 sessions, controlled inbox access and actual processor assessments are missing.
 Intake stays false until prerequisites are demonstrated. Owner manual acceptance
 and later production promotion approval remain pending; PR20 remains draft.
@@ -179,12 +191,12 @@ broaden the limited owner acceptance report stated below.
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
 | Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
-| Full retention, assessed account closure/export, private corrections and filer updates | PR28 integrated with green candidate CI; full local Windows verification unresolved | Repair Worker/hourly handler delivered; authenticated and actual physical-erasure acceptance pending; export early-denial header follow-up under verification |
+| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29 integrated with green candidate CI; full local Windows verification unresolved | Repair Worker/hourly handler delivered; export early-denial headers pass hosted probes; authenticated and actual physical-erasure acceptance pending |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR28 merge `fc3ac93`; version `ee97d26e-37e8-4d0c-961a-d351e6f94bf8` at 100%, observed 2026-11-03 | 0000-0012 applied; foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR29 merge `b9a7d33`; version `f8b5b037-e2cc-4e7e-ada7-15df85b392eb` at 100%, observed 2026-11-03 | 0000-0012 applied; no pending migration; foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
