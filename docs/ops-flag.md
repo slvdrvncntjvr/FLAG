@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.44
+doc_version: 2.45
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-11-02
+updated: 2026-11-03
 reconciled: 2026-10-13
 ---
 
@@ -63,17 +63,21 @@ rollback/restore receipts are in the Superseded log, not fresh release evidence.
 Use QAD sections 1.1–1.2 and 7.1 for executable acceptance and missing coverage.
 The commands below are existing package scripts verified against
 `web/package.json:8`; they were not executed by this documentation task. Run from
-web with npm.cmd on PowerShell where needed. Future lifecycle/export/maintenance
-operator commands must be supplied and exercised by their implementation owner;
-no guessed command or bare SQL override is a supported operating procedure.
+web with npm.cmd on PowerShell where needed. Section 5 describes the implemented
+admin privacy controls and hourly scheduled maintenance. Consult
+[INDEX](index.md#6-current-development-baseline) for actual deployment and
+remaining repair/acceptance limits; no guessed command or bare SQL override is
+a supported operating procedure.
 
-1. Finish the SDD schema/transition contract and additive migrations before
-   applying SQL. Preserve published migration bytes, snapshots, old consent and
-   decision evidence. Test upgrades from actual 0008/0009 fixtures; do not infer
-   production's ledger from dev. In particular 0009 blocks publication today;
-   only reviewed later migrations may replace its guards with the controlled
-   moderation/maintenance path. Retained rows must remain readable by the chosen
-   compatible application through deployment order.
+1. Review the candidate's SDD schema/transition contract and pending additive
+   migrations before applying SQL. Preserve published migration bytes, snapshots,
+   old consent and decision evidence. Test upgrades from actual 0008/0009
+   fixtures; do not infer production's ledger from dev. Baseline 0009 denies
+   publication; 0011 supplies the controlled human moderation/maintenance
+   protocol. Any further repair migration needs its own review and dev evidence.
+   Retained rows must remain readable by the chosen compatible application
+   through deployment order; the full Worker needs the current reviewed schema
+   even with intake false (section 7).
 2. Keep actual dev intake `"false"`. Run the existing BUILD checks plus the new
    QAD cases for the intended slice; verify candidate CI. Check dev's actual
    migration ledger, take and verify its encrypted backup as in section 6, then
@@ -153,7 +157,7 @@ is not proof of inbox delivery.
 | Worker errors | Fixed application events emitted; source disables persisted logs/traces; deployed observations in INDEX; >1%/15min target alert not configured | Owner investigates with bounded content-free diagnostics and platform metrics |
 | Mail failures | Generic application 503 and provider dashboards | Check sender/key/provider availability without copying contacts/codes |
 | Free usage/storage | Owner checks dashboard weekly and before intake | Compare Workers/D1/R2 usage and storage with current allowances; stop before paid upgrade |
-| Correction turnaround and full retention | Workflows/signals not implemented | Add actual case-close/hold and deletion evidence with those features |
+| Correction turnaround and full retention | Moderation cases and /admin/privacy show request deadlines, due material, task attempts, holds, unresolved writers and backup dispositions | Check oldest cases against the 48h correction target; investigate overdue/blocked work and record actual case-close, erasure and backup evidence under section 5 |
 
 Application log emission remains enabled. Default and dev source configurations
 explicitly disable invocation logs, log persistence, traces and trace persistence;
@@ -164,7 +168,8 @@ routing is not configured. No uptime or monitoring readiness is inferred from th
 
 Audit rows contain actor/subject IDs, server-owned action and time only.
 Never log tokens, OTPs, provider bodies, contacts/IDs, facts, files or raw request
-bodies. PRD-F12 owns minimal-history retention; full maintenance is unfinished.
+bodies. PRD-F12 owns minimal-history retention; section 5 describes the bounded
+maintenance controls and INDEX records their delivery and acceptance limits.
 
 Invitation capabilities appear in request paths. Invocation suppression alone
 does not establish that custom-log metadata omits those URLs, so source disables
@@ -195,45 +200,75 @@ must be investigated; never take over its R2 deletion on a timer.
 ### Privacy requests and retention
 
 CONTACT_EMAIL in `web/src/lib/policies.ts:5` is the receiving channel. The named
-owner must process and record request responsibility, assessment and outcome;
-this address does not establish that an export/deletion/closure tool exists.
-Complete the minimum safe lifecycle before collecting real proofs or publishing.
-Hiding or read-time expiry alone is not physical erasure. Preserve documented
-holds and decided-row evidence until a controlled assessed purge is designed.
+owner processes and records requests through `/admin/privacy`; a current-policy
+admin can record the subject, kind, responsible processor and UTC received/due
+times, then open `/admin/privacy/{requestId}`. These are the implemented controls
+in `web/src/app/(admin)/admin/privacy/page.tsx:14` and
+`web/src/app/(admin)/admin/privacy/[requestId]/page.tsx:25`, dispatched by
+`web/src/features/privacy/actions.ts:29`. Actual deployment, confirmed retention
+defects and outstanding hosted acceptance are recorded in
+[INDEX](index.md#6-current-development-baseline). Keep intake false while those
+repairs and prerequisites remain unresolved; hiding is not physical erasure.
 
-When implemented, the processor records requester/subject, kind, responsible
-staff, assessment, action and outcome using the SDD-defined workflow. For
-closure, assess within 30 days, deactivate and revoke sessions/access without
-cascade-deleting retained evidence. Retain a published filer's name only under
-the assessed lawful purpose; earlier required erasure first hides/withdraws the
-publication and recalculates the record. Export uses the SDD section 3.10
-allowlist, per-file subject relationship checks and private delivery: ordinary
-verified-subject session plus hashed one-use capability, or a separately
-assessed post-closure export-only capability. Maximum lifetime is 24 hours; a
-closed account is never reopened to deliver it. The issuing admin does not
-receive proof bytes, choose another recipient or automatically email a secret
-link. Recheck subject/channel, no-store/nosniff attachment delivery, one-use
-refusal and confirmed artifact erasure before marking work done. Receipt of
-email is neither authentication nor delivery.
+1. Assign the responsible current admin. That processor records a completed
+   non-ID account-control check and a minimal evidence reference, verified within
+   24 hours for assessment. Select exact subject-related target types/IDs and
+   operations, authority basis, UTC deadlines and finite category purposes.
+   Assess closure within 30 days. Execute due assessed actions with the named
+   control; deactivation revokes access without cascading retained evidence.
+   A lawfully retained publication name needs its assessed purpose; earlier
+   required erasure first hides/withdraws the publication and recalculates.
+   Published-log corrections use independent moderation, not privacy-form edits.
+2. For an assessed export, choose only the supported metadata categories:
+   account, profiles, policies and log metadata. Proof bytes, private review
+   notes and other contacts are excluded. Use **Prepare assessed metadata
+   export** only for the verified subject and assessed channel. The form shows
+   the one-use secret once; hand it over privately, never in a URL, email or
+   report. Delivery uses the Authorization header, a same-subject current session
+   or separately assessed post-closure export-only capability, and an assessed
+   lifetime of at most 24 hours. Do not reopen a closed account or grant the
+   admin proof access. Check no-store/nosniff attachment delivery and one-use
+   refusal. Token use records an attempt, not successful receipt: record actual
+   subject handover evidence and confirm private artifact erasure.
+3. Inventory relevant backup copies. Use **Record a known backup disposition**
+   for each exact assessed target/reference with finite erase/expiry action,
+   basis and deadline. **Record actual verification** records evidence of a
+   completed copy action in the controlled inventory; the form does not erase
+   external backups. A restore filter alone is not physical erasure. Keep
+   unverified copies and retained purposes visible with finite follow-up.
+4. Use **Record truthful outcome**: `completed` requires all assessed tasks
+   completed, required export receipt/artifact erasure, and verified physical
+   backup disposition for deletion/closure. Otherwise record `deferred` or
+   `denied`, reason and finite follow-up. A deferred assessment can execute its
+   unchanged due work without reopening or rewriting the closed receipt; link
+   a new follow-up request where a new assessment/outcome is needed. See
+   `web/src/features/privacy/handlers.ts:107` for outcome checks.
+5. Use **Place finite exact-object hold** for the exact target type/ID, review
+   or legal basis, responsible staff and UTC review/expiry. Review the dashboard
+   and use **Release this hold** under its responsible-admin authorization when
+   the purpose ends. Holds delay destruction only; they never restore expired
+   visibility or ratings. Re-evaluate eligible work after release/expiry.
 
-Physical maintenance uses the SDD-defined internal/scheduled authority. It must
-not use raw unguarded DELETE or disable freeze/hold triggers. Claim eligible
-work atomically, delete exact scoped R2 objects, confirm result, then retire
-eligible D1 children/parents in dependency order with retry tracking. Preserve
-minimal per-case history until its own deadline. An R2 failure, changed identity
-or uncertain in-flight owner is incomplete work, never confirmed erasure.
-The bounded existing draft helper at
-`web/src/features/logs/cleanup.ts:7` is not a full retention scheduler or privacy
-processor. New operator entry points remain unavailable until implemented and
-exercised; this plan does not claim a Cron or export tool currently runs.
+The hourly scheduled handler (`web/custom-worker.ts:3`,
+`web/wrangler.jsonc:4`) calls the same runner as the dashboard's **Retry settled
+blocked work and run next bounded batch** control: at most **25 task claims and
+25 R2 deletes per run**, including failed delete attempts and compensation in
+the R2 budget (`web/src/features/lifecycle/maintenance.ts:150`). Check actual
+deployed cron/handler settings under section 2.2, due-material counts, task
+IDs/status/attempts and completed/blocked/outstanding results. Reads/downloads
+deny exactly at their deadline; physical destruction is due on the next hourly
+sweep. A configured cron or successful invocation is not proof of actual erasure.
+Record content-free before/after D1/R2 evidence for the synthetic acceptance.
 
-SDD section 3.11 targets an hourly scheduled Worker calling the same bounded
-runner as staff retry: at most 25 task claims and 25 R2 deletes per run. Once
-implemented, check actual cron configuration and packaged scheduled-handler
-behavior, last run/result and due backlog. Reads/downloads deny exactly at their
-deadline; physical destruction is due on the next hourly sweep. Failed or held
-work remains explicitly tracked. A server helper without a deployed executor
-does not meet this contract. No maintenance CLI command is currently supplied.
+Retry only settled blocked work whose exact authority and hold checks still
+pass. Investigate unresolved export/proof writers or claimed/purge_inflight
+owners; elapsed time never transfers ownership. Preserve exact storage tracking
+until the original writer settles. The runner claims eligible work atomically,
+confirms exact scoped R2 deletion and retires D1 dependencies without bypassing
+their clocks or holds. Failures and held work remain tracked, never confirmed
+erasure. Do not use raw unguarded DELETE, disable freeze/hold triggers or clear
+ownership flags by hand. No maintenance CLI is supplied; supported entry points
+are the admin controls and scheduled handler.
 
 | Selector | Required operation |
 |----------|--------------------|
@@ -271,8 +306,12 @@ For mail failure, check configured provider/sender and the generic error, then
 retry the intended sign-in. For overdue verification, check the actual live lease
 before reassignment; a replacement reviewer reinspects. For suspected private
 material exposure, preserve evidence, restrict the affected surface and notify
-the owner through the user's authorized channel. Full correction and retention
-incident procedures land with their unfinished workflows.
+the owner through the user's authorized channel. For correction/retention
+failures, inspect the exact case/request/task and holds using the controls above;
+preserve decided receipts and unresolved-writer ownership. Record blocked work,
+actual erasure/receipt evidence and finite follow-up, and escalate defects to the
+owner. INDEX records the confirmed retention repair and acceptance gaps; repeated
+retry is not evidence that a defect is repaired.
 
 ## 6. Backup and recovery
 

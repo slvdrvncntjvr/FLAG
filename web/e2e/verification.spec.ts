@@ -50,9 +50,23 @@ async function seedOlderQueueRequest(mobile: boolean) {
     INSERT INTO freelancer_profile(user_id,display_name,status) VALUES('${ownerId}','${name}','pending');
     INSERT INTO portfolio_link(id,freelancer_id,url,label) VALUES('${randomUUID()}','${ownerId}','https://example.invalid/work','Work samples');
     INSERT INTO verification_case(id,freelancer_id,created_at) VALUES('${requestId}','${ownerId}',strftime('%Y-%m-%dT%H:%M:%fZ','now','-37 hours'));
-    INSERT INTO moderation_case(id,kind,subject_id,created_at) SELECT '${reviewId}','verification',id,created_at FROM verification_case WHERE id='${requestId}';
+    INSERT INTO moderation_case(id,kind,subject_id,created_at,verification_subject_user_id) SELECT '${reviewId}','verification',id,created_at,freelancer_id FROM verification_case WHERE id='${requestId}';
   `);
-  return name;
+  return { name, path: `/moderation/verification/${reviewId}` };
+}
+
+// Queue display names are not identities: desktop/mobile and other scenarios
+// may legitimately leave different requests with the same owner-entered name.
+async function localVerificationPath(email: string) {
+  if (!/^verification-[a-z0-9-]+@example\.invalid$/.test(email)) throw new Error("Non-synthetic test account refused");
+  const output = await executeLocalFixture(`SELECT c.id FROM moderation_case c
+    JOIN verification_case v ON v.id=c.subject_id AND c.kind='verification'
+    JOIN user u ON u.id=v.freelancer_id WHERE u.email='${email}' AND v.decided_at IS NULL`);
+  const result: unknown = JSON.parse(output);
+  const rows = Array.isArray(result) && result.length === 1 ? result[0]?.results : null;
+  if (!Array.isArray(rows) || rows.length !== 1 || typeof rows[0]?.id !== "string"
+    || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(rows[0].id)) throw new Error("Exact synthetic verification case required");
+  return `/moderation/verification/${rows[0].id}`;
 }
 
 async function executeLocalFixture(command: string) {
@@ -62,10 +76,11 @@ async function executeLocalFixture(command: string) {
   if (!basename(temp).startsWith("flag-e2e-")) throw new Error("Isolated E2E path required");
   const config = JSON.parse(await readFile(join(temp, "app", "wrangler.json"), "utf8"));
   if (config.name !== "flag-local-e2e" || config.d1_databases?.[0]?.database_name !== "flag-e2e") throw new Error("Synthetic local database required");
-  const result = spawnSync(process.execPath, [resolve("node_modules/wrangler/bin/wrangler.js"), "d1", "execute", "flag-e2e", "--local", "--persist-to", join(temp, "state"), "--command", command], {
+  const result = spawnSync(process.execPath, [resolve("node_modules/wrangler/bin/wrangler.js"), "d1", "execute", "flag-e2e", "--local", "--persist-to", join(temp, "state"), "--command", command, "--json"], {
     cwd: join(temp, "app"), encoding: "utf8", timeout: 60_000, windowsHide: true,
   });
   if (result.status !== 0) throw new Error("Synthetic local fixture setup failed; command output withheld");
+  return result.stdout;
 }
 
 async function noOverflow(page: Page) {
@@ -93,7 +108,8 @@ test("rejected requests keep their original profile and numeric portfolio after 
   const correctedName = testInfo.project.name === "mobile-360" ? "Sam Santos Mobile" : "Sam Santos Desktop";
   const originalUrl = "https://example.invalid/projects/123456/brand-design";
   const correctedUrl = "https://example.invalid/projects/654321/new-work";
-  await signIn(page, `verification-history-owner-${stamp}@example.invalid`, "freelancer");
+  const ownerEmail = `verification-history-owner-${stamp}@example.invalid`;
+  await signIn(page, ownerEmail, "freelancer");
   await page.goto("/verification");
   await page.getByLabel("Account/profile name", { exact: true }).fill(originalName);
   await page.getByLabel("City (optional)").fill("Original city");
@@ -101,6 +117,7 @@ test("rejected requests keep their original profile and numeric portfolio after 
   await page.getByLabel("Link label 1 (optional)").fill("Original portfolio");
   await page.getByRole("button", { name: "Submit verification request", exact: true }).click();
   await expect(page.getByText("Pending review", { exact: true })).toBeVisible();
+  const originalReviewPath = await localVerificationPath(ownerEmail);
 
   const reviewerContext = await browser.newContext({ baseURL: "http://localhost:3000", viewport: page.viewportSize()! });
   const reviewer = await reviewerContext.newPage();
@@ -113,7 +130,7 @@ test("rejected requests keep their original profile and numeric portfolio after 
     await signIn(reviewer, email, "client");
     await setLocalTestRole(email, "moderator");
     await reviewer.goto("/moderation/verification");
-    await reviewer.getByRole("link", { name: originalName, exact: true }).click();
+    await reviewer.getByRole("link", { name: originalName, exact: true }).and(reviewer.locator(`a[href="${originalReviewPath}"]`)).click();
     await expect(reviewer).toHaveURL(/\/moderation\/verification\/[^/]+$/);
     await expect(reviewer.getByRole("heading", { name: "Verification review", exact: true })).toBeVisible();
     const originalReview = reviewer.url();
@@ -151,7 +168,9 @@ test("rejected requests keep their original profile and numeric portfolio after 
     await noOverflow(reviewer);
 
     await reviewer.goto("/moderation/verification");
-    await reviewer.getByRole("link", { name: correctedName, exact: true }).click();
+    const correctedReviewPath = await localVerificationPath(ownerEmail);
+    expect(correctedReviewPath).not.toBe(originalReviewPath);
+    await reviewer.getByRole("link", { name: correctedName, exact: true }).and(reviewer.locator(`a[href="${correctedReviewPath}"]`)).click();
     expect(reviewer.url()).not.toBe(originalReview);
     await expect(reviewer.getByText(correctedName, { exact: true })).toBeVisible();
     await expect(reviewer.getByRole("link", { name: /^Corrected portfolio/ })).toHaveAttribute("href", correctedUrl);
@@ -166,7 +185,8 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
   test.setTimeout(240_000);
   const stamp = Date.now();
   const ownerName = "Alex Rivera";
-  await signIn(page, `verification-owner-${stamp}@example.invalid`, "freelancer");
+  const ownerEmail = `verification-owner-${stamp}@example.invalid`;
+  await signIn(page, ownerEmail, "freelancer");
   await page.getByRole("link", { name: "View verification or request an identity check" }).click();
   await expect(page.getByRole("heading", { name: "Verification", exact: true })).toBeVisible();
   await expect(page.getByText("Not started", { exact: true })).toBeVisible();
@@ -187,6 +207,7 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
   await page.getByRole("button", { name: "Submit verification request" }).click();
   await expect(page.getByText("Pending review", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Submit verification request" })).toHaveCount(0);
+  const ownerReviewPath = await localVerificationPath(ownerEmail);
   await noOverflow(page);
   console.info("Verification workflow: requester pending; starting reviewer.");
 
@@ -201,20 +222,25 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
     const reviewerEmail = `verification-reviewer-${stamp}@example.invalid`;
     await signIn(reviewer, reviewerEmail, "client");
     await setLocalTestRole(reviewerEmail, "moderator");
-    const olderName = await seedOlderQueueRequest(testInfo.project.name === "mobile-360");
+    const older = await seedOlderQueueRequest(testInfo.project.name === "mobile-360");
+    const olderName = older.name;
     await reviewer.goto("/home");
     await reviewer.getByRole("link", { name: "Open verification review queue" }).click();
-    const olderRow = reviewer.getByRole("listitem").filter({ has: reviewer.getByRole("link", { name: olderName, exact: true }) });
-    const newRow = reviewer.getByRole("listitem").filter({ has: reviewer.getByRole("link", { name: ownerName, exact: true }) });
+    const olderLink = reviewer.getByRole("link", { name: olderName, exact: true }).and(reviewer.locator(`a[href="${older.path}"]`));
+    const ownerLink = reviewer.getByRole("link", { name: ownerName, exact: true }).and(reviewer.locator(`a[href="${ownerReviewPath}"]`));
+    const olderRow = reviewer.getByRole("listitem").filter({ has: olderLink });
+    const newRow = reviewer.getByRole("listitem").filter({ has: ownerLink });
     await expect(olderRow.getByText("Waiting 37 hours", { exact: true })).toBeVisible();
     await expect(olderRow.getByText("Overdue — waiting more than 36 hours", { exact: true })).toBeVisible();
     await expect(newRow.getByText("Waiting 0 hours", { exact: true })).toBeVisible();
     await expect(newRow.getByText(/Overdue/)).toHaveCount(0);
-    const orderedNames = await reviewer.locator("main li a").allTextContents();
-    expect(orderedNames.indexOf(olderName)).toBeLessThan(orderedNames.indexOf(ownerName));
+    const orderedPaths = await reviewer.locator("main li a").evaluateAll(links => links.map(link => link.getAttribute("href")));
+    expect(orderedPaths.indexOf(older.path)).toBeGreaterThanOrEqual(0);
+    expect(orderedPaths.indexOf(ownerReviewPath)).toBeGreaterThanOrEqual(0);
+    expect(orderedPaths.indexOf(older.path)).toBeLessThan(orderedPaths.indexOf(ownerReviewPath));
     await noOverflow(reviewer);
     console.info("Verification workflow: queue ages and order checked; claiming review.");
-    await reviewer.getByRole("link", { name: ownerName, exact: true }).click();
+    await ownerLink.click();
     expect(await reviewer.locator('input[type="file"]').count()).toBe(0);
     await reviewer.getByRole("button", { name: "Claim review", exact: true }).click();
     await expect(reviewer.getByRole("heading", { name: "Record a live inspection" })).toBeVisible();

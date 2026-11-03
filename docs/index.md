@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.98
+doc_version: 0.103
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-02
+updated: 2026-11-03
 reconciled: 2026-09-14
 ---
 
@@ -28,12 +28,12 @@ verification and OPS for operations. The active decision log is
 | Document | File | Version | Status | Updated | Reconciled |
 |----------|------|---------|--------|---------|------------|
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
-| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.43 | Review | 2026-11-02 | 2026-10-13 |
+| BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
-| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.39 | Review | 2026-11-02 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.53 | Review | 2026-11-02 | 2026-10-13 |
-| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.44 | Review | 2026-11-02 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.16 | Draft | 2026-11-02 | 2026-09-14 |
+| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.42 | Review | 2026-11-03 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.55 | Review | 2026-11-03 | 2026-10-13 |
+| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.21 | Draft | 2026-11-03 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -47,6 +47,9 @@ docs remain Review, then backed-up dev migrations/deployment and synthetic
 acceptance intake only after prerequisites. Main merge needs later owner
 approval; no paid upgrades or optional features. See current LOG §14 for scope
 and the limited owner acceptance report; no human reconciled date advances.
+The owner's 2026-11-03 scoped retention and documentation/release repair
+authorization is recorded in current LOG §20. These Review docs are authorized
+for that repair without changing reconciliation or invariant meanings.
 
 Root pointers: AGENTS.md, CLAUDE.md, GEMINI.md and IDE rules. Local web setup
 starts at [web/README.md](../web/README.md).
@@ -134,6 +137,34 @@ history and recorded changes. App correctness needs the checks in QAD. Human
 
 ## 6. Current development baseline
 
+**2026-11-03 repair state:** original dev `e2bab1d` remains the delivered
+baseline (PR26 pilot plus PR27 documentation); the repair branch
+`slvdrvncntjvr/fix-pilot-retention-20261103` is published as
+[draft PR28](https://github.com/slvdrvncntjvr/FLAG/pull/28), unmerged.
+Independent rereview of implementation `14baafc` clears the assessed-authority
+blocker and finds no remaining substantive correctness issue within its bounded
+scope. A subsequent bounded review also clears the SDD 2.42 proof-authorization
+optimization: shared exact predicates avoid unused page hydration while fresh
+permission and deadline checks remain before and after R2. Its focused runtime
+set passes 192/192 tests in 12 files; typecheck/lint pass. The latest full local
+Windows run remains failed: 1,301/1,311 pass with ten unchanged five-second
+timeouts. Earlier retention-focused 193/193 and metadata 7/7 passes remain
+separate evidence. Prior hosted run 41607579495 failed one update-expiry timeout
+at 1,307/1,308; the optimization requires new current-head checks. PR28 owns
+those live results. Complete local verification remains unresolved; bounded
+source clearance and focused passes do not imply hosted product acceptance.
+Three confirmed retention defects affect final assessed user-shell erasure,
+verification audit clocks and verification/case deletion order; current LOG §20
+records the focused evidence and assessed early-erasure follow-up, and QAD §1.3
+maps required regressions. Migration 0012 now includes the durable verification
+owner schema field defined in SDD section 3 alongside the retention guard repairs.
+Dev's deployed ledger remains **0000–0011; 0012 is not applied or deployed**.
+Intake remains false, production unchanged, and hosted authenticated
+pilot plus actual synthetic D1/R2 erasure/recipient/backup acceptance are pending.
+PR20's corrected metadata links PR28 and remains draft; production promotion
+still needs the owner's later approval. Earlier passing checks below do not
+validate these repairs, and PR checks do not establish hosted product acceptance.
+
 This is the only current delivery-state map. The approved pilot merged into dev
 through [PR26](https://github.com/slvdrvncntjvr/FLAG/pull/26) as `f46be4c` on
 2026-11-02, following current-head CI, verified encrypted backup and ordered
@@ -148,12 +179,12 @@ broaden the limited owner acceptance report stated below.
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
 | Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
-| Full retention, assessed account closure/export, private corrections and filer updates | Implemented and merged in PR26; bounded reviews and application/browser checks pass | Pilot Worker and hourly scheduled handler deployed; live synthetic physical-erasure acceptance pending |
+| Full retention, assessed account closure/export, private corrections and filer updates | PR26 baseline integrated; draft PR28 has focused verification and bounded independent correctness clearance; full local verification unresolved, current hosted checks linked in PR28 (current LOG §20) | Baseline Worker/hourly handler delivered; repair delivery and actual physical-erasure acceptance pending |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR26 merge `f46be4c`; version `b0eca03e-3be6-4c33-bf44-2fbe593c4877` at 100%, observed 2026-11-02 | 0000-0011 applied; foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | Source baseline `e2bab1d`; last recorded pilot runtime version `b0eca03e-3be6-4c33-bf44-2fbe593c4877` at 100% after PR26 merge `f46be4c`, observed 2026-11-02 | 0000-0011 applied; foreign_key_check clean at that observation |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -235,9 +266,10 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
+| 0 | Verify and deliver the confirmed retention repairs | PRD-F12: draft PR28 published and unmerged, focused worker checks and bounded independent correctness clearance supplied; full local run 1,298/1,308 with ten five-second timeouts remains unresolved; PR28 carries current hosted checks, QAD §1.3 owns regressions. 0012 not applied/deployed |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
-| 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Dev backup, migrations, notices and deployment are complete; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness, OPS §5 |
+| 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |
 | 4 | Complete hosted client-record/rating acceptance | PRD-F6, PRD-F14: latest eligible contributor vote, counts, tags, Limited record and empty-state checks against actual synthetic publications |
 | 5 | Promote the intended product slice when the owner chooses | Green CI and manual smoke; OPS §7 |
 

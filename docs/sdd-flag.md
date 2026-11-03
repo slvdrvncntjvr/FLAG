@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.39
+doc_version: 2.42
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-02
+updated: 2026-11-03
 reconciled: 2026-10-13
 ---
 
@@ -75,6 +75,7 @@ erDiagram
     USER ||--o{ LOG_REVISION : submits
     USER ||--o{ PROOF_FILE : uploads
     USER |o--o{ MODERATION_CASE : decides
+    USER |o--o{ MODERATION_CASE : verification_subject
     FREELANCER_PROFILE ||--o{ VERIFICATION_CASE : undergoes
     FREELANCER_PROFILE ||--o{ PORTFOLIO_LINK : lists
     FREELANCER_PROFILE ||--o{ ENGAGEMENT : opens
@@ -302,6 +303,7 @@ erDiagram
         text id PK
         text kind "verification | log | correction | filer_update"
         text subject_id "id of the row under review; UNIQUE with kind"
+        text verification_subject_user_id FK "nullable; immutable exact verification owner, unknown legacy stays null"
         text status "open | claimed | decided; planned adds awaiting_changes | closed"
         text claimed_by FK "nullable"
         text claimed_until "nullable"
@@ -465,7 +467,7 @@ column. Source anchors: `web/src/server/db/schema.ts:17`, `:77`, `:188`, `:209`.
 | LOG_REVISION | PRD-F2, PRD-F4, PRD-F13, PRD-F14 | INV-1, INV-6 | PII | Parent deadline; unpublished abandonment 30 days inactive, rejected proposal 30 days after final decision | Planned state/activity/effective date/invalidation; prior content remains private |
 | LOG_TAG | PRD-F2, PRD-F6 | - | internal | With revision | Fixed eight tags |
 | PROOF_FILE | PRD-F3, PRD-F12 | INV-2, INV-4 | PII | With parent; unsubmitted cleanup implemented | Private R2 bytes; immutable size/hash/MIME and retry metadata |
-| MODERATION_CASE | PRD-F1, PRD-F4, PRD-F13 | INV-1 | internal | 12 months after own actual closed_at | Planned close/round contracts; ask-changes is not closure |
+| MODERATION_CASE | PRD-F1, PRD-F4, PRD-F12, PRD-F13 | INV-1, INV-3 | PII | 12 months after own actual closed_at, or assessed earlier purge/independent holds | Minimal immutable verification_subject_user_id preserves exact ownership after request erasure; no copied profile/inspection content or new clock; ask-changes is not closure |
 | AUDIT_EVENT | PRD-F4, PRD-F12 | INV-3 | internal | Case close plus 12 months; standalone completed-purpose retain_until | Planned case FK/deadline; no content column |
 | REVIEW_ROUND | PRD-F4, PRD-F13, PRD-F12 | INV-1, INV-6 | PII | Minimal private history until case closed_at plus 12 months | Planned; immutable decision/reason and actual reviewer; not public content |
 | PROOF_REVIEW | PRD-F3, PRD-F4, PRD-F12 | INV-1, INV-4 | internal | With round; detach proof pointer when bytes/content expire sooner | Planned; per-round exact-byte verdict; no file content |
@@ -492,6 +494,7 @@ backstops in `web/drizzle/0006_verification_review.sql:1`,
 |----------|-------------|--------|
 | One undecided verification per freelancer; complete-or-empty inspection tuple; passing matched inspection for approval; reasoned immutable decision | Partial unique index, CHECKs and verification triggers | PRD-F1, INV-3, INV-8 |
 | Immutable submitted name/city/portfolio snapshot; legacy NULL stays unknown | 0007 migration and request/history readers | PRD-F1 |
+| Verification history retains exact subject authority after request deletion | MODERATION_CASE.verification_subject_user_id references USER with RESTRICT, indexed by subject; new verification case INSERT must match its exact verification request owner; all updates to that field forbidden | PRD-F1, PRD-F12, INV-3 |
 | One review per kind/subject; valid open/claimed/decided tuple and kind-specific outcomes | Unique index, CHECKs, compare-and-set handlers | PRD-F4 |
 | Server-owned audit actor/action, no submitted content; ordinary audit and decided-row edits/deletes forbidden | Handlers and freeze triggers | PRD-F4, INV-3 |
 | Client profile unique by user; invited initial state; one fresh consent acceptance per engagement; accepted parties/time frozen | Profile uniqueness, consent PK/UK/FKs, 0008 triggers | PRD-F9, INV-2 |
@@ -681,7 +684,11 @@ Sources: `web/src/features/engagements/handlers.ts:24`,
 request-scoped `PRIVATE_INTAKE_ENABLED === "true"`. Missing/malformed context
 fails closed; client input cannot enable it. Deny before parsing uploads, DB/R2
 writes or opportunistic cleanup. Existing authorized reads continue, and drafts
-render read-only. Disabled paths must work on 0008 without reading 0009 fields.
+render read-only. Supported private read/query regression paths with intake
+disabled work on 0008 without reading 0009 fields. This is a query-path
+compatibility contract only: the full pilot Worker requires all reviewed
+migration prerequisites before deployment, even with intake disabled; see
+[OPS §7](ops-flag.md#7-production-readiness-gate).
 Source: `web/src/features/logs/rollout.ts:6`, `web/src/features/logs/actions.ts:18`.
 Real intake also requires the lifecycle/correction prerequisite in PRD-F12.
 
@@ -707,7 +714,18 @@ actual size/signature and max five proofs. Upload quota is twenty attempts per
 user/Manila day; atomic private-upload counters and reservations are not refunded
 by deletion. Generate logs/<logId>/<proofId> keys. Reserve uploading metadata with
 final size/hash/MIME before R2 put; uploading alone is not evidence of complete
-bytes. Check HEAD integrity before attach or download. D1 and R2 have separate
+bytes. Check HEAD integrity before attach or download. Ordinary proof delivery
+uses a minimal proof authorization projection sharing the private-log reader's
+exact party, selected-current-or-initial-revision, visibility and expiry
+predicates; it does not build the page's tags/proof-list/review-history payload
+to decide access. Viewer role, current policies, ban/deactivation and both the
+selected revision's and requested proof's natural/assessed deadlines are checked
+before R2 GET and again afterwards. No viewer, capability or deadline is cached
+across that storage await. The legacy private read/query path still omits fields
+unavailable at its supported schema boundary. Source:
+`web/src/server/db/queries/logs.ts:61`,
+`web/src/features/logs/proofs.ts:148`.
+D1 and R2 have separate
 commit boundaries; await compensation and preserve a concurrently attached file.
 Sources: `web/src/features/logs/proofs.ts:16`, `:80`, `:144`.
 
@@ -919,6 +937,20 @@ dependencies require a temporary user/profile shell. Such a shell is private,
 deactivated, has no reusable authentication and has a finite pending erasure task.
 Delete it only after dependent purposes end. Re-registering an email cannot
 reactivate a retained shell or inherit its records.
+
+Final shell erasure is one guarded USER DELETE statement. Its BEFORE DELETE
+trigger validates the live exact claimed user/purge grant and absence of
+session/account/policy/profile dependencies before detaching nullable
+PRIVACY_REQUEST.subject_user_id FKs. It detaches other same-subject requests
+first and the sole authorizing request last, preserving live subject authority
+through every guard; the immutable task target and assessment are never
+rewritten. Executing and deferred authorizing requests both participate.
+The DELETE and its observed-absence completion receipt commit together, or
+all detachment/deletion/receipt effects roll back. A held user, unrelated
+subject/request, invalid grant or retained dependency grants no exception.
+No general authority bypass or persistent detachment flag is introduced.
+Source: `web/drizzle/0012_retention_repairs.sql:5`,
+`web/src/features/lifecycle/maintenance.ts:137`.
 
 For the installed Better Auth email-OTP provider, subject ownership matches only
 the four exact scalar identifiers `sign-in-otp-<email>`,
@@ -1153,6 +1185,76 @@ it stores no facts/file bodies. Case-linked audit uses case closed_at, not event
 created_at; standalone claim/purpose events acquire retain_until only on actual
 purpose close. Unresolved purpose/history is flagged for assessment rather than
 silently retaining it because a user remains active.
+
+Every verification request, claim/reclaim/release, inspection and decision audit
+INSERT links moderation_case_id to its exact case. Request creation retains its
+unique-event atomic batch race gate: the winning owner update inserts the linked
+event, and all profile/portfolio/request/case writes require that unique event.
+That single D1 batch defers FK validation to transaction commit so the case can
+be inserted last, after the still-editable portfolio writes; a missing case or
+any other unresolved FK aborts the entire batch. The restrictive FK definition
+and ordinary audit
+immutability remain. Forward migration 0012_retention_repairs backfills only
+NULL links proven by the stored typed subject ID and unique verification case
+association for these known actions; it preserves all existing evidence fields,
+retain_until values and actual close times. Missing or mismatched associations
+remain unclocked for assessment; no close or cleanup-time clock is invented.
+
+A `case` hold may select the exact verification-request ID independently of its
+moderation-case ID; each target must exist and its claimed purge fences hold
+insertion. A verification moderation case cannot be purged while its typed
+VERIFICATION_CASE subject still exists, even under an assessed case erasure or
+if that subject is independently held. SQL enforces this prerequisite at issue,
+claim and DELETE; the runner and issuers prioritize verification data before
+its case across bounded batches and retries. Audit and round dependencies also
+keep their case anchor until independently eligible erasure. A case hold does
+not itself hold its verification subject, and a subject's independent hold does
+not authorize loss of its close anchor. Both lexical ID orders have identical
+retention behavior. These dependency checks preserve the actual close anchor;
+they do not themselves establish the subject authority for later assessed work.
+
+MODERATION_CASE.verification_subject_user_id records only the exact verification
+owner's USER ID. The case INSERT must match its typed live
+VERIFICATION_CASE.freelancer_id; clients cannot supply an alternate owner.
+Migration 0012 backfills only an existing exact verification
+case/request relationship. Missing historical relationships remain unknown;
+assessment JSON, task IDs, audit actor identity and close-time guesses cannot
+manufacture an owner. All updates to this field are forbidden after migration,
+and new verification INSERTs must prove the exact live case/request/user
+relationship; other case kinds require NULL.
+
+Case, linked audit and round subject projections use this durable case field
+for verification ownership. It survives request erasure, preserving both
+already-claimed audit eligibility and later case-task issuance under the same
+verified privacy request, current responsible admin, exact scope/assessment,
+operation, basis, deadline and independent hold predicates. Other subjects and
+the existing actor-owned audit mapping are unchanged. Request-first processing
+therefore works across batches of one, deferred work, holds and retries without
+an authorization gap or a detached-history bypass.
+
+This field is part of the minimal case receipt, with no independent clock or
+maintenance target. It remains present through every BEFORE DELETE guard and is
+removed only when the actual case row is deleted; correctness does not depend
+on trigger execution order or a separately deletable association row. Any held
+case, retained audit/round FK or injected failure rolls back the case, subject
+field and completion receipt together; held dependent work keeps its subject
+authority until its independent release. The user FK is RESTRICT, so a user
+shell also survives while its independently retained case still needs it.
+Sources: `web/src/server/db/schema.ts:200`,
+`web/src/features/verification/submit.ts:29`,
+`web/drizzle/0012_retention_repairs.sql:1`.
+
+The dependency is enforced by dedicated task-issuance, task-claim and case-DELETE
+triggers, alongside the unchanged shared exact authority/hold/due-date view.
+Adding the dependency inside that view exceeds local D1's compiler memory
+budget when expanded into unrelated write guards; materializing the whole view
+instead prevents useful predicate pushdown. Dedicated triggers preserve all
+existing eligibility checks and add the dependency at each destructive boundary
+without that expansion. Source: `web/drizzle/0012_retention_repairs.sql:31`,
+`web/src/server/db/queries/moderation.ts:18`,
+`web/src/features/verification/submit.ts:11`,
+`web/src/features/moderation/handlers.ts:14`,
+`web/src/server/db/queries/lifecycle.ts:27`.
 
 | Material | Due predicate before hold/assessment adjustment |
 |----------|-------------------------------------------------|

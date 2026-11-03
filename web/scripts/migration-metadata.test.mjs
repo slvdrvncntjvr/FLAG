@@ -34,6 +34,8 @@ const published = {
   "0007_verification_submitted_profile.sql": "66be5b23abaa2278b9fab52675da8f4608001fb2cff2ba8dd69e7ba9e433a55d",
   "0008_engagement_consent.sql": "c388da6d70efacbc7d6f029be0c7b129f232c2ae65b9c9f0d9964f0a25fe4ede",
   "0009_private_log_intake.sql": "7937c4ebbe256ce01a6708c0d4aba6767e78ea0ab819087c85a4dacc7462565c",
+  "0010_pilot_lifecycle_schema.sql": "145eff35fc2d43ac8a83a078000fcd64cd2486126c358aee96758fc1ba978370",
+  "0011_pilot_guards.sql": "6da870262ddbd41e5fb86c4063749849023932a21871e49fbce37aa52683aaeb",
 };
 
 const assertPublishedContent = folder => {

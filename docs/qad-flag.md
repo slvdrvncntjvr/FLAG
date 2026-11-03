@@ -3,11 +3,11 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.53
+doc_version: 2.55
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-11-02
+updated: 2026-11-03
 reconciled: 2026-10-13
 ---
 
@@ -52,8 +52,9 @@ coordinator. Separate manual acceptance precedes real pilot proof collection.
 
 Required regression boundaries: disabled intake works on schema 0008 without new
 writes or 0009-field reads in its supported read-only query paths. The new
-Worker auth/schema requires migrations through 0011 before deployment (OPS
-section 2.1). Baseline 0009 denies publication; the reviewed 0011 protocol
+Worker auth/schema requires the current reviewed migrations before deployment
+(OPS section 7); deployed baseline ledgers are recorded in INDEX. Baseline 0009
+denies publication; the reviewed 0011 protocol
 permits it only through complete human review. Submitted content stays frozen. R2 integrity, hold-aware cleanup, exclusive
 purge ownership, compensation races and batch rollback need existing negative
 coverage. Recognizable government IDs, including MID/member aliases and encoded
@@ -179,6 +180,25 @@ separate. Existing auth/verification/handshake/intake suites stay
 regression coverage for PRD-F1/F2/F3/F7/F8/F9. PRD-F11 remains optional/deferred;
 retired features and PRD section 6 candidates are excluded.
 
+### 1.3 Retention repair acceptance, 2026-11-03
+
+These confirmed PRD-F12 regressions supplement the existing lifecycle cases;
+they are required expectations, not passing evidence. The repair candidate is
+locally implemented with supplied focused checks, while full verification,
+independent rereview and delivery remain pending; INDEX owns current state.
+
+| Confirmed defect | Existing acceptance | Required focused regression |
+|------------------|---------------------|-----------------------------|
+| Final assessed user-shell erasure loses subject authority or fails its FK | H-18, S-41 | For both executing and deferred requests, delete a due dependency-free deactivated shell with exact immutable authority; assert user absence and truthful completion, plus atomic rollback on injected failure |
+| Verification audit events lack their actual case retention clock | H-22, H-33 | Exercise request/claim/reclaim/release/inspection/decision writers and provable legacy associations; verify exact case linkage and expiry 12 months after actual close, with unrelated subjects isolated and no fabricated receipt or fresh cleanup-time deadline |
+| Case-first erasure strands verification snapshot/inspection data | H-22, H-33 | Exercise both lexical ID orders, one-task batches, retries and exact holds; verification data erases before its close anchor, and SQL independently blocks premature case deletion without orphaning the remaining deadline |
+| Assessed request-first erasure loses surviving verification history's subject authority | H-18, H-22, H-33, S-41 | Erase the verification request before its case/audit/rounds; exact immutable case owner preserves claimed audit eligibility and later assessed task issuance across one-task batches, executing/deferred requests, holds and retries. Reject alternate-owner INSERTs/updates; backfill only provable owners, leave unknown legacy ownership unknown. Retained case FK blocks user-shell deletion; injected failure rolls back case deletion and its receipt |
+
+Use focused D1 integration and migration checks under section 1.1; read-only
+SQLite reproductions establish the reported defects, not repaired runtime or
+hosted acceptance. Existing QAD §7.1 still requires actual synthetic D1/R2
+erasure, recipient handover and backup disposition; do not infer those from CI.
+
 ## 2. Happy path cases
 
 | ID | PRD-F# | Scenario | Expected |
@@ -199,7 +219,7 @@ retired features and PRD section 6 candidates are excluded.
 | H-14 | PRD-F13 | Filer posts a later-dated update: Filer submits a paid-late update with proof for their own published log; moderator approves the revised content and rating | New approved revision shown with its date; original publication date still anchors retention |
 | H-15 | PRD-F14 | First average from the first contributor: First approved log for a client (rating 4) | Record shows the average with contributor count 1 and the Limited record label |
 | H-16 | PRD-F14 | Positive log may carry a risk tag: Rating 5 with tag Late Payment and supporting proof; moderator approves | Published Positive; the tag shows beside it; no tag combination overrides the star-derived outcome |
-| H-17 | PRD-F12 | Data request resolved: User files an export request; admin resolves with the outcome recorded | Request `done` with its outcome; no blanket data retention promised |
+| H-17 | PRD-F12 | Data request resolved: User files an export request; responsible admin assesses and records the verified outcome | Request `completed` only after all assessed actions complete, actual subject receipt is evidenced and the one-use export artifact is erased; deletion/closure also requires verified physical backup disposition. Otherwise record truthful `deferred`/`denied` with reason and finite follow-up; token use alone is not receipt |
 | H-18 | PRD-F12 | Account close assessed: User requests account closure | Assessed individually within 30 days; outcome recorded; surviving records follow the approved lifecycle |
 | H-19 | PRD-F2 | File a log with covered period and optional amount: On an accepted engagement choose rating 4, tags On-time Payment, covered work start/end dates within the engagement, amount 50000 centavos, 60-character facts, one proof, submit | Log `pending` with period_start/period_end and amount_centavos stored; rating stored 4 with derived outcome Positive |
 | H-20 | PRD-F14 | Older published contribution survives a newer rejected log: Pair has an older published log (rating 5); filer files a second log on a newer engagement that is rejected | Average still counts the older 5 with the contributor retained; the rejected log contributes nothing |
@@ -215,7 +235,7 @@ retired features and PRD section 6 candidates are excluded.
 | H-30 | PRD-F13 | Request correction without hiding; independent moderator upholds; repeat with new evidence, ask-changes, then correct; separately withdraw and approve a filer's paid-late update | All four correction decisions supported; only approved current revision/rating visible, dated update metadata only; credible error/privacy assessment may hide temporarily; private request/counter-proof/history stays private and original expiry never moves |
 | H-31 | PRD-F6 | Search two registered clients with identical names as a freelancer, open each, then open own record as each client | Separate identities and engagement counts; no contact/ID leak or name merge; client cannot search/read the other's record; eligible logs newest first with filer names and approved update dates |
 | H-32 | PRD-F14, PRD-F6 | For one client seed freelancer A's older 5/newer 1, B's 4, C's 3, D's 2, E's 5 through approval; tie A's publication times on separate fixtures and order refs ascending | Average 3.0/count 5, no Limited record; first four contributors average 2.5/count 4 with Limited record; ties follow PRD ref ordering; outcome/tag/log totals use eligible logs, while average/count use one latest eligible contribution per pair |
-| H-33 | PRD-F2, PRD-F3, PRD-F4, PRD-F12, PRD-F13 | Apply new forward-only migrations to disposable copies at 0008, 0009 and the current complete ledger; compare retained legacy snapshots/consent/decisions and run affected actions | Compatible ordered application, no old SQL/history rewrite, no invented legacy evidence or receipts; disabled intake remains safe at 0008; enabling uses the complete prerequisite schema, not 0009 alone |
+| H-33 | PRD-F2, PRD-F3, PRD-F4, PRD-F12, PRD-F13 | Apply new forward-only migrations to disposable copies at 0008, 0009 and the current complete ledger; compare retained legacy snapshots/consent/decisions and run affected actions | Compatible ordered application, no old SQL/history rewrite, no invented legacy evidence or receipts; disabled intake's supported private read/query paths remain safe at 0008; full Worker deployment requires the current reviewed prerequisite schema even with intake false |
 
 ## 3. Sad path cases
 
@@ -292,7 +312,7 @@ retired features and PRD section 6 candidates are excluded.
 | AB-19 | PRD-F13 | Conflicted correction reviewer: Original log decider, the filer, the client, or an engaged freelancer tries to decide the correction | Refused: the reviewer must be independent and unconflicted |
 | AB-20 | PRD-F3 | Admin proof bypass: Admin without a moderator permission or persona requests `/api/proofs/[id]` | 404, same as any unrelated user |
 | AB-21 | PRD-F2 | Backdated anchor: Anchor moved earlier to fit the window, or proof does not support the claimed event date | Rejected on evidence mismatch; no clock reset is possible |
-| AB-22 | PRD-F12 | Probe a purge endpoint: Unauthenticated request guessing a maintenance or purge URL | 404: no public purge endpoint exists; retention runs on the system Cron identity only |
+| AB-22 | PRD-F12 | Probe a purge endpoint: Unauthenticated request guessing a maintenance or purge URL | 404: no public purge endpoint exists; scheduled execution and current-policy admin retry use the same exact guarded bounded runner; unauthorized actions cannot claim maintenance authority |
 | AB-23 | PRD-F1 | ID image upload: Verification attempt attaches an ID photo or number file | Rejected; nothing stored, logged, or returned |
 | AB-24 | PRD-F12 | Cascade wipe through USER delete: Direct delete of a USER row that still owns unexpired logs, proofs, or unexpired minimal history | Refused by FK RESTRICT; closure deactivates instead and purges only per the assessed plan |
 | AB-25 | PRD-F7 | Forged or rejected logout request: Submit foreign/missing origin, foreign callback, malformed body or corrupted signature while a valid session exists | Existing router/body validation remains authoritative; no valid session is revoked by rejected requests or a forged signature |
@@ -318,7 +338,7 @@ retired features and PRD section 6 candidates are excluded.
 | ID | INV-# | Attempt to break the rule | Expected |
 |----|-------|---------------------------|----------|
 | NT-01 | INV-1 | Signed-in freelancer with no relation fetches a `pending` log through the record page and the query layer directly | Not present in the page; query returns nothing |
-| NT-02 | INV-1 | Attempt publication through every non-moderation path: `submitLog`, filer update, correction request, and direct action calls | None publishes; only the moderation decision action `decideReview` may set `published` (log publication handling is planned, not built) |
+| NT-02 | INV-1 | Attempt publication through `submitLog`, filer update, correction request and unauthorized direct moderation calls, including correction restoration | No non-moderation path publishes. `decideLogReview` requires an authorized human review for initial/filer-update approval; `decideCorrection` requires independent authorized review for correction or restoration. Both recheck live claim, actor conflicts, current revision and exact proof receipts |
 | NT-03 | INV-2 | Submit a log with zero proof files, bypassing the form | Rejected by the handler; a raw SQL update to `pending` is rejected by the proof trigger |
 | NT-04 | INV-2 | Submit a log on an engagement in `invited` or `declined` state | Rejected |
 | NT-05 | INV-3 | Attempt sensitive name/image payloads through OTP signup, update-user and provider-backed user hooks; ID/QR/phone-derived request/reason/inspection payloads; then legitimate manual inspection; inspect D1/R2 and captured logs | Recognizable raw payloads reject before writes without mutation/content logging. Provider HTTP image values are discarded whole, including hidden payloads. Only validated owner-entered snapshot/profile/portfolio and permitted inspection evidence persist; ordinary numeric project URLs work. No ID upload/transcription or content-bearing audit event |

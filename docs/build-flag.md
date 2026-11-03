@@ -3,11 +3,11 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.43
+doc_version: 2.44
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-02
+updated: 2026-11-03
 reconciled: 2026-10-13
 ---
 
@@ -127,8 +127,12 @@ are unchanged. CI keeps its default invocation.
 
 OPS owns remote procedures. The package scripts include db:migrate:dev,
 db:migrate:remote, deploy:dev and deploy, but running a local check is not release
-authorization. Build and deployment do not apply SQL. Disabled intake must work
-on 0008; enabled intake needs 0009 and later prerequisite migrations first.
+authorization. Build and deployment do not apply SQL. Schema 0008 compatibility
+with disabled intake covers only the supported private read/query regression
+paths, without new writes or 0009-field reads. It is not full-Worker deployment
+compatibility. The full pilot Worker needs the current reviewed migrations
+before deployment even with intake false; inspect and apply only the compatible
+pending set under [OPS §7](ops-flag.md#7-production-readiness-gate).
 
 ### 3.2 Encrypted D1 backup command (Windows)
 

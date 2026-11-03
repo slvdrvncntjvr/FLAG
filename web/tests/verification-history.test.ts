@@ -79,7 +79,7 @@ it("never reconstructs decided legacy originals, and labels current data separat
   await db.insert(portfolioLink).values({ id: crypto.randomUUID(), freelancerId: owner, url: "https://example.com/current", label: "Current work" });
   const requestId = crypto.randomUUID(), caseId = crypto.randomUUID();
   await db.insert(verificationCase).values({ id: requestId, freelancerId: owner });
-  await db.insert(moderationCase).values({ id: caseId, kind: "verification", subjectId: requestId });
+  await db.insert(moderationCase).values({ id: caseId, kind: "verification", subjectId: requestId, verificationSubjectUserId: owner });
   const current = { name: "Current Name", city: "Current City", portfolioLinks: [{ url: "https://example.com/current", label: "Current work" }] };
   expect(await loadVerificationReview(db, mod, caseId)).toMatchObject({ submittedProfile: null, portfolioLinks: [], currentProfile: current });
   const claim = await claimVerification(db, mod, { caseId });

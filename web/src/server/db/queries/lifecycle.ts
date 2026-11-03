@@ -26,8 +26,10 @@ export async function issueDueTasks(db: Db, limit: number) {
     FROM privacy_request p JOIN pilot_live_staff staff ON staff.id=p.responsible_id AND staff.role='admin',json_each(p.assessment,'$.targets') a
     WHERE p.status IN ('executing','deferred') AND p.identity_verified_at IS NOT NULL AND p.assessed_at IS NOT NULL
     AND json_extract(a.value,'$.dueAt')<=${clock}
+    AND NOT (json_extract(a.value,'$.targetType')='moderation_case' AND json_extract(a.value,'$.operation')='purge'
+      AND EXISTS(SELECT 1 FROM moderation_case c JOIN verification_case v ON c.kind='verification' AND v.id=c.subject_id WHERE c.id=json_extract(a.value,'$.targetId')))
     AND NOT EXISTS(SELECT 1 FROM maintenance_task t WHERE t.privacy_request_id=p.id AND t.target_type=json_extract(a.value,'$.targetType') AND t.target_id=json_extract(a.value,'$.targetId') AND t.operation=json_extract(a.value,'$.operation') AND t.status!='abandoned')
-    ORDER BY json_extract(a.value,'$.dueAt'),p.id LIMIT ?`).bind(limit).all<{ request_id: string; responsible_id: string; target_type: string; target_id: string; operation: string; basis: string; due_at: string }>();
+    ORDER BY CASE json_extract(a.value,'$.targetType') WHEN 'verification_case' THEN 0 WHEN 'moderation_case' THEN 2 ELSE 1 END,json_extract(a.value,'$.dueAt'),p.id LIMIT ?`).bind(limit).all<{ request_id: string; responsible_id: string; target_type: string; target_id: string; operation: string; basis: string; due_at: string }>();
   for (const t of assessed.results) {
     try {
       await db.$client.prepare(`INSERT INTO maintenance_task(id,privacy_request_id,authorized_by,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at) VALUES(?,?,?,?,?,?,?,?,${clock},strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'))`)
@@ -35,8 +37,10 @@ export async function issueDueTasks(db: Db, limit: number) {
     } catch { /* A held, revoked or competing exact grant remains visible for review. */ }
   }
   const due = await db.$client.prepare(`SELECT x.* FROM pilot_unheld_target x WHERE (x.purge_due_at<=${clock} OR x.close_due_at<=${clock})
+    AND NOT (x.target_type='moderation_case' AND x.purge_due_at<=${clock}
+      AND EXISTS(SELECT 1 FROM moderation_case c JOIN verification_case v ON c.kind='verification' AND v.id=c.subject_id WHERE c.id=x.target_id))
     AND NOT EXISTS(SELECT 1 FROM maintenance_task t WHERE t.target_type=x.target_type AND t.target_id=x.target_id AND t.status IN ('planned','claimed','blocked'))
-    ORDER BY CASE x.target_type WHEN 'proof_file' THEN 0 WHEN 'proof_review' THEN 1 WHEN 'review_round' THEN 2 WHEN 'log_revision' THEN 3 WHEN 'engagement_log' THEN 4 ELSE 5 END,coalesce(x.close_due_at,x.purge_due_at),x.target_id LIMIT ?`).bind(limit).all<RetentionTarget>();
+    ORDER BY CASE x.target_type WHEN 'proof_file' THEN 0 WHEN 'proof_review' THEN 1 WHEN 'review_round' THEN 2 WHEN 'log_revision' THEN 3 WHEN 'engagement_log' THEN 4 WHEN 'moderation_case' THEN 6 ELSE 5 END,coalesce(x.close_due_at,x.purge_due_at),x.target_id LIMIT ?`).bind(limit).all<RetentionTarget>();
   for (const x of due.results) {
     const operation = x.close_due_at && x.close_due_at <= new Date().toISOString() ? "close_abandoned" : "purge";
     try {
