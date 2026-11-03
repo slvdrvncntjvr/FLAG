@@ -8,7 +8,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ deli
   const { deliveryId } = await params;
   const authorization = request.headers.get("Authorization");
   const token = authorization?.startsWith("Bearer ") ? authorization.slice(7) : null;
-  if (!token || new URL(request.url).search) return new Response(null, { status: 404, headers: { "Cache-Control": "private, no-store" } });
+  if (!token || new URL(request.url).search) return new Response(null, { status: 404, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" } });
   const { env } = await getCloudflareContext({ async: true });
   return deliverExport(await getDb(), env.PROOFS, deliveryId, token, (await getViewer())?.id ?? null);
 }

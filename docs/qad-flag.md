@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.55
+doc_version: 2.56
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -183,9 +183,9 @@ retired features and PRD section 6 candidates are excluded.
 ### 1.3 Retention repair acceptance, 2026-11-03
 
 These confirmed PRD-F12 regressions supplement the existing lifecycle cases;
-they are required expectations, not passing evidence. The repair candidate is
-locally implemented with supplied focused checks, while full verification,
-independent rereview and delivery remain pending; INDEX owns current state.
+they are required expectations, not passing deployed evidence. Focused checks,
+independent rereview and candidate CI are separate from hosted workflows;
+INDEX owns current delivery state and section 1.4 records hosted observations.
 
 | Confirmed defect | Existing acceptance | Required focused regression |
 |------------------|---------------------|-----------------------------|
@@ -198,6 +198,33 @@ Use focused D1 integration and migration checks under section 1.1; read-only
 SQLite reproductions establish the reported defects, not repaired runtime or
 hosted acceptance. Existing QAD §7.1 still requires actual synthetic D1/R2
 erasure, recipient handover and backup disposition; do not infer those from CI.
+
+### 1.4 Controlled dev acceptance observations, 2026-11-03
+
+Observed PR28 release revision/version and intake state are in INDEX §6. The
+operator's content-free receipts are `temporary/pr28-dev-postdeploy.json`,
+`temporary/pr28-anonymous-probes.json` and
+`temporary/pr28-controlled-dev-release-20261103.md`; these retain actual failures.
+This checkpoint is automated operator evidence, never owner manual acceptance.
+
+| Cases / scope | Actual hosted result | Evidence or missing input |
+|---------------|----------------------|---------------------------|
+| PRD-F7/F8, INV-7; signed-out protected pages and current public notices | Pass for 18 established page probes | Protected pages redirect to sign-in; privacy/terms visibly 2026-11-02; no signed-in reacceptance exercised |
+| PRD-F3, INV-4; anonymous nonexistent proof | Pass for 404/no-store/nosniff | No real proof identifiers used; unrelated/bare-admin and authorized proof reads unexecuted |
+| PRD-F12, AB-24; anonymous export HTTP early denial | Fail: 404/no-store but missing nosniff | Scoped HTTP-route repair and regression under verification; delivered export/one-use/artifact cleanup unexecuted |
+| H-17/H-18/H-21/H-27/H-28, S-39–S-42; assessed export, closure/revocation, post-closure delivery and backup outcomes | Unexecuted | No dev admin or authenticated controlled subject; actual processor assessment, private delivery and recipient evidence needed |
+| H-22/H-33, S-26–S-30; physical D1/R2 erasure, exact holds/release/retry and case history | Unexecuted | Cron and scheduled handler exist; no due synthetic fixture/task was executed, and no erasure is inferred from empty tables |
+| H-04/H-12/H-29, NT-13; claims, proof inspection, ask-changes/reject/approve | Unexecuted | One moderator in dev inventory; additional independent controlled staff/account access required; no logs exist |
+| H-13/H-14/H-30; independent private correction and filer update | Unexecuted | Authenticated parties/independent reviewer and synthetic publication prerequisite absent |
+| H-06/H-11/H-15/H-16/H-20/H-31/H-32; records/ratings/fallback/counts/tags/Limited/empty | Unexecuted | Known controlled publication fixtures and five verified contributors still needed |
+| PRD-F2/F3; disabled-intake mutation refusal, then bounded synthetic intake | Unexecuted authenticated mutation checks; actual configuration false | No intake window opened; minimum lifecycle/correction/erasure prerequisites remain undemonstrated |
+
+Inventory is aggregate-only: three verified freelancers match the owner's LOG
+§16 controlled-account report; one moderator, no admin, zero engagement logs and
+zero maintenance tasks. No existing user was promoted, no session was fabricated,
+and no raw purge or trigger override was used. Owner manual checkboxes in §7.1
+stay unchecked. The full local Windows timing failure remains separate from the
+green hosted candidate; no timeout was increased or failed evidence removed.
 
 ## 2. Happy path cases
 
