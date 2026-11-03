@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.102
+doc_version: 0.103
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -30,10 +30,10 @@ verification and OPS for operations. The active decision log is
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
-| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.41 | Review | 2026-11-03 | 2026-10-13 |
+| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.42 | Review | 2026-11-03 | 2026-10-13 |
 | QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.55 | Review | 2026-11-03 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.20 | Draft | 2026-11-03 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.21 | Draft | 2026-11-03 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -143,16 +143,21 @@ baseline (PR26 pilot plus PR27 documentation); the repair branch
 [draft PR28](https://github.com/slvdrvncntjvr/FLAG/pull/28), unmerged.
 Independent rereview of implementation `14baafc` clears the assessed-authority
 blocker and finds no remaining substantive correctness issue within its bounded
-scope. Supplied checks pass 193/193 focused actual-D1 tests in 12 files,
-typecheck/lint and 7/7 metadata checks. The full local Windows run failed with
-1,298/1,308 passing and ten failures at unchanged five-second timeouts; complete
-local verification remains unresolved. PR28 owns current-head default hosted
-CI results; source clearance and focused passes do not imply full verification.
+scope. A subsequent bounded review also clears the SDD 2.42 proof-authorization
+optimization: shared exact predicates avoid unused page hydration while fresh
+permission and deadline checks remain before and after R2. Its focused runtime
+set passes 192/192 tests in 12 files; typecheck/lint pass. The latest full local
+Windows run remains failed: 1,301/1,311 pass with ten unchanged five-second
+timeouts. Earlier retention-focused 193/193 and metadata 7/7 passes remain
+separate evidence. Prior hosted run 41607579495 failed one update-expiry timeout
+at 1,307/1,308; the optimization requires new current-head checks. PR28 owns
+those live results. Complete local verification remains unresolved; bounded
+source clearance and focused passes do not imply hosted product acceptance.
 Three confirmed retention defects affect final assessed user-shell erasure,
 verification audit clocks and verification/case deletion order; current LOG §20
 records the focused evidence and assessed early-erasure follow-up, and QAD §1.3
 maps required regressions. Migration 0012 now includes the durable verification
-owner schema field defined in SDD 2.41 alongside the retention guard repairs.
+owner schema field defined in SDD section 3 alongside the retention guard repairs.
 Dev's deployed ledger remains **0000–0011; 0012 is not applied or deployed**.
 Intake remains false, production unchanged, and hosted authenticated
 pilot plus actual synthetic D1/R2 erasure/recipient/backup acceptance are pending.

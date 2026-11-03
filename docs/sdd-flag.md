@@ -3,7 +3,7 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.41
+doc_version: 2.42
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -714,7 +714,18 @@ actual size/signature and max five proofs. Upload quota is twenty attempts per
 user/Manila day; atomic private-upload counters and reservations are not refunded
 by deletion. Generate logs/<logId>/<proofId> keys. Reserve uploading metadata with
 final size/hash/MIME before R2 put; uploading alone is not evidence of complete
-bytes. Check HEAD integrity before attach or download. D1 and R2 have separate
+bytes. Check HEAD integrity before attach or download. Ordinary proof delivery
+uses a minimal proof authorization projection sharing the private-log reader's
+exact party, selected-current-or-initial-revision, visibility and expiry
+predicates; it does not build the page's tags/proof-list/review-history payload
+to decide access. Viewer role, current policies, ban/deactivation and both the
+selected revision's and requested proof's natural/assessed deadlines are checked
+before R2 GET and again afterwards. No viewer, capability or deadline is cached
+across that storage await. The legacy private read/query path still omits fields
+unavailable at its supported schema boundary. Source:
+`web/src/server/db/queries/logs.ts:61`,
+`web/src/features/logs/proofs.ts:148`.
+D1 and R2 have separate
 commit boundaries; await compensation and preserve a concurrently attached file.
 Sources: `web/src/features/logs/proofs.ts:16`, `:80`, `:144`.
 

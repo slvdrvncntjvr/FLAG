@@ -1,5 +1,5 @@
 import type { Db } from "@/server/db";
-import { assertChanged, contentWithinDeadline, editableDraftGate, filerGate, intakeNow, loadPrivateLog } from "@/server/db/queries/logs";
+import { assertChanged, editableDraftGate, filerGate, intakeNow, loadReadableProof } from "@/server/db/queries/logs";
 import { failure, idInput, MAX_PROOF_BYTES, proofKindInput, type LogFailureCode, type LogResult } from "./schema";
 import { hex, objectMatches, purgeClaimedProof, trackedProof, removeTrackedProof, settleProofWrite, type ProofRecord } from "./proof-storage";
 import { runPrivateIntakeCleanup } from "./cleanup";
@@ -147,14 +147,14 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
 
 export async function downloadProof(db: Db, proofs: R2Bucket, actorId: string | null, proofId: string): Promise<Response> {
   if (!actorId || !idInput.safeParse(proofId).success) return errorResponse("not_found", 404);
-  const row = await trackedProof(db, proofId);
-  if (!row || !["uploading", "attached"].includes(row.status) || !await loadPrivateLog(db, actorId, row.log_id) || !await contentWithinDeadline(db, "proof", proofId)) return errorResponse("not_found", 404);
+  const row = await loadReadableProof(db, actorId, proofId);
+  if (!row) return errorResponse("not_found", 404);
   try {
     const object = await proofs.get(row.object_key);
     if (!objectMatches(object, row) || !object) return errorResponse("not_found", 404);
     // Recheck after R2 await: cleanup and concurrent state changes must not expose discarded evidence.
-    const current = await trackedProof(db, proofId);
-    if (!current || !["uploading", "attached"].includes(current.status) || !await loadPrivateLog(db, actorId, row.log_id) || !await contentWithinDeadline(db, "proof", proofId)) return errorResponse("not_found", 404);
+    const current = await loadReadableProof(db, actorId, proofId);
+    if (!current) return errorResponse("not_found", 404);
     const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" }[row.mime];
     if (!extension) return errorResponse("not_found", 404);
     return new Response(object.body, { headers: { ...responseHeaders, "Content-Type": row.mime, "Content-Length": String(row.size_bytes),

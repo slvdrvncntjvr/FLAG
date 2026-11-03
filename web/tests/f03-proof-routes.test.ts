@@ -4,6 +4,7 @@ import { downloadProof, removeDraftProof, signatureMime, uploadProof } from "@/f
 import { submitLog } from "@/features/logs/submit";
 import { manilaDate, MAX_PROOF_BYTES } from "@/features/logs/schema";
 import { addActor, addProof, intakeFixture, pdfBytes, uploadRequest } from "./private-intake-fixtures";
+import { POLICY_VERSIONS } from "@/lib/policies";
 
 describe("private proof real-D1/R2 transport", () => {
   it("streams authorized attachments with safe headers and no path-name persistence", async () => {
@@ -31,6 +32,32 @@ describe("private proof real-D1/R2 transport", () => {
     expect(reads).toBe(0);
     expect((await uploadProof(f.db, env.PROOFS, f.clientUserId, f.logId, uploadRequest())).status).toBe(404);
     expect((await uploadProof(f.db, env.PROOFS, await addActor("admin"), f.logId, uploadRequest())).status).toBe(404);
+  });
+  it.each(["ban", "role", "policy"] as const)("rechecks moderator %s revocation during R2 GET before streaming", async kind => {
+    const f = await intakeFixture(), proofId = await addProof(f), moderator = await addActor("moderator");
+    const originalPrivacy = POLICY_VERSIONS.privacy;
+    let gets = 0;
+    const bucket = new Proxy(env.PROOFS, { get(target, key) {
+      if (key === "get") return async (...args: Parameters<R2Bucket["get"]>) => {
+        const object = await target.get(...args); gets++;
+        if (kind === "ban") await env.DB.prepare("UPDATE user SET banned=1 WHERE id=?").bind(moderator).run();
+        else if (kind === "role") await env.DB.prepare("UPDATE user SET role='admin' WHERE id=?").bind(moderator).run();
+        else Reflect.set(POLICY_VERSIONS, "privacy", "2099-01-01");
+        return object;
+      };
+      const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
+    } });
+    try {
+      const response = await downloadProof(f.db, bucket, moderator, proofId);
+      expect(gets).toBe(1); expect(response.status).toBe(404);
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
+      expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+      expect(response.headers.get("content-disposition")).toBeNull();
+      expect(await response.text()).not.toContain("Synthetic project invoice");
+      expect((await downloadProof(f.db, bucket, moderator, proofId)).status).toBe(404);
+      expect(gets).toBe(1);
+    } finally { Reflect.set(POLICY_VERSIONS, "privacy", originalPrivacy); }
+    expect((await downloadProof(f.db, env.PROOFS, f.freelancerId, proofId)).status).toBe(200);
   });
   it.each(["unknown", "duplicate_file", "duplicate_kind", "extra", "empty", "signature"])("rejects invalid upload %s without reservation", async mode => {
     const f = await intakeFixture();

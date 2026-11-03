@@ -5,6 +5,7 @@ import { idInput } from "@/features/logs/schema";
 import { noActiveLogHold } from "@/features/logs/holds";
 import { hasLifecycleSchema } from "./schema-capabilities";
 import { contentDeadlineCtes, contentDeadlineSql } from "./content-deadlines";
+import type { ProofRecord } from "@/features/logs/proof-storage";
 
 export const intakeNow = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 // Gates are repeated INSIDE conditional writes; a stale session/view model is not authority.
@@ -56,6 +57,28 @@ export async function contentWithinDeadline(db: Db, kind: "revision" | "proof", 
   const alias = kind === "revision" ? "r" : "p";
   return !!await db.$client.prepare(`WITH ${contentDeadlineCtes} SELECT 1 FROM ${table} ${alias} WHERE ${alias}.id=? AND ${contentDeadlineSql(kind, alias)}`).bind(id).first();
 }
+// Both page reads and proof delivery select the same authorized log revision.
+// Fixed SQL aliases only; every actor/object value remains a bound parameter.
+const privateLogJoins = `JOIN engagement e ON e.id=l.engagement_id
+    JOIN client_profile cp ON cp.id=l.client_id
+    JOIN log_revision r ON r.log_id=l.id AND r.id=COALESCE(l.current_revision_id,(SELECT newest.id FROM log_revision newest WHERE newest.log_id=l.id AND newest.kind='initial' ORDER BY newest.rev_no DESC LIMIT 1))`;
+function privateLogPredicate(pilot: boolean) {
+  return `l.status!='expired' AND (l.expires_at IS NULL OR l.expires_at>strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      ${pilot ? `AND ${contentDeadlineSql("revision", "r")}` : ""}
+      AND (l.freelancer_id=? OR cp.user_id=? OR ?='moderator')`;
+}
+export async function loadReadableProof(db: Db, actorId: string, proofId: string): Promise<ProofRecord | null> {
+  const viewer = await reader(db, actorId);
+  if (!viewer) return null;
+  const pilot = await hasLifecycleSchema(db);
+  // Authorize bytes without constructing unrelated page tags, evidence lists
+  // or review history. The same query checks the selected revision AND proof.
+  return db.$client.prepare(`${pilot ? `WITH ${contentDeadlineCtes}` : ""}
+    SELECT p.* FROM proof_file p JOIN engagement_log l ON l.id=p.log_id ${privateLogJoins}
+    WHERE p.id=? AND p.status IN ('uploading','attached') AND ${privateLogPredicate(pilot)}
+      ${pilot ? `AND ${contentDeadlineSql("proof", "p")}` : ""}`)
+    .bind(proofId, viewer.id, viewer.id, viewer.role).first<ProofRecord>();
+}
 export async function loadPrivateLog(db: Db, actorId: string | null, logId: string): Promise<PrivateLog | null> {
   if (!idInput.safeParse(logId).success) return null;
   const viewer = await reader(db, actorId);
@@ -67,12 +90,8 @@ export async function loadPrivateLog(db: Db, actorId: string | null, logId: stri
     l.anchor_kind AS anchorKind,l.anchor_date AS anchorDate,l.first_submitted_at AS firstSubmittedAt,l.submitted_at AS submittedAt,
     r.rating,r.outcome,r.facts,r.period_start AS periodStart,r.period_end AS periodEnd,r.amount_centavos AS amountCentavos,
     r.id AS revisionId,${pilot ? "r.state='draft' AND r.decision IS NULL" : "l.status='draft'"} AS draftReady,l.freelancer_id AS filer,CASE WHEN ${pilot ? noActiveLogHold("l") : "(l.hold_kind IS NULL OR (l.hold_released_at IS NOT NULL AND l.hold_released_at>=l.hold_placed_at))"} THEN 0 ELSE 1 END AS hasActiveHold
-    FROM engagement_log l JOIN engagement e ON e.id=l.engagement_id
-    JOIN client_profile cp ON cp.id=l.client_id
-    JOIN log_revision r ON r.log_id=l.id AND r.id=COALESCE(l.current_revision_id,(SELECT newest.id FROM log_revision newest WHERE newest.log_id=l.id AND newest.kind='initial' ORDER BY newest.rev_no DESC LIMIT 1))
-    WHERE l.id=? AND l.status!='expired' AND (l.expires_at IS NULL OR l.expires_at>strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-      ${pilot ? `AND ${contentDeadlineSql("revision", "r")}` : ""}
-      AND (l.freelancer_id=? OR cp.user_id=? OR ?='moderator')`)
+    FROM engagement_log l ${privateLogJoins}
+    WHERE l.id=? AND ${privateLogPredicate(pilot)}`)
     .bind(logId, viewer.id, viewer.id, viewer.role).first<Omit<PrivateLog, "tags" | "proofs" | "canEdit"> & { filer: string; hasActiveHold: number }>();
   if (!row) return null;
   const [tags, proofs, history] = await Promise.all([

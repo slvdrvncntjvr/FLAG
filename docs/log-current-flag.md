@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.20
+doc_version: 0.21
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -501,3 +501,23 @@ and body are published with the PR28 link and remain draft. Dev e2bab1d,
 production 3582f7e, disabled intake and deployed ledger 0000–0011 are unchanged;
 0012 is unapplied, and repair delivery plus actual hosted authenticated and
 D1/R2 erasure/recipient/backup acceptance remain outstanding.
+
+
+**Hosted timeout and measured proof-read repair, 2026-11-03:** Default hosted
+run [41607579495](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41607579495)
+failed at 1,307/1,308 Workers tests: rejected-proposal expiry after R2 exceeded
+five seconds; later packaging/browser steps were skipped. The measured repair
+shares the exact private-log predicate and authorizes only the requested proof
+without unused page arrays. Fresh viewer, relationship and natural/assessed
+deadline checks remain before and after R2. Controlled same-runtime profiling
+reduces per-actor read-loop D1 calls from 53 to 29 and expiry-during-GET from
+33 to 17; profiling exits are diagnostic evidence, not acceptance passes.
+Bounded independent review clears the four-file delta at fingerprint
+`8b16358114e037985417000bf124a30ff735977e3b835b7dc17bde9c0839d08f`, including
+supported schema-0008 and current-schema SQL compilation. SDD is 2.42.
+The runtime-only affected set passes 192/192; typecheck/lint pass. The full
+unchanged-default local run still fails at 1,301/1,311 with ten five-second
+timeouts, so complete local verification remains unresolved. Original assertions,
+real-action fixtures, deadlines, concurrency and migration bytes are unchanged.
+PR28 needs new current-head CI for this optimization. No merge, migration,
+deployment or intake change is included; existing hosted acceptance limits remain.
