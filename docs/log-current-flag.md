@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.26
+doc_version: 0.27
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -719,3 +719,27 @@ Nine clearly synthetic proof inputs are prepared offline for later acceptance,
 without upload, human inspection, approval or publication claims. Intake stays
 false. No production/main mutation, paid upgrade, historical restoration or
 owner manual acceptance occurred.
+
+## 26. Protected performance delivery and session recovery, 2026-11-04
+
+PR33 passed exact-head and both merge checks through unchanged protections;
+normal Workers Builds maps its merge to the version observed at 100%. INDEX
+owns the exact delivery receipt. Fresh anonymous and genuine authenticated
+filer/reviewer repeated reads pass within QAD's recorded scope. This does not
+establish a cold isolate, every proof relationship or complete business-path
+acceptance. Original hosted failures and Windows timeout evidence remain intact.
+
+After tabs were closed during the owner's chat transition, the operator reopened
+only needed tabs in existing preserved profiles. Genuine sessions survived;
+no cookie extraction, seeded session or repeated OTP was needed for those actors.
+The earlier expired export and first disposable closure now have truthful
+deferred outcomes and finite follow-up, retaining failed delivery and unknown
+copy handling. A new disposable sign-in is prepared for actual combined-request
+repair verification; active publication participants remain open.
+
+The proposed private invitation bridge stopped at denied local-network browser
+permission, with zero requests or secrets transferred. No permission was changed
+and no clipboard mechanism was used. Resolve a supported private handover before
+cross-profile acceptance; do not print or persist capabilities. Intake remains
+false, human proof/publication decisions and manual acceptance remain pending,
+and production/main and human reconciliation dates remain unchanged.

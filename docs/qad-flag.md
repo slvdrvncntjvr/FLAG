@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.60
+doc_version: 2.61
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -270,9 +270,19 @@ measurement of deployed CPU time. Cold preflight cases return 404/nosniff in
 56/11 ms locally without auth warmup, with no Next initialization frames in
 that small capture (`temporary/local-engagements-cpu-receipt-earlyafter-20261104.json`).
 Earlier cold diagnostics timed out at the unchanged bound and remain failures;
-their mostly idle profiles do not establish a CPU cause. Actual deployed
-cold/warm and authenticated proof evidence remain required before claiming
-these hosted failures repaired or enabling intake.
+their mostly idle profiles do not establish a CPU cause.
+
+After protected PR33 deployment, 22/22 actual anonymous probes pass
+(`temporary/pr33-anonymous-postdeploy-first-20261104.json`). At 07:33, recovered
+genuine filer and reviewer sessions returned 200 for first-observed/repeated
+engagement and moderation reads, and 404/nosniff for authenticated nonexistent
+proofs. Receipts are `temporary/pr33-authenticated-filer-recovered-20261104.json`
+and `temporary/pr33-authenticated-reviewer-recovered-20261104.json`.
+No cold-isolate claim is made; real existing-proof authorization and business
+workflow coverage remain outstanding. Both merge CI runs pass. Original
+expired-delivery and closure outcomes are now truthfully deferred with finite
+follow-up; backup-copy erasure is not inferred from live deletion. Same-closure
+repair retest awaits another normally authenticated disposable subject.
 Four fresh authenticated filers have clearly marked eligibility fixtures with
 no fabricated live inspection/case, and two fresh reviewers have staff roles;
 existing users/verification records are untouched. Owner manual checkboxes in
