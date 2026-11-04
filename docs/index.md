@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.112
+doc_version: 0.115
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -30,10 +30,10 @@ verification and OPS for operations. The active decision log is
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
-| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.43 | Review | 2026-11-04 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.64 | Review | 2026-11-04 | 2026-10-13 |
-| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.47 | Review | 2026-11-04 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.30 | Draft | 2026-11-04 | 2026-09-14 |
+| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.44 | Review | 2026-11-04 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.67 | Review | 2026-11-04 | 2026-10-13 |
+| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.48 | Review | 2026-11-04 | 2026-10-13 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.33 | Draft | 2026-11-04 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -206,8 +206,8 @@ reliability. QAD §1.4 owns the limits. Intake stays false. Independent correcti
 publication, ratings, broader proof/case erasure and owner manual acceptance remain
 incomplete. New dedicated synthetic staff and explicitly marked filer eligibility
 fixtures are prepared; existing identities and verification evidence are unchanged.
-No draft, proof upload or submission action has run. The first bounded opening
-attempt failed verification and restored intake false; QAD §1.4 owns that evidence.
+The first synthetic draft, proof upload and pending submission are now observed.
+Intake is disabled again; QAD §1.4 owns the failed attempt and subsequent evidence.
 Docs-only PR34 merged as `ad8ac9548dc005fa944ac4704732540fa25bdd9c`, and its
 normal build deployed version 42 `264abc74-d8db-4743-b89a-aaa1e2412445`.
 The authorized false-to-false settings inheritance test then created version 43
@@ -227,9 +227,58 @@ The first controlled attempt acknowledged enable and immediate close PATCHes,
 but readbacks did not converge. Uncached reads confirm restored version 46
 `3b657d00-e038-45b5-89c6-795924d3b75f` at 100%, actual false and preserved source
 fingerprints. The independent deadline guard also confirmed false and exited 0.
-Opening remains blocked on the scoped observation repair and its verification;
-the attempt is not successful synthetic submission acceptance. No proof/publication
-or production change occurred.
+That first attempt did not establish synthetic submission acceptance. Its failure
+and restoration remain preserved alongside the subsequent PR36 result below.
+
+[PR36](https://github.com/slvdrvncntjvr/FLAG/pull/36) head `e35decd` passed both
+required checks in [run 41822379926](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41822379926)
+and merged normally as `5d40b7e5bfb0ff185d7aee72147885bd62689df2` at 11:51:52 UTC.
+Successful normal Workers Build `3f8eaa69-df9c-4be8-948a-de1657c81096` identifies
+`2f7a340c-943d-4923-be8e-601e1ee1ea19`, observed sole/latest at 100% with intake
+false, exact ledger and five controlled eligible filers. A fresh guarded window
+then confirmed true and created **FL-1042** through supported draft, PDF upload
+and pending submission; publication followed the later human review below.
+The early close acknowledged its PATCH but failed readback; independent reads
+and the deadline guard confirmed restored false. Actual restored version is
+`2e06e367-e575-4966-b841-8fb0e9258230` at 100%, with matching source/settings
+fingerprints. The successful final guard task was retired by its parent runner.
+Filer/client/moderator proof delivery and anonymous/unrelated/bare-admin denial
+pass for the actual file while intake is off; the pending log is absent from the
+client record. The owner then recorded an actual Round 1 ask-changes decision.
+The clarified response fixture was prepared offline. Its first revised-draft save
+stalled without a new revision observed; the unchanged deadline guard restored
+false with preserved source/settings. A subsequent guarded window saved the
+response through separate normal fill/click actions, uploaded the clarified PDF
+and resubmitted revision 2. The same case proceeded to fresh human review; the
+original submission/queue clocks, Round 1 and both proof objects are preserved.
+The response window restored `1eacc557-766b-4ff2-80db-aabcdb9139bb` at 100%, intake
+false, with successful source/settings readback and deadline guard result 0.
+Retain the early-close and pending-save failures; their causes remain unconfirmed.
+The owner personally reviewed the revised proof and approved publication at
+12:43 UTC. Actual Round 2 and its accepted exact-hash proof receipt are confirmed;
+revision 2 is current, with original publication 2026-11-04T12:43:53.902Z and expiry
+2027-11-04T12:43:53.902Z. The signed-in client record shows 5.0/5, one contributor,
+one published log, Limited record and the expected tag counts. Signed-out reads
+redirect to sign-in; an unrelated member cannot read the private log or proof.
+The private correction request was submitted and reviewed through the second
+moderator account; the original decider's eligible queue excluded it. The owner
+recorded **uphold**, closing the request with both exact-proof receipts while
+preserving the publication pointer, facts/tags and original publication/expiry.
+The path that creates a corrected publication remains untested. Two JavaScript draft attempts stalled without
+persisting a request; supported standard HTML submission subsequently succeeded.
+Those failures and their unproven cause remain open; no resource-limit error was
+reported in the bounded aggregate metrics interval. Intake is disabled again.
+Corrected publication, a later-day filer update, broader ratings and owner
+manual acceptance remain. The later update cannot run before a real later Manila
+date; no clock manipulation is permitted.
+Beta's separately accepted engagement has its own fresh client-consent receipt.
+Its complete draft **FL-1043** saved, but the actual PDF upload returned HTML 503
+and persisted no proof or submission. The containing aggregate metrics interval
+reports one exceededResources error; exact request causation is not established.
+The window restored false and its original deadline guard completed 0. A local
+candidate reuses one request-local D1 client through initial proof-upload auth,
+viewer lookup and handling; it is not yet delivered or accepted as a hosted fix.
+Keep reliability and Beta submission open; preserve the failed upload evidence.
 Production planning follows accepted dev evidence; main and production remain
 unchanged and PR20 remains draft.
 The latest full local Windows result remains failed at 1,301/1,311 with ten
@@ -247,14 +296,14 @@ broaden the limited owner acceptance report stated below.
 | Email-code accounts and policy onboarding | Implemented | Available |
 | Manual freelancer verification and moderator review | Implemented; approve/reject, corrected new requests, immutable submitted profile history | Available |
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
-| Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
-| Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
-| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29/PR31/PR32 integrated; performance candidate under verification; full local Windows verification unresolved | Scoped closure/revocation, separate post-closure export, hourly shell/artifact erasure and mixed hold/retry observed; same-closure/broader lifecycle/correction acceptance pending |
+| Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Alpha passed; Beta draft saved but upload returned 503; scoped setup repair and hosted verification pending |
+| Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Alpha human ask-changes/resubmission/publication and one-contributor record observed; broader ratings acceptance remains |
+| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29/PR31/PR32 integrated; full local Windows verification unresolved | Scoped closure/revocation, combined/post-closure exports, holds/hourly erasure and independent-account correction uphold observed; corrected publication, later update and broader lifecycle acceptance remain |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR35 merge `59cfd0e`; restored settings-derived version `3b657d00-e038-45b5-89c6-795924d3b75f` at 100%, intake false, observed 2026-11-04 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR36 merge `5d40b7e`; restored settings-derived version `35b7d92d-1be5-43e5-abfe-e0ba2a6a9ce3`, intake false confirmed by the successful guarded restoration/deadline check, 2026-11-04 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -336,7 +385,7 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 0 | Complete affected controlled-dev verification | PRD-F12: same-closure export and original 08:00 shell/policy erasure pass. PR35 tooling shipped; its first opening failed readback verification and restored false. Deliver and verify the observation repair before retrying synthetic intake. Authorized-proof/business-path acceptance remains. QAD §§1.3–1.4 own coverage; preserve original hosted and separate Windows failures |
+| 0 | Complete affected controlled-dev verification | PRD-F12: same-closure export and original 08:00 shell/policy erasure pass. PR36 tooling shipped; guarded opening, synthetic pending submission and actual proof-access boundaries pass, with restored false independently confirmed. Early-close readback failure remains preserved. Continue human review/business-path and reliability acceptance; QAD §§1.3–1.4 own coverage and original hosted/separate Windows failures |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
 | 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |

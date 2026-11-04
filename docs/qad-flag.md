@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.64
+doc_version: 2.67
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -394,6 +394,149 @@ source/flag state and bounded permanent failure. Read attempts never repeat
 PATCH; unconverged observations cannot claim an accepted open/close. Existing
 writer leases, deadlines, application/test timeouts and human gates remain.
 Protected delivery and the affected actual hosted repair verification are pending.
+
+PRD-F2/F3/F4/F9, INV-1/2/4/7/8 controlled synthetic follow-up after PR36:
+the fresh window confirmed actual true with preserved source/settings and an
+armed independently exercised guard. Supported forms saved draft FL-1042,
+uploaded its prepared 1,060-byte PDF and submitted it pending at the original
+server timestamp. Direct D1 confirms one log and one attached proof, its exact
+manifest SHA-256, and NULL current-publication pointer/published/expiry times
+(`temporary/synthetic-alpha-pending-confirmed-20261104.json`). The named parties
+and engagement-specific consent are the already observed accepted engagement;
+no claim of a real identity inspection is added by this synthetic fixture.
+
+The immediate early-close PATCH was acknowledged but its readback failed and
+remains failed. Independent uncached reads confirm false and both reviewed
+fingerprints on the restored version
+(`temporary/pr36-postsubmission-state-20261104.json`). The independent 12:00:32
+deadline run then completed with result 0, actual false and no further PATCH;
+the parent exited 0 and unregistered the settled task. Full window receipts are
+in `temporary/intake-window-266e22a31a88486196f779a1d6477667/`. Successful pending
+submission and actual restoration do not erase the early-close observation gap.
+
+With intake off, genuine filer, named client and actual moderator sessions each
+received 200, exactly the expected 1,060 bytes/hash and private attachment,
+no-store/nosniff headers. Anonymous credentials-omitted, unrelated filer and bare
+admin requests each received 404/no-store/nosniff and no PDF signature. Receipts:
+`temporary/synthetic-first-proof-authorized-delivery-20261104.json` and
+`temporary/synthetic-first-proof-access-denials-20261104.json`. The client record
+still shows the rolling empty state and contains no FL-1042 entry. These are
+automated byte/access observations, not human evidence inspection. The actual
+moderation case was claimed through the supported form; fresh page state confirms
+the review form and unchecked personal-inspection confirmation. A transient UI
+feedback-text wait timed out; reload confirmed the claim without resubmitting it.
+Human proof verdicts and publication were still pending at this observation.
+
+The owner subsequently opened the exact proof and recorded Round 1 ask-changes
+at 12:10:45.925 UTC. The actual immutable round, exact original proof hash/verdict
+receipt and nonempty private reasons are confirmed; no substantive reason-quality
+acceptance is inferred from the test input. The case is awaiting_changes with
+NULL close time and terminal decision; original queue age, filing anchor and
+first_submitted_at are preserved
+(`temporary/synthetic-alpha-owner-round-one-confirmed-20261104.json`).
+The clarified synthetic response is prepared offline. Its first save remained
+pending without response headers and without a new D1 revision observed; no
+duplicate save or proof mutation was issued. The original deadline guard restored
+false and preserved source/settings with result 0. The stalled page was recovered
+through a read-only reload. Network method/status/timestamp-only evidence is in
+`temporary/synthetic-round-two-save-network-20261104.json`; direct retained state
+is in `temporary/synthetic-alpha-after-pending-save-20261104.json`. This is an
+unresolved response-flow observation, not an attributed CPU-limit failure or a
+passing resubmission. Real publication and final owner acceptance remain pending.
+
+A subsequent fresh guarded window completed the response through separate normal
+fill and click actions. Revision 2 contains the clarified facts and only the new
+1,972-byte synthetic PDF; revision 1 retains its original proof membership and
+immutable ask-changes review. Actual R2 reads confirm both objects still exist.
+The same log/case returned to pending/open without changing first submission or
+queue age; publication pointers/times remain NULL. Evidence:
+`temporary/synthetic-alpha-resubmission-confirmed-20261104.json`. The early close
+confirmed false and preserved metadata/source, and the original deadline guard
+completed 0; its parent retired that settled schedule. This successful response
+does not establish the cause of the preceding stalled save. The reopened reviewer
+form was claimed with verdict/decision/personal-inspection confirmation empty;
+the revised bytes require their own actual human review before publication.
+
+The owner then reported personal inspection and approval of the revised PDF.
+Actual D1 confirms Round 2 approve, its accepted exact-byte proof receipt,
+revision 2 as the publication pointer, original publication at
+2026-11-04T12:43:53.902Z and calendar-anniversary expiry exactly twelve months
+later. Round 1 and both proof objects remain intact; first submission and queue
+age are unchanged (`temporary/synthetic-alpha-owner-publication-confirmed-20261104.json`).
+An unrelated signed-in member sees 5.0/5, one contributor, one published log,
+Limited record and one each Late Payment/Professional tag. No proof link or
+private review reason appears in that record. Signed-out record reads redirect
+to sign-in without the log; the unrelated private-log read is 404
+(`temporary/synthetic-alpha-first-published-record-20261104.json`). Revised-proof
+reads confirm exact 1,972-byte delivery to filer/client and private-header 404
+denials to anonymous/unrelated/bare-admin actors. These bounded observations do
+not complete correction, later-day update, multi-contributor/fallback ratings,
+substantive private-reason quality or final owner acceptance.
+
+Private correction continuation: two normal JavaScript draft submissions remained
+pending with no response status and no persisted request; the second used a fresh
+page in the same verified client profile. Each bounded window restored false and
+completed its original deadline guard. Read-only reload recovered the page; no
+duplicate request was submitted while a result was uncertain. Aggregate Worker
+metrics over 12:50–13:03 UTC report two client disconnections and no errors or
+resource-limit outcome; they do not attribute an individual request or cause
+(`temporary/correction-reliability-metrics-followup-20261104.json`). The earlier
+metrics query was rate-limited and supplies no evidence.
+
+With intake disabled, the supported standard HTML form submission completed and
+created no request. A fresh guarded window then opened the same client correction
+draft through standard HTML, uploaded the 2,124-byte fictional counterproof via
+the normal upload UI and submitted the request through standard HTML. Actual
+request/case metadata confirms submitted/open while the original publication,
+rating and retention times are unchanged; intake is confirmed false
+(`temporary/synthetic-alpha-correction-submitted-20261104.json`). The second
+moderator account's queue includes the case; the original decider's eligible queue
+excludes it. The second account claimed the form, with both exact-proof verdicts,
+decision and personal-inspection confirmation left empty for actual owner review.
+This fallback-path evidence does not accept the stalled JavaScript path or imply
+two independent human reviewers merely because two accounts were exercised.
+
+The owner replied done with a screenshot. Actual D1 records the second moderator
+account's **uphold** decision at 13:26:08.356 UTC, with accepted exact-hash review
+receipts for both files. The request/case closed, revision 2 remains current, no
+new revision or invalidation exists, and original publication/expiry are unchanged
+(`temporary/synthetic-alpha-correction-review-ready-20261104.json`, captured after
+the actual decision). The ordinary record still shows the original 5.0/one-person
+summary and tags. Counterproof byte delivery to filer/client and private-header
+404 denials to anonymous/unrelated/bare-admin actors pass. This exercises the
+uphold path; it does not exercise creation of a corrected publication. All windows
+settled and the latest source/settings check confirms false with preserved
+fingerprints (`temporary/synthetic-alpha-correction-final-closed-source-20261104.json`).
+
+The owner privately handed over Beta's invitation and checked explicit client
+association/consent. Supported acceptance recorded a fresh per-engagement receipt
+at 13:43:02.246 UTC against the same named synthetic client; no invitation
+capability was retained. A guarded window saved complete draft FL-1043, but its
+single normal 2,336-byte PDF upload returned HTML 503 and the UI's upload error.
+Actual disabled-dev reads confirm no proof, first submission or moderation case
+(`temporary/synthetic-beta-after-upload-503-20261104.json`); no duplicate upload
+was attempted. Early restoration passed and the original deadline guard completed
+0/false. The bounded containing metrics interval reports one exceededResources
+error, without per-request attribution (`temporary/beta-upload-503-metrics-20261104.json`).
+
+Local investigation confirms repeated D1 client/schema construction across
+initial proof-upload auth, viewer and handler setup outside React's render cache.
+The candidate explicitly passes one client, retaining live session/actor queries
+and all existing proof/origin/write guards. Local regression coverage includes
+policy/role/ban/logout freshness, distinct subjects and the successful D1/R2 route
+composition using that supplied client. The first new test suite failed during
+Next browser-navigation initialization; only that unexercised dependency was
+stubbed for the Workers test runtime. Broader tests then caught eager route setup
+before the closed-intake gates; the lazy supplier repair preserves those existing
+expectations unchanged. The final relevant 12-file regression run passes 192/192
+(`temporary/proof-setup-lazy-auth-proof-regressions-20261104.json`), including live
+authority/default-path/subject-isolation and actual proof transport. Original
+failures are retained. Final app/tests/browser type checks and focused lint pass.
+The local dev Worker build, no-upload packaging and isolated 19-route packaged
+smoke pass, including the scheduled handler, no-mail rate-limit checks and verified
+teardown/cleanup/free port. The local profiling attempt instead reached an origin
+denial; it does not reproduce a valid hosted upload or establish its CPU cause.
+Required CI, hosted validation and Beta proof submission remain open.
 
 ## 2. Happy path cases
 

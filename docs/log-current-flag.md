@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.30
+doc_version: 0.33
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -853,3 +853,141 @@ classification was corrected, with the failure retained in task evidence.
 Actual affected hosted verification and protected repair delivery remain pending.
 No infrastructure timeout, paid tier, policy or invariant was changed. Production
 and real intake remain unchanged; manual proof decisions and acceptance remain.
+
+## 30. First actual synthetic pending log and human review boundary, 2026-11-04
+
+PR36 passed exact-head required CI and merged through unchanged protections.
+Its normal build, actual deployment and fresh ledger/control inventory were
+verified before another bounded window. INDEX owns the exact delivery map.
+The guarded opening confirmed true, and supported forms saved FL-1042, uploaded
+one unmistakably synthetic PDF and submitted pending. Publication pointers and
+times remain NULL; the client record excludes the pending material.
+
+The early close acknowledged PATCH but could not confirm its readback. Its
+failed receipt is preserved. Independent reads established false and preserved
+fingerprints; the original deadline guard subsequently completed 0/false without
+another mutation, and the parent retired that successful task. No window stayed
+open for human inspection, and no production/main or real-data change occurred.
+QAD owns the actual proof byte/access checks and the retained observation gap.
+
+The coordinator prepared the claimed synthetic moderator case, leaving evidence
+verdicts, decision and personal-inspection checkbox empty. The owner was asked
+to open the exact proof and supply an actual verdict, decision and reason. The
+prepared PDF is a narrative lacking named-client/event-date/interaction evidence;
+asking for changes was recommended, not recorded as the owner's decision.
+No human proof inspection, publication or final acceptance is inferred from the
+earlier engineering authorization or automated proof downloads.
+
+## 31. Owner ask-changes round and pending response save, 2026-11-04
+
+The owner replied done with a screenshot after opening the proof and recording
+an actual ask-changes decision. Direct D1 confirms the immutable first round,
+proof hash/verdict receipt and private reason presence; substantive rationale
+quality is not accepted from the placeholder test entry. The log/case transition
+preserves original filing and queue clocks, old submitted revision and proof.
+
+A clearer, explicitly fictional proof was prepared offline with named test
+parties, engagement, completion date and client interaction. A fresh guarded
+window initially refused before mutation; after unchanged actual false/source
+fingerprints were confirmed, the open retry passed inside the same unextended
+authority/deadline. The revised draft save then remained pending without response
+headers or a persisted new revision. No duplicate save, upload or original-proof
+removal ran. The deadline guard restored false with preserved metadata and exited
+0; only that completed schedule was retired. A read-only reload recovered the
+stalled form. QAD records evidence and limits. The response-flow cause remains
+unconfirmed; neither a CPU attribution nor successful resubmission is claimed.
+
+## 32. Successful clarified response and fresh human review boundary, 2026-11-04
+
+After read-only recovery and confirmation that the prior attempt had not saved
+a second revision, a fresh bounded window completed separate normal fill/click
+actions. The clarified synthetic proof was uploaded and revision 2 resubmitted.
+The original proof remains attached to revision 1 and both R2 objects exist;
+immutable review history, filing anchor and original submission/queue clocks are
+unchanged. There is no publication pointer or publication/expiry time.
+
+Early restoration confirmed false with preserved source/settings. The original
+deadline guard completed 0 and its parent retired the settled schedule. INDEX
+owns the current deployment and QAD the bounded evidence. The earlier stalled
+save remains unresolved evidence, without an attributed cause or timeout change.
+The coordinator claimed the reopened reviewer form and asked the owner to inspect
+the new exact proof and record factual reasons and a fresh human decision. The
+first round's human inspection does not approve different bytes; no publication
+or final manual acceptance is inferred.
+
+## 33. Owner approves revised proof; first dev publication, 2026-11-04
+
+The owner explicitly reported reviewing and approving the revised PDF. Actual
+Round 2 approve and accepted exact-hash proof receipt are confirmed. Revision 2
+became the publication pointer; first-submission and queue clocks, Round 1 and
+both proof objects are preserved. QAD owns publication/expiry, signed-in record
+aggregates and unauthorized-access observations. This is the first synthetic dev
+publication, not real intake or final product acceptance. Intake remains false;
+production/main are unchanged. Private reasons are present, with no substantive
+rationale-quality acceptance inferred from placeholder test entries.
+
+The coordinator prepared clearly fictional counterevidence of an omitted agreed
+payment extension for the private-correction test. No client edit/publication
+change follows from that preparation. It requires a supported request and actual
+human decision through the other unconflicted moderator account. A filer update
+also requires a real later Manila date after original publication; no fabricated
+clock or date will satisfy that remaining acceptance case.
+
+## 34. Correction intake fallback and unresolved JavaScript observations, 2026-11-04
+
+Two normal client correction-open actions stalled with no persisted request,
+including a fresh-page retry after exact zero-request confirmation. Both guarded
+windows restored false and settled at their original deadlines. The publication
+and its clocks remained unchanged. Aggregate metrics show client disconnections
+without a resource-limit outcome in the bounded interval; no individual cause is
+established. The metrics service's first rate-limit refusal and the browser
+failures remain preserved, with no timeout increase or speculative application
+repair.
+
+A standard HTML form diagnostic with intake disabled completed without mutation.
+After another fresh bounded readiness/guard check, that supported form path
+created the private synthetic draft, normal UI uploaded the counterproof, and
+standard HTML submitted it. Intake was restored before human review. The original
+decider is excluded from its eligible correction queue; the other moderator
+account can claim it. The coordinator left verdicts/decision/inspection empty and
+asked the owner to inspect both exact proofs and decide the private correction.
+QAD owns the bounded evidence. No request alone edits or hides the publication;
+two moderator accounts do not establish two independent human reviewers.
+
+## 35. Owner completes correction uphold, 2026-11-04
+
+The owner reported done and supplied a screenshot. Actual D1 confirms the second
+moderator account recorded uphold, with both exact-proof receipts accepted. The
+private request/case closed without changing the publication, invalidating a
+revision or resetting original retention times. The ordinary record retains its
+rating and tags. QAD owns byte/access checks and the settled intake guard evidence.
+
+The coordinator explicitly explained that uphold keeps the original publication
+and asked whether that was intended. Preserve the immutable decision either way;
+do not silently convert it into a correction or reopen the closed request. The
+corrected-publication acceptance path remains open and requires its own supported
+request/new-evidence boundary and actual human decision.
+
+## 36. Beta consent, saved draft and actual upload failure, 2026-11-04
+
+After private owner handover, the correct client account reused its existing
+profile and explicitly checked association/consent. Supported acceptance created
+Beta's separate consent receipt. Its complete FL-1043 draft saved during a bounded
+window, but the first normal synthetic PDF upload returned HTML 503 and left no
+proof or submission. No duplicate upload ran. Early restoration and the original
+deadline guard completed with actual false; production/main remain unchanged.
+The containing aggregate metrics interval reports exceededResources without exact
+request attribution. QAD retains this actual release failure separately from
+earlier JavaScript stalls and older Windows timeouts.
+
+The coordinator isolated a scoped candidate on
+`slvdrvncntjvr/fix-proof-route-setup-20261104`, preserving the acceptance-doc commits
+from draft PR37. Initial proof-upload auth, viewer and upload handling now share
+one explicitly supplied request-local D1 client. This changes setup only; no
+session/viewer/query-result cache, global client, SQL schema, evidence rule or
+timeout is introduced. Live authority/subject-isolation and actual D1/R2 route
+regressions govern verification. This candidate is not yet a delivered or hosted
+accepted fix; local profiling limitations are not represented as successful
+reproduction of the real upload. Broader tests caught eager setup preceding the
+closed-route gates; a lazy per-request client preserves those existing expectations
+without weakening them. The initial 189-pass/3-fail regression result is retained.

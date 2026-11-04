@@ -33,8 +33,13 @@ describe("proof HTTP route composition", () => {
     const missingOrigin = uploadRequest();
     expect((await POST(missingOrigin, { params: Promise.resolve({ id: f.logId }) })).status).toBe(403);
     const upload = uploadRequest(); upload.headers.set("origin", "https://flag.invalid");
+    vi.mocked(getDb).mockClear();
     const response = await POST(upload, { params: Promise.resolve({ id: f.logId }) });
     expect(response.status).toBe(201);
+    expect(getDb).toHaveBeenCalledTimes(1);
+    const requestDb = vi.mocked(getViewer).mock.lastCall?.[0];
+    expect(await requestDb!()).toBe(f.db);
+    expect(getDb).toHaveBeenCalledTimes(1);
     const body = await response.json() as { data: { proofId: string } };
     vi.mocked(getViewer).mockResolvedValue(await loadViewer(f.db, f.clientUserId));
     expect((await GET(new Request("https://flag.invalid"), { params: Promise.resolve({ id: body.data.proofId }) })).status).toBe(200);
