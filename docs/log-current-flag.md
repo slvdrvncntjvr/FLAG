@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.29
+doc_version: 0.30
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -822,3 +822,34 @@ operational budget covers serialization/recovery rather than enlarging any
 application or suite timeout to obtain green. Opening remains unexecuted pending
 review of this repair. The owner separately confirmed the Alpha mail arrived;
 no OTP, resend, publication decision or manual acceptance was involved.
+
+## 29. Protected intake tooling and failed first opening, 2026-11-04
+
+Coordinator review accepted the repaired PR35 interaction at exact head
+`2e8e34a`; both required checks passed. After Orca restarted, its worker dispatch
+became inactive and no longer resolved to the assigned process; the coordinator
+continued directly without launching another worker. GitHub CLI merge transport
+failed; fresh reads preserved the unresolved state before the native network
+route confirmed the normal protected merge. INDEX owns delivery/version status.
+No protection was bypassed and the original branches/evidence remain preserved.
+
+Fresh source/settings/ledger/control inventory checks passed before one bounded
+attempt. Its independent guard preflight completed while false. The true PATCH
+was acknowledged, but readback still showed the preceding false deployment.
+Immediate serialized restoration then acknowledged a close PATCH, with failed
+final readback. No draft/upload/submit action ran; the browser log form was 404.
+Independent uncached reads confirmed false and exact source/settings fingerprints
+on the restored derived version. The deadline guard later completed with result
+0 and actual false; only that successfully settled schedule was unregistered.
+The failed opening and manual recheck receipts remain failed, not accepted.
+
+The scoped repair requests uncached API reads and observes up to three complete
+snapshots without repeating PATCH, within existing lease/deadline bounds. It
+preserves metadata/source checks, immediate failure close and independent guard
+ownership. Thirty-four focused tests pass, including old/mixed state propagation,
+read failure and bounded exhaustion. The first local repair run exposed a lost
+distinction between observed flag state and metadata-convergence failure; that
+classification was corrected, with the failure retained in task evidence.
+Actual affected hosted verification and protected repair delivery remain pending.
+No infrastructure timeout, paid tier, policy or invariant was changed. Production
+and real intake remain unchanged; manual proof decisions and acceptance remain.

@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.63
+doc_version: 2.64
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -373,6 +373,27 @@ operational guard budget
 migration filenames and five controlled eligible filers
 (`temporary/intake-after-serialization-readiness-20261104.json`). These results
 do not resolve the separate older full Windows application timing failure.
+
+PRD-F3 intake-control follow-up: after PR35 deployment, the first bounded opening
+attempt failed verification. The true PATCH was acknowledged, but the readback
+still described its preceding false deployment. The immediate serialized close
+PATCH was also acknowledged, with failed final readback. Evidence is preserved
+in `temporary/intake-window-54a9e468d28e4bf6a9b2a7965015405c/`; no draft, upload
+or submit action was executed, and the browser create-log route returned 404.
+Uncached independent reads subsequently confirmed false and source/settings
+fingerprints on the derived restored version
+(`temporary/pr35-window-uncached-diagnosis-20261104.json`). The scheduled deadline
+guard completed at 11:29 with result 0 and actual false; its successful settlement
+receipt is `temporary/pr35-failed-window-final-guard-20261104.json`. This is a
+failed business-window attempt with confirmed restoration, not proof submission
+or human acceptance. The source of the inconsistent earlier reads is unproven.
+
+The observation repair has 34 passing focused tests, including acknowledged
+mutations followed by prior-state/mixed/failed observations, eventual coherent
+source/flag state and bounded permanent failure. Read attempts never repeat
+PATCH; unconverged observations cannot claim an accepted open/close. Existing
+writer leases, deadlines, application/test timeouts and human gates remain.
+Protected delivery and the affected actual hosted repair verification are pending.
 
 ## 2. Happy path cases
 

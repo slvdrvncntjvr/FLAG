@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync,writeFileSync,renameSync,existsSync,readdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {DEV_ACCOUNT,DEV_DATABASE,intakeState,closedBindings,containedEligible,retainedMetadata,privacyReady,alignedSource,derivedSource,closeIntake,exactMigrationSet} from './dev-synthetic-intake.mjs';
+import {DEV_ACCOUNT,DEV_DATABASE,intakeState,closedBindings,containedEligible,retainedMetadata,privacyReady,alignedSource,derivedSource,closeIntake,exactMigrationSet,observeIntakeState} from './dev-synthetic-intake.mjs';
 import {withDevIntakeLock,assertDevIntakeLock,devIntakeSignal} from './dev-intake-lock.mjs';
 const stable=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 const writable=v=>Object.fromEntries(['workers/message','workers/tag'].filter(k=>Object.hasOwn(v.annotations??{},k)).map(k=>[k,v.annotations[k]]));
@@ -35,7 +35,7 @@ export function validatePreflight(p,baseline,now=Date.now()){
  const observed=Date.parse(p?.at);
  if(p?.mode!=='restore'||p.windowId!==baseline.windowId||p.result!=='pass'||p.mutationAttempted!==false||p.confirmedState!=='false'||p.restorationFingerprint!==baseline.restorationFingerprint||!Number.isFinite(observed)||observed<created||observed>now||now>=deadline-60000)throw Error('Fresh independent false-only preflight required');
 }
-export async function openWindow({baseline,preflight,readSnapshot,readInventory,patch,restore,settleUncertain=async()=>{},now=()=>Date.now()}){
+export async function openWindow({baseline,preflight,readSnapshot,readInventory,patch,restore,settleUncertain=async()=>{},wait,now=()=>Date.now()}){
  const receipt={mode:'open',windowId:baseline.windowId,mutationAttempted:false,confirmedState:'unknown',result:'failed'};
  let before;
  try{
@@ -52,8 +52,12 @@ export async function openWindow({baseline,preflight,readSnapshot,readInventory,
  }catch{receipt.failure='Open refused or transport uncertain';}
  // Every attempted mutation gets fresh readback, including a transport timeout.
  try{
-  const after=await readSnapshot();receipt.confirmedState=intakeState(after.settings);
-  if(receipt.mutationAttempted){receipt.derivedSource=derivedSource(before,after);receipt.metadataFingerprintPreserved=fingerprint(after)===baseline.sourceFingerprint;}
+  if(receipt.mutationAttempted){
+   const observed=await observeIntakeState({readSnapshot,wait,canWait:()=>now()<Date.parse(baseline.deadline),accept:after=>{
+    receipt.confirmedState=intakeState(after.settings);receipt.derivedSource=derivedSource(before,after);receipt.metadataFingerprintPreserved=fingerprint(after)===baseline.sourceFingerprint;
+    return receipt.confirmedState==='true'&&receipt.metadataFingerprintPreserved&&now()<Date.parse(baseline.deadline);
+   }});receipt.readbackAttempts=observed.attempts;
+  }else{receipt.confirmedState=intakeState((await readSnapshot()).settings);}
   if(receipt.patchResponseConfirmed&&receipt.confirmedState==='true'&&receipt.metadataFingerprintPreserved&&receipt.derivedSource&&now()<Date.parse(baseline.deadline))receipt.result='pass';
  }catch{receipt.readbackOrEquivalenceFailed=true;}
  if(receipt.result!=='pass'&&receipt.mutationAttempted){try{if(!receipt.patchResponseConfirmed||receipt.readbackOrEquivalenceFailed){receipt.uncertainRequestQuietSeconds=30;await settleUncertain();}receipt.emergencyClose=await restore();receipt.confirmedState=receipt.emergencyClose.confirmedState;}catch{receipt.emergencyCloseUncertain=true;}}
@@ -68,7 +72,7 @@ async function main(){
  const auth=JSON.parse(execFileSync(process.execPath,[resolve(web,'node_modules/wrangler/bin/wrangler.js'),'auth','token','--env','dev','--json'],{cwd:web,env:{...process.env,CLOUDFLARE_ACCOUNT_ID:DEV_ACCOUNT,WRANGLER_WRITE_LOGS:'false',WRANGLER_SEND_METRICS:'false'},timeout:10000,stdio:['ignore','pipe','pipe']}));
  let receipt={at:new Date().toISOString(),mode,worker:'flag-dev',mutationAttempted:false,confirmedState:'unknown',result:'failed'};
  const base='https://api.cloudflare.com/client/v4/accounts/'+DEV_ACCOUNT;
- const api=async(path,init={})=>{if(mode!=='prepare')assertDevIntakeLock();const signal=mode==='prepare'?AbortSignal.timeout(20000):AbortSignal.any([AbortSignal.timeout(20000),devIntakeSignal()]);const r=await fetch(base+path,{...init,headers:{Authorization:'Bearer '+auth.token,...init.headers},signal});const j=await r.json();if(!r.ok||!j.success)throw Error('Dev operation unavailable');return j.result;};
+ const api=async(path,init={})=>{if(mode!=='prepare')assertDevIntakeLock();const signal=mode==='prepare'?AbortSignal.timeout(20000):AbortSignal.any([AbortSignal.timeout(20000),devIntakeSignal()]);const r=await fetch(base+path,{...init,headers:{Authorization:'Bearer '+auth.token,'Cache-Control':'no-cache, no-store, max-age=0',Pragma:'no-cache',...init.headers},cache:'no-store',signal});const j=await r.json();if(!r.ok||!j.success)throw Error('Dev operation unavailable');return j.result;};
  const patch=async settings=>{const body=new FormData();body.append('settings',new Blob([JSON.stringify(settings)],{type:'application/json'}));return api('/workers/scripts/flag-dev/settings',{method:'PATCH',body});};
  const query=async sql=>(await api('/d1/database/'+DEV_DATABASE+'/query',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sql,params:[]})}))[0].results;
  const inventory=async()=>containedEligible(await query(`SELECT u.id,(SELECT count(DISTINCT p.policy) FROM policy_acceptance p JOIN current_policy_version c ON c.policy=p.policy AND c.version=p.version WHERE p.user_id=u.id AND p.retired_at IS NULL AND p.policy IN ('privacy','terms','freelancer_ack')) AS current_policies FROM user u JOIN freelancer_profile f ON f.user_id=u.id WHERE u.role='freelancer' AND u.banned=0 AND u.deactivated_at IS NULL AND f.status='verified' AND (SELECT count(DISTINCT p.policy) FROM policy_acceptance p JOIN current_policy_version c ON c.policy=p.policy AND c.version=p.version WHERE p.user_id=u.id AND p.retired_at IS NULL AND p.policy IN ('privacy','terms','freelancer_ack'))=3`).then(rows=>rows.sort((a,b)=>a.id.localeCompare(b.id))));

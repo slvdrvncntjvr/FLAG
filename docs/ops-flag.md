@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.46
+doc_version: 2.47
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -234,8 +234,8 @@ a separate current-user, limited-privilege Windows scheduled invocation while
 intake starts false. It checks task completion/result and the atomically written
 close receipt before unregistering the successful test task; failed evidence and
 tasks are preserved. This establishes scheduler/auth/readback only: no PATCH,
-enabled restoration or host/network-loss guarantee. A future bounded-open tool
-still needs review and must account for derived version IDs; do not enable intake
+enabled restoration or host/network-loss guarantee. The separate bounded-open tool
+requires interaction review and must account for derived version IDs; do not enable intake
 to extend this benign test. After a real close, check actual false, authenticated
 reads, private proof delivery/denial and sign-in mail, distinguishing provider
 acceptance from inbox delivery.
@@ -250,8 +250,8 @@ Only hashes, process metadata and nonsecret receipts persist. This serialization
 does not establish an atomic remote CAS or guarantee a timed-out remote request's
 completion; preserve uncertainty and inspect fresh state.
 
-The separate bounded-window draft remains subject to coordinator interaction
-review before opening. Its preflight-only invocation is
+The separate bounded-window tool requires coordinator interaction review before
+opening, including review of repairs. Its preflight-only invocation is
 `./scripts/start-dev-synthetic-window.ps1 -ReviewedVersion <reviewed-version-id> -NoConcurrentWriters -PreflightOnly`.
 It arms and verifies an exact future guard, exercises that same action while
 false, checks actual task completion and unregisters the successful benign task.
@@ -260,8 +260,20 @@ stored trigger and actual next run against the authority's five-minute deadline.
 Before any future true PATCH require at least 120 seconds remaining. The guard's
 operational seven-minute budget covers lock wait 180s, abandoned-owner quiet 30s,
 restore 120s, owner-timeout quiet 30s and startup/receipt margin 30s (390s total).
-Application and suite timeouts remain unchanged. Opening is unexecuted; do not
-keep an eventual synthetic window open for human proof/facts review.
+Application and suite timeouts remain unchanged. The first reviewed opening
+attempt failed verification and restored false (QAD §1.4); keep further opening
+disabled until its observation repair is verified. Never keep a synthetic window
+open for human proof/facts review.
+
+Settings PATCH acknowledgment does not establish converged deployment or flag
+state. The observation repair requests uncached API metadata and allows at most
+three complete readback attempts, separated by one second, within the unchanged
+writer lease and deadline. It never retries the settings mutation. A successful
+open requires the desired flag, aligned sole/latest deployment and preserved
+source/settings; a successful close additionally retains its PATCH response
+evidence. Exhaustion remains failed/uncertain, retaining the independent guard
+and receipts. These local repair semantics still require affected verification
+before another window; they do not prove the cause of the earlier stale reads.
 
 ### Privacy requests and retention
 
