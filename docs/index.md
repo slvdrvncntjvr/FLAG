@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.108
+doc_version: 0.110
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.43 | Review | 2026-11-04 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.60 | Review | 2026-11-04 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.62 | Review | 2026-11-04 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.26 | Draft | 2026-11-04 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.28 | Draft | 2026-11-04 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -188,12 +188,21 @@ its scoped [PR32 repair](https://github.com/slvdrvncntjvr/FLAG/pull/32), head
 and merged normally as `5f401f8c7b95021410306510d017a8a7d7b641ba` at 06:05:51 UTC.
 Normal Workers Build `191cbce2-1a19-4c78-8ccc-73154f0ec5b9` succeeded and identifies
 version `7ee71505-9106-426d-9a8f-726eff9f52ea`, observed at 100% at 06:09 UTC.
-No migration was needed. The combined request still needs its own affected
-hosted acceptance; the separate post-closure export is already observed.
-Hosted `/engagements` CPU-limit and later early-denial platform 503 failures
-remain open. A scoped request-setup/Worker-preflight candidate is locally
-verified and awaits protected delivery and actual cold/warm checks. Intake
-stays false until safety is established. Independent correction,
+No migration was needed. The affected combined closure/export retest now passes
+on version 41 after actual deactivation, with private one-use delivery and
+confirmed artifact erasure. QAD §1.4 preserves the original failed attempt and
+the finite pending shell/policy and unverified-copy limits.
+The scoped [PR33 request-setup/preflight repair](https://github.com/slvdrvncntjvr/FLAG/pull/33)
+passed [CI 41787033502](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41787033502)
+with 1,326 Workers tests and 22 browser scenarios, then merged normally as
+`f534c16ce6d9eb783fe651201993a8c781dbff9a` at 07:08:23 UTC. Normal Workers Build
+`a524b1d2-ff3f-4e01-bacf-02d5ec635138` identifies version
+`be9fdb14-ae4d-473f-bdad-bcba4908234a`, observed at 100% with intake false.
+Both merge CI runs passed. Fresh anonymous probes pass 22/22; authenticated
+filer engagement/home and reviewer moderation reads pass, including repeated
+reads and private nonexistent-proof denial. Earlier hosted failures remain
+preserved; these checks establish neither cold-isolate nor all-workflow
+reliability. QAD §1.4 owns the limits. Intake stays false. Independent correction,
 publication, ratings, broader proof/case erasure and owner manual acceptance remain
 incomplete. New dedicated synthetic staff and explicitly marked filer eligibility
 fixtures are prepared; existing identities and verification evidence are unchanged.
@@ -222,7 +231,7 @@ broaden the limited owner acceptance report stated below.
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR32 merge `5f401f8`; version `7ee71505-9106-426d-9a8f-726eff9f52ea` at 100%, observed 2026-11-04 | 0000-0012 applied; no pending migration; last foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR33 merge `f534c16`; version `be9fdb14-ae4d-473f-bdad-bcba4908234a` at 100%, observed 2026-11-04 | 0000-0012 applied; no pending migration; last foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -304,7 +313,7 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 0 | Resolve current controlled-dev defects | PRD-F12: PR32 same-closure export repair is delivered and needs its affected hosted verification. PRD-F9/F3/F12: request-setup and early-denial performance candidate needs protected checks/delivery and actual cold/warm evidence before intake. QAD §§1.3–1.4 own regressions/observations. Preserve the separate Windows timing failures |
+| 0 | Complete affected controlled-dev verification | PRD-F12: same-closure export repair passes its hosted retest; confirm the new disposable shell/policies physically erase after their original 08:00 purpose ends. PR33 has scoped authenticated/anonymous passes; authorized-proof and business-path acceptance remain. QAD §§1.3–1.4 own coverage; preserve original hosted and separate Windows failures |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
 | 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |

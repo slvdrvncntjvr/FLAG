@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.26
+doc_version: 0.28
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -719,3 +719,48 @@ Nine clearly synthetic proof inputs are prepared offline for later acceptance,
 without upload, human inspection, approval or publication claims. Intake stays
 false. No production/main mutation, paid upgrade, historical restoration or
 owner manual acceptance occurred.
+
+## 26. Protected performance delivery and session recovery, 2026-11-04
+
+PR33 passed exact-head and both merge checks through unchanged protections;
+normal Workers Builds maps its merge to the version observed at 100%. INDEX
+owns the exact delivery receipt. Fresh anonymous and genuine authenticated
+filer/reviewer repeated reads pass within QAD's recorded scope. This does not
+establish a cold isolate, every proof relationship or complete business-path
+acceptance. Original hosted failures and Windows timeout evidence remain intact.
+
+After tabs were closed during the owner's chat transition, the operator reopened
+only needed tabs in existing preserved profiles. Genuine sessions survived;
+no cookie extraction, seeded session or repeated OTP was needed for those actors.
+The earlier expired export and first disposable closure now have truthful
+deferred outcomes and finite follow-up, retaining failed delivery and unknown
+copy handling. A new disposable sign-in is prepared for actual combined-request
+repair verification; active publication participants remain open.
+
+The proposed private invitation bridge stopped at denied local-network browser
+permission, with zero requests or secrets transferred. No permission was changed
+and no clipboard mechanism was used. Resolve a supported private handover before
+cross-profile acceptance; do not print or persist capabilities. Intake remains
+false, human proof/publication decisions and manual acceptance remain pending,
+and production/main and human reconciliation dates remain unchanged.
+
+## 27. Actual combined closure/export repair verification, 2026-11-04
+
+The owner had already completed private OTP entry for another dedicated
+disposable subject. The operator verified exact account control and used normal
+onboarding and staff assessment; no duplicate code or seeded session was used.
+On version 41, the same closure request deactivated/scrubbed the subject and
+revoked its sessions, then successfully prepared and privately delivered its
+scrubbed metadata through the separately assessed export-only capability.
+Replay denied; direct D1/R2 inspection confirms token/object/artifact cleanup.
+This is an automated recipient receipt, not owner manual acceptance. The original
+failed combined attempt remains preserved. Closure is deferred for unchanged
+08:00 shell/policy purposes and unknown copy handling; do not claim its next
+hourly erasure before observation or whole-copy completion from live erasure.
+
+The coordinator's invitation attempt failed validation with no displayed invite.
+Retry with a plainly synthetic title without its compact numeric date succeeded;
+the start-date field stayed intact. No invite secret was printed or copied.
+Supported private handover to the exact controlled client remains the next
+human-only step; consent/association and subsequent human publication decisions
+are distinct. Intake remains false and production remains unchanged.

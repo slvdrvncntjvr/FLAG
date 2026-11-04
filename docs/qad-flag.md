@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.60
+doc_version: 2.62
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -251,7 +251,16 @@ The combined-request regression reproduced `source_expired` after redaction;
 the scoped fix passes 19 real-D1 privacy tests, including pending purge,
 cross-request redaction and revoked-artifact boundaries. PR32 exact-head CI
 passes 1,317 Workers tests and 22 browser scenarios; its protected merge and
-actual version are in INDEX. Combined-request hosted acceptance remains pending.
+actual version are in INDEX. The same-request hosted retest passes on version 41:
+after actual deactivation/scrub and sessions 1→0, preparation succeeds and a
+session-free private recipient receives the 339-byte deactivated-subject
+projection. Replay returns 404; direct D1/R2 checks confirm token/object clearing
+and physical artifact absence. Receipts are
+`temporary/synthetic-combined-closure-export-recipient-20261104.json`,
+`temporary/synthetic-combined-after-private-delivery-20261104.json` and
+`temporary/synthetic-combined-revoked-browser-20261104.json`. The combined closure
+remains truthfully deferred for its original 08:00 shell/policy purposes and
+unverified copies; physical erasure after that sweep remains to observe.
 The new disposable subject and both retired policy rows also physically erased
 at their unchanged 06:00 deadline through the hourly handler, with one-attempt
 receipts and detached subject links; no staff runner crossed that sweep.
@@ -270,9 +279,21 @@ measurement of deployed CPU time. Cold preflight cases return 404/nosniff in
 56/11 ms locally without auth warmup, with no Next initialization frames in
 that small capture (`temporary/local-engagements-cpu-receipt-earlyafter-20261104.json`).
 Earlier cold diagnostics timed out at the unchanged bound and remain failures;
-their mostly idle profiles do not establish a CPU cause. Actual deployed
-cold/warm and authenticated proof evidence remain required before claiming
-these hosted failures repaired or enabling intake.
+their mostly idle profiles do not establish a CPU cause.
+
+After protected PR33 deployment, 22/22 actual anonymous probes pass
+(`temporary/pr33-anonymous-postdeploy-first-20261104.json`). At 07:33, recovered
+genuine filer and reviewer sessions returned 200 for first-observed/repeated
+engagement and moderation reads, and 404/nosniff for authenticated nonexistent
+proofs. Receipts are `temporary/pr33-authenticated-filer-recovered-20261104.json`
+and `temporary/pr33-authenticated-reviewer-recovered-20261104.json`.
+No cold-isolate claim is made; real existing-proof authorization and business
+workflow coverage remain outstanding. Both merge CI runs pass. Original
+expired-delivery and closure outcomes are now truthfully deferred with finite
+follow-up; backup-copy erasure is not inferred from live deletion. Same-closure
+repair retest is now recorded above using another normally authenticated
+disposable subject. The first synthetic invitation is displayed but private
+handover/acceptance remains unexecuted; no capability is retained in evidence.
 Four fresh authenticated filers have clearly marked eligibility fixtures with
 no fabricated live inspection/case, and two fresh reviewers have staff roles;
 existing users/verification records are untouched. Owner manual checkboxes in
