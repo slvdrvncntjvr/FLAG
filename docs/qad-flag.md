@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.66
+doc_version: 2.67
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -507,6 +507,36 @@ summary and tags. Counterproof byte delivery to filer/client and private-header
 uphold path; it does not exercise creation of a corrected publication. All windows
 settled and the latest source/settings check confirms false with preserved
 fingerprints (`temporary/synthetic-alpha-correction-final-closed-source-20261104.json`).
+
+The owner privately handed over Beta's invitation and checked explicit client
+association/consent. Supported acceptance recorded a fresh per-engagement receipt
+at 13:43:02.246 UTC against the same named synthetic client; no invitation
+capability was retained. A guarded window saved complete draft FL-1043, but its
+single normal 2,336-byte PDF upload returned HTML 503 and the UI's upload error.
+Actual disabled-dev reads confirm no proof, first submission or moderation case
+(`temporary/synthetic-beta-after-upload-503-20261104.json`); no duplicate upload
+was attempted. Early restoration passed and the original deadline guard completed
+0/false. The bounded containing metrics interval reports one exceededResources
+error, without per-request attribution (`temporary/beta-upload-503-metrics-20261104.json`).
+
+Local investigation confirms repeated D1 client/schema construction across
+initial proof-upload auth, viewer and handler setup outside React's render cache.
+The candidate explicitly passes one client, retaining live session/actor queries
+and all existing proof/origin/write guards. Local regression coverage includes
+policy/role/ban/logout freshness, distinct subjects and the successful D1/R2 route
+composition using that supplied client. The first new test suite failed during
+Next browser-navigation initialization; only that unexercised dependency was
+stubbed for the Workers test runtime. Broader tests then caught eager route setup
+before the closed-intake gates; the lazy supplier repair preserves those existing
+expectations unchanged. The final relevant 12-file regression run passes 192/192
+(`temporary/proof-setup-lazy-auth-proof-regressions-20261104.json`), including live
+authority/default-path/subject-isolation and actual proof transport. Original
+failures are retained. Final app/tests/browser type checks and focused lint pass.
+The local dev Worker build, no-upload packaging and isolated 19-route packaged
+smoke pass, including the scheduled handler, no-mail rate-limit checks and verified
+teardown/cleanup/free port. The local profiling attempt instead reached an origin
+denial; it does not reproduce a valid hosted upload or establish its CPU cause.
+Required CI, hosted validation and Beta proof submission remain open.
 
 ## 2. Happy path cases
 

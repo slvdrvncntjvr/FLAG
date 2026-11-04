@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.32
+doc_version: 0.33
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -967,3 +967,27 @@ and asked whether that was intended. Preserve the immutable decision either way;
 do not silently convert it into a correction or reopen the closed request. The
 corrected-publication acceptance path remains open and requires its own supported
 request/new-evidence boundary and actual human decision.
+
+## 36. Beta consent, saved draft and actual upload failure, 2026-11-04
+
+After private owner handover, the correct client account reused its existing
+profile and explicitly checked association/consent. Supported acceptance created
+Beta's separate consent receipt. Its complete FL-1043 draft saved during a bounded
+window, but the first normal synthetic PDF upload returned HTML 503 and left no
+proof or submission. No duplicate upload ran. Early restoration and the original
+deadline guard completed with actual false; production/main remain unchanged.
+The containing aggregate metrics interval reports exceededResources without exact
+request attribution. QAD retains this actual release failure separately from
+earlier JavaScript stalls and older Windows timeouts.
+
+The coordinator isolated a scoped candidate on
+`slvdrvncntjvr/fix-proof-route-setup-20261104`, preserving the acceptance-doc commits
+from draft PR37. Initial proof-upload auth, viewer and upload handling now share
+one explicitly supplied request-local D1 client. This changes setup only; no
+session/viewer/query-result cache, global client, SQL schema, evidence rule or
+timeout is introduced. Live authority/subject-isolation and actual D1/R2 route
+regressions govern verification. This candidate is not yet a delivered or hosted
+accepted fix; local profiling limitations are not represented as successful
+reproduction of the real upload. Broader tests caught eager setup preceding the
+closed-route gates; a lazy per-request client preserves those existing expectations
+without weakening them. The initial 189-pass/3-fail regression result is retained.

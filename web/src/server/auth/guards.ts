@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { isAPIError } from "better-auth/api";
 import { redirect } from "next/navigation";
-import { getDb } from "@/server/db";
+import { getDb, type Db } from "@/server/db";
 import { isOnboarded, loadViewer, type Viewer } from "@/server/db/queries/viewer";
 import { getAuth } from ".";
 import { AccessError, assertVerifiedFreelancer } from "./guards-core";
@@ -9,8 +9,9 @@ import { AccessError, assertVerifiedFreelancer } from "./guards-core";
 export { AccessError };
 
 // Returns null for signed-out visitors and suspended accounts.
-export async function getViewer(): Promise<Viewer | null> {
-  const auth = await getAuth();
+export async function getViewer(requestDb?: () => Promise<Db>): Promise<Viewer | null> {
+  const db = requestDb ? await requestDb() : undefined;
+  const auth = db ? await getAuth(db) : await getAuth();
   const session = await auth.api.getSession({ headers: await headers() }).catch((error: unknown) => {
     // A closed account has no application viewer even when session cleanup is
     // still pending. Preserve unexpected infrastructure failures for retry.
@@ -18,7 +19,7 @@ export async function getViewer(): Promise<Viewer | null> {
     throw error;
   });
   if (!session) return null;
-  const viewer = await loadViewer(await getDb(), session.user.id);
+  const viewer = await loadViewer(db ?? await getDb(), session.user.id);
   return viewer && !viewer.banned ? viewer : null;
 }
 

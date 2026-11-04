@@ -3,7 +3,7 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.43
+doc_version: 2.44
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -1420,6 +1420,13 @@ does not revoke access.
   memoized; role, ban, policy, relationship and source-deadline checks still query
   current authority. Bindings come from each request, without a cross-request
   client or identity singleton.
+- The initial proof-upload route supplies a lazy request-local D1 client through
+  `getViewer(requestDb)`, `getAuth(db)` and upload handling. Route handlers do not share
+  React render memoization; explicit setup reuse avoids repeated schema/client
+  construction there without adding eager domain setup before closed-route gates.
+  It retains live session and actor queries and all existing
+  origin, intake, relationship, proof and atomic-write guards. This is a scoped
+  setup optimization, not evidence that hosted resource failures are resolved.
 - The Worker can deny GET proof requests with no Cookie header and exports
   with absent/unsafe authorization or query-token transport before entering
   Next (`web/custom-worker.ts:8`, `web/src/lib/private-http.ts:19`). Denials retain
