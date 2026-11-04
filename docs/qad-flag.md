@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.64
+doc_version: 2.65
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -394,6 +394,68 @@ source/flag state and bounded permanent failure. Read attempts never repeat
 PATCH; unconverged observations cannot claim an accepted open/close. Existing
 writer leases, deadlines, application/test timeouts and human gates remain.
 Protected delivery and the affected actual hosted repair verification are pending.
+
+PRD-F2/F3/F4/F9, INV-1/2/4/7/8 controlled synthetic follow-up after PR36:
+the fresh window confirmed actual true with preserved source/settings and an
+armed independently exercised guard. Supported forms saved draft FL-1042,
+uploaded its prepared 1,060-byte PDF and submitted it pending at the original
+server timestamp. Direct D1 confirms one log and one attached proof, its exact
+manifest SHA-256, and NULL current-publication pointer/published/expiry times
+(`temporary/synthetic-alpha-pending-confirmed-20261104.json`). The named parties
+and engagement-specific consent are the already observed accepted engagement;
+no claim of a real identity inspection is added by this synthetic fixture.
+
+The immediate early-close PATCH was acknowledged but its readback failed and
+remains failed. Independent uncached reads confirm false and both reviewed
+fingerprints on the restored version
+(`temporary/pr36-postsubmission-state-20261104.json`). The independent 12:00:32
+deadline run then completed with result 0, actual false and no further PATCH;
+the parent exited 0 and unregistered the settled task. Full window receipts are
+in `temporary/intake-window-266e22a31a88486196f779a1d6477667/`. Successful pending
+submission and actual restoration do not erase the early-close observation gap.
+
+With intake off, genuine filer, named client and actual moderator sessions each
+received 200, exactly the expected 1,060 bytes/hash and private attachment,
+no-store/nosniff headers. Anonymous credentials-omitted, unrelated filer and bare
+admin requests each received 404/no-store/nosniff and no PDF signature. Receipts:
+`temporary/synthetic-first-proof-authorized-delivery-20261104.json` and
+`temporary/synthetic-first-proof-access-denials-20261104.json`. The client record
+still shows the rolling empty state and contains no FL-1042 entry. These are
+automated byte/access observations, not human evidence inspection. The actual
+moderation case was claimed through the supported form; fresh page state confirms
+the review form and unchecked personal-inspection confirmation. A transient UI
+feedback-text wait timed out; reload confirmed the claim without resubmitting it.
+Human proof verdicts and publication were still pending at this observation.
+
+The owner subsequently opened the exact proof and recorded Round 1 ask-changes
+at 12:10:45.925 UTC. The actual immutable round, exact original proof hash/verdict
+receipt and nonempty private reasons are confirmed; no substantive reason-quality
+acceptance is inferred from the test input. The case is awaiting_changes with
+NULL close time and terminal decision; original queue age, filing anchor and
+first_submitted_at are preserved
+(`temporary/synthetic-alpha-owner-round-one-confirmed-20261104.json`).
+The clarified synthetic response is prepared offline. Its first save remained
+pending without response headers and without a new D1 revision observed; no
+duplicate save or proof mutation was issued. The original deadline guard restored
+false and preserved source/settings with result 0. The stalled page was recovered
+through a read-only reload. Network method/status/timestamp-only evidence is in
+`temporary/synthetic-round-two-save-network-20261104.json`; direct retained state
+is in `temporary/synthetic-alpha-after-pending-save-20261104.json`. This is an
+unresolved response-flow observation, not an attributed CPU-limit failure or a
+passing resubmission. Real publication and final owner acceptance remain pending.
+
+A subsequent fresh guarded window completed the response through separate normal
+fill and click actions. Revision 2 contains the clarified facts and only the new
+1,972-byte synthetic PDF; revision 1 retains its original proof membership and
+immutable ask-changes review. Actual R2 reads confirm both objects still exist.
+The same log/case returned to pending/open without changing first submission or
+queue age; publication pointers/times remain NULL. Evidence:
+`temporary/synthetic-alpha-resubmission-confirmed-20261104.json`. The early close
+confirmed false and preserved metadata/source, and the original deadline guard
+completed 0; its parent retired that settled schedule. This successful response
+does not establish the cause of the preceding stalled save. The reopened reviewer
+form was claimed with verdict/decision/personal-inspection confirmation empty;
+the revised bytes require their own actual human review before publication.
 
 ## 2. Happy path cases
 

@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.30
+doc_version: 0.31
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -853,3 +853,64 @@ classification was corrected, with the failure retained in task evidence.
 Actual affected hosted verification and protected repair delivery remain pending.
 No infrastructure timeout, paid tier, policy or invariant was changed. Production
 and real intake remain unchanged; manual proof decisions and acceptance remain.
+
+## 30. First actual synthetic pending log and human review boundary, 2026-11-04
+
+PR36 passed exact-head required CI and merged through unchanged protections.
+Its normal build, actual deployment and fresh ledger/control inventory were
+verified before another bounded window. INDEX owns the exact delivery map.
+The guarded opening confirmed true, and supported forms saved FL-1042, uploaded
+one unmistakably synthetic PDF and submitted pending. Publication pointers and
+times remain NULL; the client record excludes the pending material.
+
+The early close acknowledged PATCH but could not confirm its readback. Its
+failed receipt is preserved. Independent reads established false and preserved
+fingerprints; the original deadline guard subsequently completed 0/false without
+another mutation, and the parent retired that successful task. No window stayed
+open for human inspection, and no production/main or real-data change occurred.
+QAD owns the actual proof byte/access checks and the retained observation gap.
+
+The coordinator prepared the claimed synthetic moderator case, leaving evidence
+verdicts, decision and personal-inspection checkbox empty. The owner was asked
+to open the exact proof and supply an actual verdict, decision and reason. The
+prepared PDF is a narrative lacking named-client/event-date/interaction evidence;
+asking for changes was recommended, not recorded as the owner's decision.
+No human proof inspection, publication or final acceptance is inferred from the
+earlier engineering authorization or automated proof downloads.
+
+## 31. Owner ask-changes round and pending response save, 2026-11-04
+
+The owner replied done with a screenshot after opening the proof and recording
+an actual ask-changes decision. Direct D1 confirms the immutable first round,
+proof hash/verdict receipt and private reason presence; substantive rationale
+quality is not accepted from the placeholder test entry. The log/case transition
+preserves original filing and queue clocks, old submitted revision and proof.
+
+A clearer, explicitly fictional proof was prepared offline with named test
+parties, engagement, completion date and client interaction. A fresh guarded
+window initially refused before mutation; after unchanged actual false/source
+fingerprints were confirmed, the open retry passed inside the same unextended
+authority/deadline. The revised draft save then remained pending without response
+headers or a persisted new revision. No duplicate save, upload or original-proof
+removal ran. The deadline guard restored false with preserved metadata and exited
+0; only that completed schedule was retired. A read-only reload recovered the
+stalled form. QAD records evidence and limits. The response-flow cause remains
+unconfirmed; neither a CPU attribution nor successful resubmission is claimed.
+
+## 32. Successful clarified response and fresh human review boundary, 2026-11-04
+
+After read-only recovery and confirmation that the prior attempt had not saved
+a second revision, a fresh bounded window completed separate normal fill/click
+actions. The clarified synthetic proof was uploaded and revision 2 resubmitted.
+The original proof remains attached to revision 1 and both R2 objects exist;
+immutable review history, filing anchor and original submission/queue clocks are
+unchanged. There is no publication pointer or publication/expiry time.
+
+Early restoration confirmed false with preserved source/settings. The original
+deadline guard completed 0 and its parent retired the settled schedule. INDEX
+owns the current deployment and QAD the bounded evidence. The earlier stalled
+save remains unresolved evidence, without an attributed cause or timeout change.
+The coordinator claimed the reopened reviewer form and asked the owner to inspect
+the new exact proof and record factual reasons and a fresh human decision. The
+first round's human inspection does not approve different bytes; no publication
+or final manual acceptance is inferred.

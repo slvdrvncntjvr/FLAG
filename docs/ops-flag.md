@@ -3,7 +3,7 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.47
+doc_version: 2.48
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -260,10 +260,9 @@ stored trigger and actual next run against the authority's five-minute deadline.
 Before any future true PATCH require at least 120 seconds remaining. The guard's
 operational seven-minute budget covers lock wait 180s, abandoned-owner quiet 30s,
 restore 120s, owner-timeout quiet 30s and startup/receipt margin 30s (390s total).
-Application and suite timeouts remain unchanged. The first reviewed opening
-attempt failed verification and restored false (QAD §1.4); keep further opening
-disabled until its observation repair is verified. Never keep a synthetic window
-open for human proof/facts review.
+Application and suite timeouts remain unchanged. QAD §1.4 owns actual opening,
+close and failure evidence; INDEX owns current delivery. Never keep a synthetic
+window open for human proof/facts review.
 
 Settings PATCH acknowledgment does not establish converged deployment or flag
 state. The observation repair requests uncached API metadata and allows at most
@@ -272,8 +271,8 @@ writer lease and deadline. It never retries the settings mutation. A successful
 open requires the desired flag, aligned sole/latest deployment and preserved
 source/settings; a successful close additionally retains its PATCH response
 evidence. Exhaustion remains failed/uncertain, retaining the independent guard
-and receipts. These local repair semantics still require affected verification
-before another window; they do not prove the cause of the earlier stale reads.
+and receipts. Record affected actual observations before treating a path as
+accepted; these semantics do not prove the cause of the earlier stale reads.
 
 ### Privacy requests and retention
 
