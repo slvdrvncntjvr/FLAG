@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.25
+doc_version: 0.26
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -684,3 +684,38 @@ coverage and evidence paths. Intake remains false; publication/correction,
 ratings, broader proof/case erasure and owner manual acceptance are incomplete.
 Main/production, protections, archived evidence, invariant meanings and human
 reconciliation dates remain unchanged.
+
+## 25. Protected export repair and bounded performance work, 2026-11-04
+
+PR32's reviewed current head passed full hosted checks and merged through the
+unchanged dev protections. Its normal Workers Build identifies the version
+observed at 100%; INDEX owns the exact delivery receipt. Separate post-closure
+export and the actual hourly erasure of its disposable subject/policies are
+confirmed. The combined-request failure remains preserved and needs its own
+affected hosted acceptance; no earlier assessment or shell deadline was extended
+to manufacture that result. Copy disposition remains unverified and closure is
+truthfully deferred, rather than completed from live erasure alone.
+
+Fresh anonymous checks returned two platform 503s. Basic export rejection occurs
+before auth/DB constructors in the route, so constructor reuse alone cannot
+explain or establish repair of that failure. Bounded local packaged profiling
+found repeated render setup; the narrow candidate memoizes only DB/auth
+construction within React's request context, retaining live viewer/session/SQL
+reads. Actual local render, native policy action and auth-route probes confirm
+separate subjects and changed role, ban, policy and logout state. Local wall-time
+improvement is distinct from actual deployed CPU measurement.
+
+A pure Worker GET preflight additionally handles the already-required denial
+when proof requests have no Cookie header or export authorization/query input is
+unsafe, preserving private denial headers and indexing refusal before Next
+entry. Header presence grants no identity or resource access; other requests
+continue through existing live handlers. Bounded review found no access-control
+blocker in the inspected diff; final exact-head checks and hosted verification
+remain required. Local cold probes now return the denials without initializing
+Next. Earlier diagnostic timeouts and their mostly idle profiles are retained;
+no timeout/CPU limit, logging, schema or configuration was increased or weakened.
+
+Nine clearly synthetic proof inputs are prepared offline for later acceptance,
+without upload, human inspection, approval or publication claims. Intake stays
+false. No production/main mutation, paid upgrade, historical restoration or
+owner manual acceptance occurred.
