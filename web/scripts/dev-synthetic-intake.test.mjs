@@ -1,6 +1,23 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {intakeState,closedBindings,containedEligible,DEV_DATABASE,privacyReady,alignedSource,closeIntake,sameRetainedMetadata,exactMigrationSet,derivedSource} from './dev-synthetic-intake.mjs';
+
+test('acknowledged close waits through prior-state and failed reads without repeating PATCH',async()=>{
+ let reads=0,patches=0,waits=0;
+ const r=await closeIntake({expected,wait:async()=>{waits++;},readSnapshot:async()=>{
+  reads++;if(reads===4)throw Error('Transient observation failure');
+  const s=snapshot();if(reads<5){s.settings.bindings.find(b=>b.name==='PRIVATE_INTAKE_ENABLED').text='true';s.version.resources.bindings.find(b=>b.name==='PRIVATE_INTAKE_ENABLED').text='true';}return s;
+ },patch:async()=>{patches++;}});
+ assert.equal(r.result,'pass');assert.equal(r.confirmedState,'false');assert.equal(r.readbackAttempts,3);assert.equal(patches,1);assert.equal(waits,2);
+});
+
+test('unconverged close never reports disabled and does not repeat the mutation',async()=>{
+ let reads=0,patches=0;
+ const r=await closeIntake({expected,wait:async()=>{},readSnapshot:async()=>{
+  reads++;const s=snapshot();s.settings.bindings.find(b=>b.name==='PRIVATE_INTAKE_ENABLED').text='true';s.version.resources.bindings.find(b=>b.name==='PRIVATE_INTAKE_ENABLED').text='true';return s;
+ },patch:async()=>{patches++;}});
+ assert.equal(r.result,'failed');assert.equal(r.confirmedState,'true');assert.equal(r.readbackConverged,false);assert.equal(reads,5);assert.equal(patches,1);
+});
 const settings=()=>({bindings:[{name:'DB',type:'d1',id:DEV_DATABASE},{name:'PROOFS',type:'r2_bucket',bucket_name:'flag-proofs-dev'},{name:'BETTER_AUTH_URL',type:'plain_text',text:'https://flag-dev.factsfirst.workers.dev'},{name:'PRIVATE_INTAKE_ENABLED',type:'plain_text',text:'true'},{name:'BETTER_AUTH_SECRET',type:'secret_text'},{name:'ASSETS',type:'assets'}]});
 test('close changes only intake and inherits all other bindings without secret values',()=>{const s=settings();const b=closedBindings(s);assert.equal(b.length,s.bindings.length);assert.deepEqual(b.find(x=>x.name==='PRIVATE_INTAKE_ENABLED'),{name:'PRIVATE_INTAKE_ENABLED',type:'plain_text',text:'false'});for(const v of b.filter(x=>x.name!=='PRIVATE_INTAKE_ENABLED'))assert.deepEqual(Object.keys(v).sort(),['name','type']);assert.equal(intakeState(s),'true');});
 test('wrong targets, duplicate bindings and nonexact boolean reject before patch',()=>{for(const mutate of [s=>s.bindings[0].id='production',s=>s.bindings[1].bucket_name='flag-proofs',s=>s.bindings[2].text='https://flag.factsfirst.workers.dev',s=>s.bindings[3].text='True',s=>s.bindings.push({...s.bindings[0]})]){const s=settings();mutate(s);assert.throws(()=>closedBindings(s));}});

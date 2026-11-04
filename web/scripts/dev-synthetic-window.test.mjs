@@ -2,6 +2,22 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {DEV_ACCOUNT,DEV_DATABASE,closeIntake} from './dev-synthetic-intake.mjs';
 import {fingerprint,validateBaseline,authorizeSnapshot,validatePreflight,openWindow} from './dev-synthetic-window.mjs';
+
+test('acknowledged open waits through old and mixed propagation reads without a second PATCH',async()=>{
+ let reads=0,patches=0,waits=0;
+ const r=await openWindow({baseline:baseline(),preflight:preflight(),now:()=>now+2000,wait:async()=>{waits++;},readSnapshot:async()=>{
+  reads++;if(reads<=3)return snapshot();
+  if(reads===4){const s=snapshot();s.settings.bindings.find(b=>b.name==='PRIVATE_INTAKE_ENABLED').text='true';return s;}
+  return snapshot('true','enabled-derived');
+ },readInventory:async()=>baseline().eligible,patch:async()=>{patches++;},restore:async()=>{throw Error('No restore needed');}});
+ assert.equal(r.result,'pass');assert.equal(r.confirmedState,'true');assert.equal(r.readbackAttempts,3);assert.equal(patches,1);assert.equal(waits,2);
+});
+
+test('permanent old open observation fails closed after bounded reads and never repeats enable',async()=>{
+ let reads=0,patches=0,closes=0;
+ const r=await openWindow({baseline:baseline(),preflight:preflight(),now:()=>now+2000,wait:async()=>{},readSnapshot:async()=>{reads++;return snapshot();},readInventory:async()=>baseline().eligible,patch:async()=>{patches++;},restore:async()=>{closes++;return {confirmedState:'false',result:'pass'};}});
+ assert.equal(r.result,'failed');assert.equal(r.confirmedState,'false');assert.equal(reads,5);assert.equal(patches,1);assert.equal(closes,1);
+});
 const id='084ccd14-86a6-47d8-aef1-21e4d40e9a48',windowId='00000000-0000-4000-8000-000000000000',now=Date.parse('2026-11-04T09:00:00Z');
 function snapshot(flag='false',versionId=id){const settings={bindings:[{name:'DB',type:'d1',id:DEV_DATABASE},{name:'PROOFS',type:'r2_bucket',bucket_name:'flag-proofs-dev'},{name:'BETTER_AUTH_URL',type:'plain_text',text:'https://flag-dev.factsfirst.workers.dev'},{name:'PRIVATE_INTAKE_ENABLED',type:'plain_text',text:flag},{name:'BETTER_AUTH_SECRET',type:'secret_text'}],compatibility_date:'2026-10-12',compatibility_flags:['nodejs_compat'],observability:{logs:{invocation_logs:false,persist:false},traces:{enabled:false,persist:false}},tail_consumers:[],logpush:false};const version={id:versionId,annotations:{'workers/message':'reviewed'},resources:{bindings:structuredClone(settings.bindings),script:{etag:'reviewed-content',handlers:['fetch','scheduled'],named_handlers:[],last_deployed_from:'api'},script_runtime:{compatibility_date:settings.compatibility_date,compatibility_flags:settings.compatibility_flags}}};return {settings,version,deployments:{deployments:[{id:'deployment',created_on:'2026-11-04',versions:[{version_id:versionId,percentage:100}]}]},versions:{items:[{id:versionId,number:43}]}};}
 function baseline(){const s=snapshot();return {kind:'flag-dev-synthetic-window-v1',account:DEV_ACCOUNT,worker:'flag-dev',windowId,reviewedVersion:id,sourceFingerprint:fingerprint(s),restorationFingerprint:fingerprint(s,{restoration:true}),createdAt:new Date(now).toISOString(),deadline:new Date(now+300000).toISOString(),eligible:[{id:'controlled',currentPolicies:3}]};}

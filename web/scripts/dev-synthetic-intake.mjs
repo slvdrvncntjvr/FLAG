@@ -52,7 +52,17 @@ export function derivedSource(before,after){
  if(!scriptIdentityPreserved||!handlersPreserved||!runtimePreserved||!versionBindingMetadataPreserved||!writableAnnotationsPreserved)throw Error('Derived version equivalence not established');
  return {...source,derivedVersion:candidate.id!==previous.id,scriptIdentityPreserved,handlersPreserved,runtimePreserved,versionBindingMetadataPreserved,writableAnnotationsPreserved};
 }
-export async function closeIntake({readSnapshot,patch,expected,force=false}){
+// Settings PATCH acknowledgment can precede consistent deployment/settings reads.
+// Retry observations only, inside the existing writer lease; never repeat PATCH.
+export async function observeIntakeState({readSnapshot,accept,canWait=()=>true,wait=()=>new Promise(resolveWait=>setTimeout(resolveWait,1000))}){
+ for(let attempt=1;attempt<=3;attempt++){
+  try{const snapshot=await readSnapshot();if(accept(snapshot))return {snapshot,attempts:attempt};}catch{/* Retain failure unless a later complete observation converges. */}
+  if(attempt===3||!canWait())break;
+  await wait();
+ }
+ throw Error('Converged intake state not observed');
+}
+export async function closeIntake({readSnapshot,patch,expected,force=false,wait}){
  const receipt={mutationAttempted:false,confirmedState:'unknown',metadataPreserved:null,privacyDrift:false,result:'failed'};let before,sourceSnapshot;
  try{
   before=(await readSnapshot()).settings;receipt.confirmedState=intakeState(before);receipt.privacyDrift=!privacyReady(before);
@@ -65,7 +75,12 @@ export async function closeIntake({readSnapshot,patch,expected,force=false}){
   await patch({bindings:closedBindings(fresh.settings),annotations});
   receipt.patchResponseConfirmed=true;
  }catch{receipt.error='Operation refused or transport uncertain; readback required';}
- if(before){try{const after=await readSnapshot();receipt.confirmedState=intakeState(after.settings);receipt.metadataPreserved=sameRetainedMetadata(before,after.settings);receipt.privacyDrift||=!privacyReady(after.settings);if(receipt.mutationAttempted){try{receipt.derivedSource=derivedSource(sourceSnapshot,after);}catch{receipt.derivedSourceUnverified=true;}}if(receipt.confirmedState==='false'&&receipt.metadataPreserved&&receipt.patchResponseConfirmed&&receipt.derivedSource)receipt.result='pass';}catch{receipt.readbackFailed=true;receipt.confirmedState='unknown';}}
+ let lastReadSucceeded=false;
+ if(before){try{const observed=await observeIntakeState({readSnapshot:async()=>{lastReadSucceeded=false;const after=await readSnapshot();lastReadSucceeded=true;return after;},wait,accept:after=>{
+  receipt.confirmedState=intakeState(after.settings);receipt.metadataPreserved=sameRetainedMetadata(before,after.settings);receipt.privacyDrift||=!privacyReady(after.settings);
+  if(receipt.mutationAttempted)receipt.derivedSource=derivedSource(sourceSnapshot,after);
+  return receipt.confirmedState==='false'&&receipt.metadataPreserved&&!!receipt.derivedSource;
+ }});receipt.readbackAttempts=observed.attempts;receipt.readbackConverged=true;if(receipt.patchResponseConfirmed)receipt.result='pass';}catch{receipt.readbackFailed=true;receipt.readbackConverged=false;if(!lastReadSucceeded)receipt.confirmedState='unknown';}}
  return receipt;
 }
 async function main(){
@@ -75,7 +90,7 @@ async function main(){
  const auth=JSON.parse(execFileSync(process.execPath,[resolve(web,'node_modules/wrangler/bin/wrangler.js'),'auth','token','--env','dev','--json'],{cwd:web,env:{...process.env,CLOUDFLARE_ACCOUNT_ID:DEV_ACCOUNT,WRANGLER_WRITE_LOGS:'false',WRANGLER_SEND_METRICS:'false'},timeout:10000,stdio:['ignore','pipe','pipe']}));
  const headers={Authorization:'Bearer '+auth.token};
  const base='https://api.cloudflare.com/client/v4/accounts/'+DEV_ACCOUNT;
- async function api(path,init={}){receipt.lastOperation={method:init.method??'GET',path};if(mode!=='review')assertDevIntakeLock();const signal=mode==='review'?AbortSignal.timeout(20000):AbortSignal.any([AbortSignal.timeout(20000),devIntakeSignal()]);const r=await fetch(base+path,{...init,headers:{...headers,...init.headers},signal});const j=await r.json();if(!r.ok||!j.success){receipt.httpFailureStatus=r.status;throw Error('Dev operation unavailable');}return j.result;}
+ async function api(path,init={}){receipt.lastOperation={method:init.method??'GET',path};if(mode!=='review')assertDevIntakeLock();const signal=mode==='review'?AbortSignal.timeout(20000):AbortSignal.any([AbortSignal.timeout(20000),devIntakeSignal()]);const r=await fetch(base+path,{...init,headers:{'Cache-Control':'no-cache, no-store, max-age=0',Pragma:'no-cache',...headers,...init.headers},cache:'no-store',signal});const j=await r.json();if(!r.ok||!j.success){receipt.httpFailureStatus=r.status;throw Error('Dev operation unavailable');}return j.result;}
  const receipt={at:new Date().toISOString(),mode,worker:'flag-dev',mutationAttempted:false,confirmedState:'unknown'};
  async function readSnapshot(){const deployments=await api('/workers/scripts/flag-dev/deployments');const versions=await api('/workers/scripts/flag-dev/versions');const latestId=[...versions.items].sort((a,b)=>b.number-a.number)[0]?.id;receipt.observedSource={latestUploadedVersionId:latestId,deployedVersions:[...deployments.deployments].sort((a,b)=>b.created_on.localeCompare(a.created_on))[0]?.versions};const version=await api('/workers/scripts/flag-dev/versions/'+expected);const currentVersion=latestId===expected?version:await api('/workers/scripts/flag-dev/versions/'+latestId);const settings=await api('/workers/scripts/flag-dev/settings');return {settings,deployments,versions,version,currentVersion};}
  try{
