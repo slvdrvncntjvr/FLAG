@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.110
+doc_version: 0.111
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.43 | Review | 2026-11-04 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.62 | Review | 2026-11-04 | 2026-10-13 |
-| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.28 | Draft | 2026-11-04 | 2026-09-14 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.63 | Review | 2026-11-04 | 2026-10-13 |
+| OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.46 | Review | 2026-11-04 | 2026-10-13 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.29 | Draft | 2026-11-04 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -207,6 +207,17 @@ publication, ratings, broader proof/case erasure and owner manual acceptance rem
 incomplete. New dedicated synthetic staff and explicitly marked filer eligibility
 fixtures are prepared; existing identities and verification evidence are unchanged.
 No synthetic intake window has opened.
+Docs-only PR34 merged as `ad8ac9548dc005fa944ac4704732540fa25bdd9c`, and its
+normal build deployed version 42 `264abc74-d8db-4743-b89a-aaa1e2412445`.
+The authorized false-to-false settings inheritance test then created version 43
+`084ccd14-86a6-47d8-aef1-21e4d40e9a48` at 100%. Its authoritative script-content
+digest and retained metadata match reviewed version 42; actual intake is false.
+Independent Windows scheduler invocation and false-only inheritance pass within
+the limits in QAD §1.4. OPS §5 owns the tested close/inspection commands. A separate
+bounded-open draft is prepared for coordinator review and remains unexecuted.
+The latest combined-request live shell/policy erasure and first
+accepted synthetic engagement are observed; publication/correction, positive
+proof delivery, records/ratings and owner manual acceptance remain incomplete.
 Production planning follows accepted dev evidence; main and production remain
 unchanged and PR20 remains draft.
 The latest full local Windows result remains failed at 1,301/1,311 with ten
@@ -231,7 +242,7 @@ broaden the limited owner acceptance report stated below.
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR33 merge `f534c16`; version `be9fdb14-ae4d-473f-bdad-bcba4908234a` at 100%, observed 2026-11-04 | 0000-0012 applied; no pending migration; last foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR34 merge `ad8ac95`; settings-derived version `084ccd14-86a6-47d8-aef1-21e4d40e9a48` at 100%, observed 2026-11-04 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -313,7 +324,7 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 0 | Complete affected controlled-dev verification | PRD-F12: same-closure export repair passes its hosted retest; confirm the new disposable shell/policies physically erase after their original 08:00 purpose ends. PR33 has scoped authenticated/anonymous passes; authorized-proof and business-path acceptance remain. QAD §§1.3–1.4 own coverage; preserve original hosted and separate Windows failures |
+| 0 | Complete affected controlled-dev verification | PRD-F12: same-closure export and original 08:00 shell/policy erasure pass; scoped authenticated/anonymous reads and false-only control tests pass. Authorized-proof/business-path acceptance and a reviewed bounded-open tool remain. QAD §§1.3–1.4 own coverage; preserve original hosted and separate Windows failures |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
 | 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |

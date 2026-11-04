@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.62
+doc_version: 2.63
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -299,6 +299,80 @@ no fabricated live inspection/case, and two fresh reviewers have staff roles;
 existing users/verification records are untouched. Owner manual checkboxes in
 §7.1 stay unchecked. The full local Windows timing failure remains separate from the
 green hosted candidate; no timeout was increased or failed evidence removed.
+
+At the original 08:00 purpose boundary, the deployed hourly handler physically
+erased the latest combined-request subject shell and two policy rows, each with
+one attempt; nullable request subject linkage is NULL. This completes that live
+shell/policy observation, not unverified-copy disposal
+(`temporary/synthetic-combined-after-eight-hourly-sweep-20261104.json`). Supported
+private invitation handover and explicit client association/consent now produced
+the first accepted synthetic engagement
+(`temporary/synthetic-alpha-engagement-accepted-20261104.json`); no invite
+capability is retained. Proof upload/publication remains unexecuted.
+
+PRD-F12/PRD-F13 intake-control readiness: the independent limited Windows task
+actually completed at 08:27:37 UTC with LastTaskResult=0, confirmed false and made
+no PATCH (`temporary/intake-guard-scheduler-result-20261104.json`, linked child
+receipt retained). This is scheduler/auth/readback evidence, not enabled
+restoration. The separately authorized false-to-false inheritance PATCH passed
+at 08:28:51 with complete nonflag settings comparison and no privacy drift
+(`temporary/intake-false-inheritance-20261104.json`). It created deployed version
+43. Actual authoritative script-content digest, handlers, runtime, binding
+metadata, writable annotations, sole/latest deployment, hourly cron and private
+bucket checks pass against reviewed version 42
+(`temporary/intake-derived-version-final-verification-20261104.json`). No true
+transition occurred. The initial failed settings read, expected old-version
+source refusal and overly broad deployment-client comparison failure remain
+preserved; none is reported as a passing readiness run.
+
+Post-PATCH genuine filer authentication, home and engagements return 200;
+nonexistent proof denies 404/private/nosniff, disabled draft route denies 404,
+and a normal sign-in mail request returns 200
+(`temporary/intake-inherit-hosted-smoke-20261104.json`). Inbox delivery and a
+positive existing-proof read remain unverified. Sixteen focused guard tests,
+33 existing resource/privacy/migration guard tests and PowerShell parsing pass;
+the first existing-guard invocation used the wrong working directory and failed
+before its documented-directory rerun. No timeout was enlarged. The tested
+tool has no enable operation; a bounded-open tool and human proof/publication
+decisions remain outstanding. Owner manual acceptance remains pending.
+
+The owner subsequently confirmed arrival of the Alpha sign-in email requested
+at 08:31 UTC; this is owner-reported inbox arrival only, without a code or a
+manual product-acceptance decision. No resend occurred.
+
+The bounded-window review found a race between immediate failure close and the
+scheduled restore. All supported writers now share a bounded Windows mutex
+lease. Five actual separate-process tests pass: complete critical-section
+exclusion, owner death with recovery hold, killed lease/unclean owner recovery,
+and enforced owner wall-time termination; final critical-section/watchdog cases
+also pass after the last watchdog change. Evidence is
+`temporary/intake-lock-coordination-tests-repaired-20261104.txt` and
+`temporary/intake-lock-final-critical-section-tests-20261104.txt`, with retained
+child receipts. The first run's watchdog/fixture failures remain preserved.
+
+Actual fingerprint-authorized scheduled restore waited for a separate 25-second
+synthetic lock holder, then confirmed false/no PATCH and completed with result 0
+(`temporary/intake-serialized-independent-preflight-repaired-20261104.json`).
+The successful preflight-only task was unregistered. The preceding failed parent
+run exposed locale reparsing of an auto-converted JSON DateTime, reversing
+November 4 into April 11 and losing the future trigger. Its false-only child
+still passed; failed parent/task/receipts remain preserved, not called accepted.
+Nine typed-date/three-culture regressions now pass. This verifies independent
+coordination while false, not enabled restoration or host/network-loss immunity.
+The revised open/guard interaction remains under review; no true transition or
+human publication occurred.
+
+Final tooling delivery validation passes all 100 `test:deploy` cases on Windows,
+including the five real coordination cases and 30 focused intake/window guards;
+the new cases are now in the existing package command. Nine date regressions,
+focused lint, PowerShell parsing and SPINE normal validation pass. A final
+preflight-only run also passes with exact future trigger and the seven-minute
+operational guard budget
+(`temporary/intake-serialized-final-preflight-20261104.json`). Fresh readiness at
+09:17 confirms version 43 sole/latest/current at 100%, intake false, exact
+migration filenames and five controlled eligible filers
+(`temporary/intake-after-serialization-readiness-20261104.json`). These results
+do not resolve the separate older full Windows application timing failure.
 
 ## 2. Happy path cases
 
