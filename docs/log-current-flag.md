@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.31
+doc_version: 0.32
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -914,3 +914,56 @@ The coordinator claimed the reopened reviewer form and asked the owner to inspec
 the new exact proof and record factual reasons and a fresh human decision. The
 first round's human inspection does not approve different bytes; no publication
 or final manual acceptance is inferred.
+
+## 33. Owner approves revised proof; first dev publication, 2026-11-04
+
+The owner explicitly reported reviewing and approving the revised PDF. Actual
+Round 2 approve and accepted exact-hash proof receipt are confirmed. Revision 2
+became the publication pointer; first-submission and queue clocks, Round 1 and
+both proof objects are preserved. QAD owns publication/expiry, signed-in record
+aggregates and unauthorized-access observations. This is the first synthetic dev
+publication, not real intake or final product acceptance. Intake remains false;
+production/main are unchanged. Private reasons are present, with no substantive
+rationale-quality acceptance inferred from placeholder test entries.
+
+The coordinator prepared clearly fictional counterevidence of an omitted agreed
+payment extension for the private-correction test. No client edit/publication
+change follows from that preparation. It requires a supported request and actual
+human decision through the other unconflicted moderator account. A filer update
+also requires a real later Manila date after original publication; no fabricated
+clock or date will satisfy that remaining acceptance case.
+
+## 34. Correction intake fallback and unresolved JavaScript observations, 2026-11-04
+
+Two normal client correction-open actions stalled with no persisted request,
+including a fresh-page retry after exact zero-request confirmation. Both guarded
+windows restored false and settled at their original deadlines. The publication
+and its clocks remained unchanged. Aggregate metrics show client disconnections
+without a resource-limit outcome in the bounded interval; no individual cause is
+established. The metrics service's first rate-limit refusal and the browser
+failures remain preserved, with no timeout increase or speculative application
+repair.
+
+A standard HTML form diagnostic with intake disabled completed without mutation.
+After another fresh bounded readiness/guard check, that supported form path
+created the private synthetic draft, normal UI uploaded the counterproof, and
+standard HTML submitted it. Intake was restored before human review. The original
+decider is excluded from its eligible correction queue; the other moderator
+account can claim it. The coordinator left verdicts/decision/inspection empty and
+asked the owner to inspect both exact proofs and decide the private correction.
+QAD owns the bounded evidence. No request alone edits or hides the publication;
+two moderator accounts do not establish two independent human reviewers.
+
+## 35. Owner completes correction uphold, 2026-11-04
+
+The owner reported done and supplied a screenshot. Actual D1 confirms the second
+moderator account recorded uphold, with both exact-proof receipts accepted. The
+private request/case closed without changing the publication, invalidating a
+revision or resetting original retention times. The ordinary record retains its
+rating and tags. QAD owns byte/access checks and the settled intake guard evidence.
+
+The coordinator explicitly explained that uphold keeps the original publication
+and asked whether that was intended. Preserve the immutable decision either way;
+do not silently convert it into a correction or reopen the closed request. The
+corrected-publication acceptance path remains open and requires its own supported
+request/new-evidence boundary and actual human decision.

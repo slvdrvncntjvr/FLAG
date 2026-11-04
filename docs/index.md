@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.113
+doc_version: 0.114
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.43 | Review | 2026-11-04 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.65 | Review | 2026-11-04 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.66 | Review | 2026-11-04 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.48 | Review | 2026-11-04 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.31 | Draft | 2026-11-04 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.32 | Draft | 2026-11-04 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -237,7 +237,7 @@ Successful normal Workers Build `3f8eaa69-df9c-4be8-948a-de1657c81096` identifie
 `2f7a340c-943d-4923-be8e-601e1ee1ea19`, observed sole/latest at 100% with intake
 false, exact ledger and five controlled eligible filers. A fresh guarded window
 then confirmed true and created **FL-1042** through supported draft, PDF upload
-and pending submission. No publication pointer or publication/expiry time exists.
+and pending submission; publication followed the later human review below.
 The early close acknowledged its PATCH but failed readback; independent reads
 and the deadline guard confirmed restored false. Actual restored version is
 `2e06e367-e575-4966-b841-8fb0e9258230` at 100%, with matching source/settings
@@ -249,13 +249,28 @@ The clarified response fixture was prepared offline. Its first revised-draft sav
 stalled without a new revision observed; the unchanged deadline guard restored
 false with preserved source/settings. A subsequent guarded window saved the
 response through separate normal fill/click actions, uploaded the clarified PDF
-and resubmitted revision 2. The same case is pending fresh human review; the
+and resubmitted revision 2. The same case proceeded to fresh human review; the
 original submission/queue clocks, Round 1 and both proof objects are preserved.
-Current restored version is `1eacc557-766b-4ff2-80db-aabcdb9139bb` at 100%, intake
+The response window restored `1eacc557-766b-4ff2-80db-aabcdb9139bb` at 100%, intake
 false, with successful source/settings readback and deadline guard result 0.
 Retain the early-close and pending-save failures; their causes remain unconfirmed.
-Fresh human review of the revised bytes,
-publication, correction/update, ratings and owner manual acceptance remain.
+The owner personally reviewed the revised proof and approved publication at
+12:43 UTC. Actual Round 2 and its accepted exact-hash proof receipt are confirmed;
+revision 2 is current, with original publication 2026-11-04T12:43:53.902Z and expiry
+2027-11-04T12:43:53.902Z. The signed-in client record shows 5.0/5, one contributor,
+one published log, Limited record and the expected tag counts. Signed-out reads
+redirect to sign-in; an unrelated member cannot read the private log or proof.
+The private correction request was submitted and reviewed through the second
+moderator account; the original decider's eligible queue excluded it. The owner
+recorded **uphold**, closing the request with both exact-proof receipts while
+preserving the publication pointer, facts/tags and original publication/expiry.
+The path that creates a corrected publication remains untested. Two JavaScript draft attempts stalled without
+persisting a request; supported standard HTML submission subsequently succeeded.
+Those failures and their unproven cause remain open; no resource-limit error was
+reported in the bounded aggregate metrics interval. Intake is disabled again.
+Corrected publication, a later-day filer update, broader ratings and owner
+manual acceptance remain. The later update cannot run before a real later Manila
+date; no clock manipulation is permitted.
 Production planning follows accepted dev evidence; main and production remain
 unchanged and PR20 remains draft.
 The latest full local Windows result remains failed at 1,301/1,311 with ten
@@ -280,7 +295,7 @@ broaden the limited owner acceptance report stated below.
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR36 merge `5d40b7e`; restored settings-derived version `1eacc557-766b-4ff2-80db-aabcdb9139bb` at 100%, intake false, observed 2026-11-04 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR36 merge `5d40b7e`; restored settings-derived version `4c776e98-70da-4c16-bb4a-6a1f9116295c` at 100%, intake false, observed 2026-11-04 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers

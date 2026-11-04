@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.65
+doc_version: 2.66
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -456,6 +456,57 @@ completed 0; its parent retired that settled schedule. This successful response
 does not establish the cause of the preceding stalled save. The reopened reviewer
 form was claimed with verdict/decision/personal-inspection confirmation empty;
 the revised bytes require their own actual human review before publication.
+
+The owner then reported personal inspection and approval of the revised PDF.
+Actual D1 confirms Round 2 approve, its accepted exact-byte proof receipt,
+revision 2 as the publication pointer, original publication at
+2026-11-04T12:43:53.902Z and calendar-anniversary expiry exactly twelve months
+later. Round 1 and both proof objects remain intact; first submission and queue
+age are unchanged (`temporary/synthetic-alpha-owner-publication-confirmed-20261104.json`).
+An unrelated signed-in member sees 5.0/5, one contributor, one published log,
+Limited record and one each Late Payment/Professional tag. No proof link or
+private review reason appears in that record. Signed-out record reads redirect
+to sign-in without the log; the unrelated private-log read is 404
+(`temporary/synthetic-alpha-first-published-record-20261104.json`). Revised-proof
+reads confirm exact 1,972-byte delivery to filer/client and private-header 404
+denials to anonymous/unrelated/bare-admin actors. These bounded observations do
+not complete correction, later-day update, multi-contributor/fallback ratings,
+substantive private-reason quality or final owner acceptance.
+
+Private correction continuation: two normal JavaScript draft submissions remained
+pending with no response status and no persisted request; the second used a fresh
+page in the same verified client profile. Each bounded window restored false and
+completed its original deadline guard. Read-only reload recovered the page; no
+duplicate request was submitted while a result was uncertain. Aggregate Worker
+metrics over 12:50–13:03 UTC report two client disconnections and no errors or
+resource-limit outcome; they do not attribute an individual request or cause
+(`temporary/correction-reliability-metrics-followup-20261104.json`). The earlier
+metrics query was rate-limited and supplies no evidence.
+
+With intake disabled, the supported standard HTML form submission completed and
+created no request. A fresh guarded window then opened the same client correction
+draft through standard HTML, uploaded the 2,124-byte fictional counterproof via
+the normal upload UI and submitted the request through standard HTML. Actual
+request/case metadata confirms submitted/open while the original publication,
+rating and retention times are unchanged; intake is confirmed false
+(`temporary/synthetic-alpha-correction-submitted-20261104.json`). The second
+moderator account's queue includes the case; the original decider's eligible queue
+excludes it. The second account claimed the form, with both exact-proof verdicts,
+decision and personal-inspection confirmation left empty for actual owner review.
+This fallback-path evidence does not accept the stalled JavaScript path or imply
+two independent human reviewers merely because two accounts were exercised.
+
+The owner replied done with a screenshot. Actual D1 records the second moderator
+account's **uphold** decision at 13:26:08.356 UTC, with accepted exact-hash review
+receipts for both files. The request/case closed, revision 2 remains current, no
+new revision or invalidation exists, and original publication/expiry are unchanged
+(`temporary/synthetic-alpha-correction-review-ready-20261104.json`, captured after
+the actual decision). The ordinary record still shows the original 5.0/one-person
+summary and tags. Counterproof byte delivery to filer/client and private-header
+404 denials to anonymous/unrelated/bare-admin actors pass. This exercises the
+uphold path; it does not exercise creation of a corrected publication. All windows
+settled and the latest source/settings check confirms false with preserved
+fingerprints (`temporary/synthetic-alpha-correction-final-closed-source-20261104.json`).
 
 ## 2. Happy path cases
 
