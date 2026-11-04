@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.106
+doc_version: 0.107
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-03
+updated: 2026-11-04
 reconciled: 2026-09-14
 ---
 
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.42 | Review | 2026-11-03 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.58 | Review | 2026-11-03 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.59 | Review | 2026-11-04 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.24 | Draft | 2026-11-03 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.25 | Draft | 2026-11-04 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -173,12 +173,22 @@ authorization; current LOG §23 records that scope and agent recovery.
 QAD §1.4 owns the acceptance matrix: actual same-subject metadata export,
 one-use denial and R2 artifact erasure pass; an exact held synthetic audit row
 was retained, then physically erased through the staff runner after release.
-The held execution returned `unavailable`; the scoped source repair passes
-17 privacy runtime tests and still needs protected CI, deployment and hosted
-verification. Closure, full subject/proof/case erasure, independent correction,
-publication, ratings and owner manual acceptance remain incomplete. A dedicated
-normally authenticated synthetic admin now exists; existing roles are unchanged.
-Intake stays false until prerequisites are demonstrated; no window has opened.
+The held execution returned `unavailable`; [PR31](https://github.com/slvdrvncntjvr/FLAG/pull/31)
+repaired issuance and merged normally as `ffbc4f32e0f0f5e42f0f87c2d949267d0e208ec7`
+after [required CI 41641575507](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41641575507).
+Both merge CI runs passed. No Workers Build materialized; the authorized OPS CLI
+fallback deployed that exact revision as version `a2cd647e-7231-4c17-ae95-5360b508a8a0`,
+observed at 100% on 2026-11-04. Actual mixed held/unheld execution, release and
+retry now pass. Closure/session revocation, post-closure export and scoped hourly
+D1/R2 erasure are observed; QAD §1.4 owns coverage and retained failures.
+Same-closure export preparation exposed a completed-redaction deadline defect;
+its scoped source repair is locally verified and awaits protected delivery.
+Hosted `/engagements` CPU-limit failures remain open despite later successful
+reads; intake stays false until investigated and repaired. Independent correction,
+publication, ratings, broader proof/case erasure and owner manual acceptance remain
+incomplete. New dedicated synthetic staff and explicitly marked filer eligibility
+fixtures are prepared; existing identities and verification evidence are unchanged.
+No synthetic intake window has opened.
 Production planning follows accepted dev evidence; main and production remain
 unchanged and PR20 remains draft.
 The latest full local Windows result remains failed at 1,301/1,311 with ten
@@ -198,12 +208,12 @@ broaden the limited owner acceptance report stated below.
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
 | Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Source integrated; intake disabled |
 | Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Pilot Worker deployed; intake disabled; hosted authenticated acceptance pending |
-| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29 integrated; held-assessment handling repair under verification; full local Windows verification unresolved | Scoped metadata export/R2 erasure and audit hold/release/D1 erasure observed; closure, broader lifecycle and correction acceptance pending |
+| Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29/PR31 integrated; same-closure export repair under verification; full local Windows verification unresolved | Scoped closure/revocation, separate post-closure export, hourly shell/artifact erasure and mixed hold/retry observed; broader lifecycle/correction acceptance pending |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR30 merge `02f9de6`; version `fb6fe2e3-aff8-4e55-84d8-2d16577c1e6b` at 100%, observed 2026-11-03 | 0000-0012 applied; no pending migration; foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR31 merge `ffbc4f3`; version `a2cd647e-7231-4c17-ae95-5360b508a8a0` at 100%, observed 2026-11-04 | 0000-0012 applied; no pending migration; last foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers
@@ -285,7 +295,7 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 0 | Verify and deliver the confirmed retention repairs | PRD-F12: draft PR28 published and unmerged, focused worker checks and bounded independent correctness clearance supplied; full local run 1,298/1,308 with ten five-second timeouts remains unresolved; PR28 carries current hosted checks, QAD §1.3 owns regressions. 0012 not applied/deployed |
+| 0 | Resolve current controlled-dev defects | PRD-F12: same-closure export deadline repair needs protected CI/deployment and affected hosted verification. PRD-F9: actual `/engagements` CPU-limit failures need diagnosis and confirmed repair before intake. PR28/0012 and PR31 are delivered; QAD §§1.3–1.4 own regressions/observations. Preserve the separate Windows timing failures |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
 | 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |
