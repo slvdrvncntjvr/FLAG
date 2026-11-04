@@ -3,11 +3,11 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.24
+doc_version: 0.25
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
-updated: 2026-11-03
+updated: 2026-11-04
 reconciled: 2026-09-14
 ---
 
@@ -634,3 +634,53 @@ No timeout was increased and no uncertain purge owner was adopted. Closure,
 independent correction/publication, records/ratings and owner manual acceptance
 remain incomplete; the disposable closure subject needs its normal private
 sign-in before testing deactivation without closing the owner's real account.
+
+## 24. Deployed synthetic lifecycle continuation, 2026-11-04
+
+The dispatched operator resumed from the coordinator's preserved checkpoint,
+without repeating the completed PR28 backup/migration/release. PR31's required
+and merge checks pass; the authorized OPS CLI fallback deployed its exact merge
+after no Workers Build materialized. INDEX owns that revision/version. Actual
+mixed held/unheld staff execution now preserves the held audit row, erases only
+the eligible row and reports held work. Supported release/retry erases the
+remaining row with exact one-attempt receipts and original due times. The
+request is truthfully deferred because copy disposition remains unverified.
+
+The owner completed normal private OTP entry for dedicated new participants.
+Four exact fresh authenticated filers received clearly marked synthetic
+eligibility fixtures, without a fabricated live inspection or verification case;
+two fresh current-policy reviewer accounts received moderator roles. Narrow
+dev/intake/identity/policy/session guards precede these fixtures. Existing
+identities, roles, verification evidence and policy history are unchanged.
+Fixture eligibility does not pass real identity-inspection acceptance.
+
+Two disposable subjects have actual deactivation/session-revocation evidence.
+The earlier subject's shell/policies and expired artifacts physically erased
+through the hourly handler. The new subject's separate assessed export returned
+its scrubbed metadata through a session-free private capability after closure;
+replay denied and direct D1/R2 checks confirm token/object/artifact cleanup.
+Its completed export receipt records automated recipient observation, not owner
+manual acceptance. The closure is deferred for finite shell/policy work and
+unverified copies. Original failed expired/transport attempts remain evidence;
+fresh-connection recipient delivery passed at the unchanged observation bound,
+without a confirmed cause assigned to the earlier transport failure.
+
+Same-closure export preparation exposed a separate implementation discrepancy:
+the projection reapplies its own completed redaction deadline before consulting
+the shared exact outstanding-deadline view. This contradicts existing SDD §3.10;
+the real-D1 regression reproduced `source_expired` after deactivation. The scoped
+repair uses that view for the current request as well as other assessments,
+preserving exact completed-receipt matching and pending earlier purge/redaction.
+Nineteen privacy tests and 48 related export/assessed-read tests, typecheck and
+lint pass. Protected candidate CI/deployment and affected hosted repair
+verification remain to establish; no migration or clock change is needed.
+
+Hosted engagement reads separately returned Cloudflare 1102 and repeated 503.
+Five later reads passed, while CPU-only profiling returned only garbage
+collection/idle frames, without a confirmed application cause. Preserve this
+open deployed reliability issue separately from Windows test timing failures;
+do not enable intake on the strength of successful retries. QAD owns actual
+coverage and evidence paths. Intake remains false; publication/correction,
+ratings, broader proof/case erasure and owner manual acceptance are incomplete.
+Main/production, protections, archived evidence, invariant meanings and human
+reconciliation dates remain unchanged.

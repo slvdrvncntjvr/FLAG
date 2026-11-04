@@ -1,6 +1,6 @@
 import type { Db } from "@/server/db";
 import { clock, currentAdmin, getPrivacyRequest, responsibleGate, type PrivacyRequest } from "@/server/db/queries/privacy";
-import { assessment, type Assessment } from "./schema";
+import { assessment } from "./schema";
 import { hex } from "@/features/logs/proof-storage";
 
 const headers = { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
@@ -8,7 +8,7 @@ const hash = async (value: string) => hex(await crypto.subtle.digest("SHA-256", 
 type Source = { targetType: string; targetId: string; deadline: string; digest: string };
 type Delivery = { id: string; privacy_request_id: string; auth_kind: string; object_key: string | null; token_hash: string | null; write_inflight: number; expires_at: string; downloaded_at: string | null; purged_at: string | null };
 // Metadata-only by design: no auth tables, proof keys/bytes, review notes, other contacts or free-text claims.
-async function projection(db: Db, subjectId: string, deadline: string, categories: string[], targets: Assessment["targets"]) {
+async function projection(db: Db, subjectId: string, deadline: string, categories: string[]) {
   const user = await db.$client.prepare("SELECT id,name,email,phone_number,created_at,deactivated_at FROM user WHERE id=?").bind(subjectId).first();
   if (!user) throw new Error("subject_missing");
   const policies = await db.$client.prepare("SELECT id,policy,version,accepted_at,retired_at FROM policy_acceptance WHERE user_id=? ORDER BY id LIMIT 1001").bind(subjectId).all<{ id: string; policy: string; version: string; accepted_at: string; retired_at: string | null }>();
@@ -21,7 +21,9 @@ async function projection(db: Db, subjectId: string, deadline: string, categorie
   if (policies.results.length > 1000 || logs.results.length > 1000) throw new Error("bounded_export_requires_assessment");
   const sources: Source[] = [];
   const add = async (type: string, key: string, data: unknown, until: string) => {
-    for (const target of targets) if (target.targetType === type && target.targetId === key && ["purge", "redact_identity"].includes(target.operation) && target.dueAt < until) until = target.dueAt;
+    // The shared view includes this request's exact outstanding actions and
+    // excludes only their exact completed receipts. Reapplying raw targets
+    // would expire a newly scrubbed shell at its already fulfilled redaction.
     const assessed = await db.$client.prepare("SELECT due_at FROM pilot_assessed_source_deadline WHERE target_type=? AND target_id=? AND subject_user_id=?")
       .bind(type, key, subjectId).first<{ due_at: string }>();
     if (assessed?.due_at && assessed.due_at < until) until = assessed.due_at;
@@ -57,7 +59,7 @@ export async function prepareExport(db: Db, bucket: R2Bucket, actor: string | nu
   const cap = new Date(Math.min(Date.now() + 86400000, Date.parse(a.export.deadline),
     ...(a.export.authKind === "assessed_capability" ? [Date.parse(p.identity_verified_at) + 86400000] : []),
     ...a.categories.map(c => Date.parse(c.until)))).toISOString();
-  const projected = await projection(db, p.subject_user_id, cap, a.export.categories, a.targets);
+  const projected = await projection(db, p.subject_user_id, cap, a.export.categories);
   const expiresAt = projected.sources.reduce((d, s) => s.deadline < d ? s.deadline : d, cap);
   if (expiresAt <= now) throw new Error("source_expired");
   const deliveryId = crypto.randomUUID(), objectKey = `exports/${deliveryId}`;
@@ -94,7 +96,7 @@ async function validSources(db: Db, p: PrivacyRequest, expiresAt: string) {
   if (!stored?.length || stored.some(s => s.deadline < expiresAt || s.deadline <= new Date().toISOString())) return false;
   const cap = stored.reduce((deadline, s) => s.deadline > deadline ? s.deadline : deadline, "");
   if (!cap || a.data.categories.some(c => c.until < expiresAt)) return false;
-  const fresh = await projection(db, p.subject_user_id, cap, a.data.export.categories, a.data.targets);
+  const fresh = await projection(db, p.subject_user_id, cap, a.data.export.categories);
   return JSON.stringify(stored) === JSON.stringify(fresh.sources);
 }
 export async function deliverExport(db: Db, bucket: R2Bucket, deliveryId: string, token: string | null, subjectSessionId: string | null): Promise<Response> {

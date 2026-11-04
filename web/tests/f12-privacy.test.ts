@@ -132,6 +132,40 @@ describe("PRD-F12 actual privacy processing and private exports", () => {
     expect((await deliverExport(db, env.PROOFS, d.deliveryId, d.token, null)).status).toBe(200);
     expect(await env.DB.prepare("SELECT 1 FROM session WHERE user_id=?").bind(subject).first()).toBeNull();
   });
+  it("exports the scrubbed shell from the same closure request after exact redaction completes, bounded by pending purge", async () => {
+    const subject = await actor(), admin = await actor("admin");
+    const a = assessment(subject, [{ targetType: "user", targetId: subject, operation: "redact_identity", basis: "account_closure", dueAt: iso(-1000) }], "assessed_capability");
+    const shellDeadline = iso(600000);
+    a.categories.find(c => c.category === "identity")!.until = shellDeadline;
+    const id = await request(admin, subject, "closure", a);
+    // An outstanding exact redaction denies the original identity projection.
+    await expect(prepareExport(db, env.PROOFS, admin, id)).rejects.toThrow("source_expired");
+    expect((await executePrivacyRequest(db, env, admin, id)).ok).toBe(true);
+    const closed = await env.DB.prepare("SELECT deactivated_at FROM user WHERE id=?").bind(subject).first<{ deactivated_at: string }>();
+    expect(closed?.deactivated_at).toEqual(expect.any(String));
+    const d = await prepareExport(db, env.PROOFS, admin, id);
+    expect(d.expiresAt).toBe(shellDeadline);
+    const response = await deliverExport(db, env.PROOFS, d.deliveryId, d.token, null);
+    expect(response.status).toBe(200);
+    expect((await response.json() as { account: { deactivated_at: string; name: string } }).account).toMatchObject({ deactivated_at: closed!.deactivated_at, name: "Closed account" });
+    expect((await deliverExport(db, env.PROOFS, d.deliveryId, d.token, null)).status).toBe(404);
+    expect(await env.PROOFS.head(`exports/${d.deliveryId}`)).toBeNull();
+    expect(await env.DB.prepare("SELECT 1 FROM session WHERE user_id=?").bind(subject).first()).toBeNull();
+    const next = await prepareExport(db, env.PROOFS, admin, id);
+    // A newly assessed earlier purge still revokes the copied scrubbed shell.
+    await request(admin, subject, "deletion", assessment(subject, [{ targetType: "user", targetId: subject, operation: "purge", basis: "assessed_erasure", dueAt: iso(-1000) }]));
+    expect((await deliverExport(db, env.PROOFS, next.deliveryId, next.token, null)).status).toBe(404);
+    expect(await env.PROOFS.head(`exports/${next.deliveryId}`)).toBeNull();
+    expect(await env.DB.prepare("SELECT deactivated_at FROM user WHERE id=?").bind(subject).first()).toEqual(closed);
+  });
+  it("does not waive an outstanding redaction using another request's completed action for the same subject", async () => {
+    const subject = await actor(), admin = await actor("admin");
+    const close = await request(admin, subject, "closure", assessment(subject, [{ targetType: "user", targetId: subject, operation: "redact_identity", basis: "account_closure", dueAt: iso(-1000) }]));
+    expect((await executePrivacyRequest(db, env, admin, close)).ok).toBe(true);
+    const pending = await request(admin, subject, "closure", assessment(subject, [{ targetType: "user", targetId: subject, operation: "redact_identity", basis: "account_closure", dueAt: iso(-1000) }], "assessed_capability"));
+    await expect(prepareExport(db, env.PROOFS, admin, pending)).rejects.toThrow("source_expired");
+    expect(await env.DB.prepare("SELECT 1 FROM export_delivery WHERE privacy_request_id=?").bind(pending).first()).toBeNull();
+  });
   it("honors exact holds and physically purges retired policy rows through the real bounded runner", async () => {
     const subject = await actor(), admin = await actor("admin"), policyId = crypto.randomUUID();
     await env.DB.prepare("INSERT INTO policy_acceptance(id,user_id,policy,version,retired_at) VALUES(?,?,'privacy','synthetic-old','2020-01-01T00:00:00.000Z')").bind(policyId, subject).run();
