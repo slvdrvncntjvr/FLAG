@@ -1,9 +1,12 @@
 // The adapter generates this module during the existing OpenNext build.
 import handler from "./.open-next/worker.js";
 import { runMaintenance } from "./src/features/lifecycle/maintenance";
+import { privateResourcePreflight } from "./src/lib/private-http";
 
 export default {
-  fetch: handler.fetch,
+  fetch(request, env, ctx) {
+    return privateResourcePreflight(request) ?? handler.fetch(request, env, ctx);
+  },
   async scheduled(controller, env) {
     // Await all work; no request data or tokens are emitted to platform logs.
     await runMaintenance(env, controller.scheduledTime);

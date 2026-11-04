@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.42
+doc_version: 2.43
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-03
+updated: 2026-11-04
 reconciled: 2026-10-13
 ---
 
@@ -1414,6 +1414,19 @@ does not revoke access.
   page layouts alone do not authorize data access.
 - All private surfaces deny indexing. Server-rendered content is viewer-scoped;
   no shared incremental cache is configured.
+- React request memoization reuses only D1-client/schema and auth configuration
+  during a server render (`web/src/server/db/index.ts:15`,
+  `web/src/server/auth/index.ts:8`). Viewer, session and query results are not
+  memoized; role, ban, policy, relationship and source-deadline checks still query
+  current authority. Bindings come from each request, without a cross-request
+  client or identity singleton.
+- The Worker can deny GET proof requests with no Cookie header and exports
+  with absent/unsafe authorization or query-token transport before entering
+  Next (`web/custom-worker.ts:8`, `web/src/lib/private-http.ts:19`). Denials retain
+  404/no-store/nosniff/noindex, and export no-referrer. Cookie/Bearer presence
+  grants nothing: other requests still enter the existing live handlers. This
+  preflight neither changes other methods nor establishes all CPU-limit failures
+  resolved. Delivery state and observed limits remain in INDEX/QAD.
 - Six-digit hashed OTP: ten-minute validity, three code attempts; sessions:
   fourteen days. Password reset/credential writes are denied before effects.
   The unused check-only OTP operation is denied before proof lookup/mutation

@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.59
+doc_version: 2.60
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -249,7 +249,30 @@ UI receipts. Actual post-closure delivery is
 erasure. The earlier expired and timed-out attempts remain failed evidence.
 The combined-request regression reproduced `source_expired` after redaction;
 the scoped fix passes 19 real-D1 privacy tests, including pending purge,
-cross-request redaction and revoked-artifact boundaries. It is not yet delivered.
+cross-request redaction and revoked-artifact boundaries. PR32 exact-head CI
+passes 1,317 Workers tests and 22 browser scenarios; its protected merge and
+actual version are in INDEX. Combined-request hosted acceptance remains pending.
+The new disposable subject and both retired policy rows also physically erased
+at their unchanged 06:00 deadline through the hourly handler, with one-attempt
+receipts and detached subject links; no staff runner crossed that sweep.
+Evidence: `temporary/synthetic-postclosure-v2-hourly-confirmed-20261104.json`.
+
+Fresh PR32 probing passed 20/22 anonymous cases; proof and Basic-export denial
+returned platform 503, retained in
+`temporary/pr32-anonymous-postdeploy-20261104.json`. Later 404s do not resolve
+the failures. The performance candidate reuses only constructor configuration
+within a render, and moves already-invalid GET denials ahead of Next. Pure and
+actual HTTP boundary tests pass; an isolated packaged render/native policy
+action/route exercise confirms distinct subjects and fresh role, ban, policy
+and logout reads (`temporary/local-engagements-cpu-receipt-warmcachechecks-20261104.json`).
+Warm logical-fixture render wall times improved in local profiling, not a
+measurement of deployed CPU time. Cold preflight cases return 404/nosniff in
+56/11 ms locally without auth warmup, with no Next initialization frames in
+that small capture (`temporary/local-engagements-cpu-receipt-earlyafter-20261104.json`).
+Earlier cold diagnostics timed out at the unchanged bound and remain failures;
+their mostly idle profiles do not establish a CPU cause. Actual deployed
+cold/warm and authenticated proof evidence remain required before claiming
+these hosted failures repaired or enabling intake.
 Four fresh authenticated filers have clearly marked eligibility fixtures with
 no fabricated live inspection/case, and two fresh reviewers have staff roles;
 existing users/verification records are untouched. Owner manual checkboxes in
