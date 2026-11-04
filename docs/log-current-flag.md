@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.28
+doc_version: 0.29
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -764,3 +764,61 @@ the start-date field stayed intact. No invite secret was printed or copied.
 Supported private handover to the exact controlled client remains the next
 human-only step; consent/association and subsequent human publication decisions
 are distinct. Intake remains false and production remains unchanged.
+
+## 28. False-only intake control verification, 2026-11-04
+
+The owner completed private invitation handover to the exact controlled client;
+normal explicit association and per-engagement consent now establish acceptance.
+The latest combined-request shell and policies physically erased through the
+original 08:00 hourly maintenance boundary. QAD §1.4 owns those observations;
+neither advances human manual acceptance.
+
+The coordinator reviewed the dev-only inspection/close drafts and authorized
+concrete safety repairs and a benign scheduler test without another permission
+loop. Source/latest/deployed alignment, writable annotations, all nonflag metadata,
+privacy readiness, exact migration filenames, uncertain PATCH readback and actual
+Windows task completion are now guarded/tested. No enable operation was added.
+The independent scheduled invocation succeeded while false without PATCH; this
+does not prove restoration from true or immunity to host/network loss.
+
+The separately authorized false-to-false inheritance PATCH created version 43
+from reviewed 42. The old-source guard correctly refused the new ID; an earlier
+failed settings read remains a separate failure. An initially broad comparison
+also rejected the changed deployment-client marker. Primary API documentation
+defines `etag` as hashed script content and `last_deployed_from` as the deploy
+client; actual digest/handlers/runtime/bindings/annotations equivalence now passes,
+with hourly cron, private bucket and false confirmed. The close tool now validates
+legitimate derived versions without mistaking client metadata for code identity.
+QAD owns receipt paths and limits; OPS owns procedures. Preserve every failed
+receipt and the separate Windows timing issue. Bounded opening, actual human
+proof/publication decisions, positive proof delivery and final acceptance remain
+outstanding; no production/main or real-intake change occurred.
+
+The coordinator accepted the derived-source evidence and requested a concrete
+five-minute synthetic-window draft. Separate open/guard tooling is prepared for
+review, with a real independent guard preflight before true, reviewed content and
+nonflag-settings fingerprint authority across derived IDs, fresh eligibility and
+private-bucket/cron/migration checks, and preserved uncertain-open/close evidence.
+Logging drift can block opening but does not prevent fingerprint-authorized
+emergency close. This draft has not opened intake or established enabled
+restoration; the coordinator's concrete interaction review remains the next gate.
+
+The coordinator's concrete review found that Node's immediate failure restore
+could race the independent deadline guard. A shared OS mutex lease now covers
+every supported writer and the full open/readback/failure-close section, with
+bounded ownership, process-death recovery and separate uncertainty holds. Real
+fault tests first exposed a synchronously blocking stdin reader and a faulty
+test lease selection; both were corrected without hiding failures. A durable
+owner marker also detects unclean exits after the last mutex handle disappears.
+Five real process-coordination cases pass, with final exclusion/watchdog retests.
+
+The first real new-guard preflight child passed false/no PATCH, but its parent
+rejected freshness. Investigation found locale reparsing of an already typed
+JSON DateTime: November 4 became April 11 and the scheduled guard was in the past.
+Typed/invariant UTC conversion and exact future next-run verification repair
+this defect; nine date/culture cases and a fresh contended scheduled preflight
+pass. Preserve the failed task and all original receipts. The corrected guard's
+operational budget covers serialization/recovery rather than enlarging any
+application or suite timeout to obtain green. Opening remains unexecuted pending
+review of this repair. The owner separately confirmed the Alpha mail arrived;
+no OTP, resend, publication decision or manual acceptance was involved.

@@ -3,11 +3,11 @@ spine_type: OPS
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.45
+doc_version: 2.46
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-11-03
+updated: 2026-11-04
 reconciled: 2026-10-13
 ---
 
@@ -196,6 +196,72 @@ are authorized; production promotion and real proof intake are not automatic.
 A source flag change alone is insufficient. Existing private reads stay
 relationship-authorized while intake is off. An unexplained purge_inflight owner
 must be investigated; never take over its R2 deletion on a timer.
+
+**Dev-only inspection and close tooling.** From the repository root, use
+`node web/scripts/dev-synthetic-intake.mjs review <new-receipt-path> <reviewed-version-id>`.
+Readiness requires exact dev bindings/origin, disabled intake and logging/export
+destinations, the exact source migration filename set and only known controlled
+eligible filers. The latest uploaded version, current bindings/compatibility and
+sole 100% deployment must match the reviewed source. A pending upload or split
+deployment refuses inheritance. The version argument and receipt are observations,
+not an atomic pin: keep overlapping uploads/settings operations stopped and reread
+immediately before mutation. No enable operation exists in this tool.
+
+`node web/scripts/dev-synthetic-intake.mjs close <new-receipt-path> <reviewed-version-id>`
+confirms false without PATCH when already disabled. Otherwise it sets only the
+intake binding to false, inherits every other binding and preserves writable
+`workers/message`/`workers/tag` annotations. Compare all nonflag binding metadata
+and compatibility/logging settings in memory after PATCH; record only pass/fail.
+Logging drift is reported separately and does not block the close attempt.
+`mutationAttempted`, `confirmedState` and the response/readback evidence are
+distinct: a transport failure always attempts fresh readback and remains nonzero
+even when false is subsequently observed. Preserve uncertain receipts and inspect
+actual state before another mutation.
+
+A settings PATCH creates and deploys a new version, including a false-to-false
+PATCH. Verify the derived sole/latest deployment using the version API's
+authoritative script-content `etag`, fetch/scheduled handlers, full runtime,
+nonflag bindings and writable annotations against the reviewed source. The
+deployment-client marker may change; that marker is not code identity. Do not
+reject a legitimate derived ID after establishing false, or accept it from an
+annotation alone. The actual false-only inheritance test and its source check are
+recorded in QAD §1.4. The API definitions are
+[settings PATCH](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/script_and_version_settings/)
+and [version metadata](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/versions/methods/get/).
+
+`./scripts/test-dev-intake-guard.ps1 -ExpectedVersion <reviewed-version-id>` tests
+a separate current-user, limited-privilege Windows scheduled invocation while
+intake starts false. It checks task completion/result and the atomically written
+close receipt before unregistering the successful test task; failed evidence and
+tasks are preserved. This establishes scheduler/auth/readback only: no PATCH,
+enabled restoration or host/network-loss guarantee. A future bounded-open tool
+still needs review and must account for derived version IDs; do not enable intake
+to extend this benign test. After a real close, check actual false, authenticated
+reads, private proof delivery/denial and sign-in mail, distinguishing provider
+acceptance from inbox delivery.
+
+All supported settings writers share one Windows mutex through
+`scripts/dev-intake-lock.ps1` and `web/scripts/dev-intake-lock.mjs`, including an
+opener's failure close and the independent scheduled restore. The lease bounds
+the opener to 90 seconds and restores to 120 seconds, watches process death,
+and aborts guarded HTTP work on lease loss. OS abandonment and a durable unclean
+owner marker require a 30-second recovery quiet period before the next writer.
+Only hashes, process metadata and nonsecret receipts persist. This serialization
+does not establish an atomic remote CAS or guarantee a timed-out remote request's
+completion; preserve uncertainty and inspect fresh state.
+
+The separate bounded-window draft remains subject to coordinator interaction
+review before opening. Its preflight-only invocation is
+`./scripts/start-dev-synthetic-window.ps1 -ReviewedVersion <reviewed-version-id> -NoConcurrentWriters -PreflightOnly`.
+It arms and verifies an exact future guard, exercises that same action while
+false, checks actual task completion and unregisters the successful benign task.
+Typed/invariant UTC conversion prevents locale date reversal; verify both the
+stored trigger and actual next run against the authority's five-minute deadline.
+Before any future true PATCH require at least 120 seconds remaining. The guard's
+operational seven-minute budget covers lock wait 180s, abandoned-owner quiet 30s,
+restore 120s, owner-timeout quiet 30s and startup/receipt margin 30s (390s total).
+Application and suite timeouts remain unchanged. Opening is unexecuted; do not
+keep an eventual synthetic window open for human proof/facts review.
 
 ### Privacy requests and retention
 
