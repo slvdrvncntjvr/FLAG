@@ -3,7 +3,7 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.109
+doc_version: 0.110
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
@@ -31,9 +31,9 @@ verification and OPS for operations. The active decision log is
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
 | SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.43 | Review | 2026-11-04 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.61 | Review | 2026-11-04 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.62 | Review | 2026-11-04 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.45 | Review | 2026-11-03 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.27 | Draft | 2026-11-04 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.28 | Draft | 2026-11-04 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -188,8 +188,10 @@ its scoped [PR32 repair](https://github.com/slvdrvncntjvr/FLAG/pull/32), head
 and merged normally as `5f401f8c7b95021410306510d017a8a7d7b641ba` at 06:05:51 UTC.
 Normal Workers Build `191cbce2-1a19-4c78-8ccc-73154f0ec5b9` succeeded and identifies
 version `7ee71505-9106-426d-9a8f-726eff9f52ea`, observed at 100% at 06:09 UTC.
-No migration was needed. The combined request still needs its own affected
-hosted acceptance; the separate post-closure export is already observed.
+No migration was needed. The affected combined closure/export retest now passes
+on version 41 after actual deactivation, with private one-use delivery and
+confirmed artifact erasure. QAD §1.4 preserves the original failed attempt and
+the finite pending shell/policy and unverified-copy limits.
 The scoped [PR33 request-setup/preflight repair](https://github.com/slvdrvncntjvr/FLAG/pull/33)
 passed [CI 41787033502](https://github.com/slvdrvncntjvr/FLAG/actions/runs/41787033502)
 with 1,326 Workers tests and 22 browser scenarios, then merged normally as
@@ -311,7 +313,7 @@ the earlier 1,047-test/18-browser figures remain prior-baseline evidence.
 
 | Order | Deliverable | Scope |
 |-------|-------------|-------|
-| 0 | Complete affected controlled-dev verification | PRD-F12: PR32 same-closure export repair needs its affected hosted retest with a new disposable subject. PR33 is delivered with scoped authenticated/anonymous passes; authorized-proof and business-path acceptance remain. QAD §§1.3–1.4 own coverage; preserve original hosted and separate Windows failures |
+| 0 | Complete affected controlled-dev verification | PRD-F12: same-closure export repair passes its hosted retest; confirm the new disposable shell/policies physically erase after their original 08:00 purpose ends. PR33 has scoped authenticated/anonymous passes; authorized-proof and business-path acceptance remain. QAD §§1.3–1.4 own coverage; preserve original hosted and separate Windows failures |
 | 1 | Exercise deployed lifecycle/correction safety on controlled synthetics | PRD-F12, PRD-F13: actual assessed requests, closure/export, exact holds, bounded scheduled physical D1/R2 erasure and truthful backup outcomes under OPS §5 |
 | 2 | Complete hosted human-review/publication acceptance | PRD-F4, INV-1: actual queue, claim, proof inspection, approve/ask-changes/reject and private correction/update rounds; implementation and migrations are delivered |
 | 3 | Enable only authorized synthetic acceptance intake after verified prerequisites | Follow OPS §5 after repair verification and applicable deployment prerequisites; current intake remains false; authenticated synthetic acceptance and owner smoke precede real-proof readiness |
