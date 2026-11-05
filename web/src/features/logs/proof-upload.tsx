@@ -59,7 +59,12 @@ export function ProofUpload({ logId, count, onBusy, endpoint }: { logId: string;
       setFeedback({ error: false, text: "Uploading private proof. Keep this page open." });
       const response = await fetch(endpoint ?? `/api/logs/${encodeURIComponent(logId)}/proofs`, { method: "POST", body, signal: AbortSignal.timeout(60_000) });
       const result = await response.json().catch(() => null);
-      if (!response.ok || !result || typeof result !== "object" || !("ok" in result) || result.ok !== true) throw new Error(response.status === 413 ? "The proof exceeds 10 MiB." : response.status === 429 ? "The daily proof limit has been reached. Try again tomorrow." : response.status === 404 ? "This draft is unavailable. Reload the page." : "Proof could not be uploaded. Reload to check whether it was saved, then retry if needed.");
+      if (!response.ok || !result || typeof result !== "object" || !("ok" in result) || result.ok !== true) {
+        const dailyQuota = result && typeof result === "object" && "code" in result && result.code === "quota";
+        throw new Error(response.status === 413 ? "The proof exceeds 10 MiB." : response.status === 429
+          ? dailyQuota ? "The daily proof limit has been reached. Try again tomorrow." : "Too many requests. Try again later."
+          : response.status === 404 ? "This draft is unavailable. Reload the page." : "Proof could not be uploaded. Reload to check whether it was saved, then retry if needed.");
+      }
       form.reset();
       setFeedback({ error: false, text: "Private proof uploaded." });
       router.refresh();

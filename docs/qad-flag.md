@@ -3,7 +3,7 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.68
+doc_version: 2.69
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
@@ -572,8 +572,46 @@ KiB uncompressed / 3,118.44 KiB gzip; current Cloudflare documentation specifies
 64 MiB uncompressed and no compressed-size limit. The coordinator initially cited
 the obsolete 3 MiB compressed limit, checked the current source and corrected it;
 no auth split or paid change was made. App/tests/browser typecheck and focused
-lint also pass. Protected delivery remains pending. Human review/publication and
-hosted reliability are not inferred.
+lint also pass. Required PR39 CI 41954420228 then passed (verify 10m31s,
+audit 11s); protected merge `9f2c02c` and normal Workers Build
+`bdd494ff-3c80-49db-a359-2803a79f30b5` succeeded. Actual readiness at 02:38 UTC
+confirmed version `4b1cf636-875e-4afa-814d-2764e01e132a` sole/latest at 100%,
+disabled intake, exact ledger, the same five controlled eligible filers and the
+required private settings. The HTTPS-auth/secure-prefixed-cookie final local
+package also completed four uploads with verified teardown.
+
+The guarded November 5 window exercised only Gamma's existing accepted draft.
+Its single normal retry returned JSON 201 and attached the exact 2,652-byte/SHA
+prepared proof. Normal submission opened one pending case at 02:41:01.289Z,
+with no publication pointer/time/expiry or review round. Early restore passed;
+the original 02:44:16 UTC deadline guard also completed 0/false and the parent
+retired the settled task. Fresh independent reads at 02:47 UTC confirm actual
+false and preserved script/runtime/bindings/settings fingerprints on the derived
+version in INDEX. Receipts: `temporary/synthetic-gamma-pr39-pending-20261105.json`,
+`temporary/synthetic-gamma-pr39-network-20261105.json`,
+`temporary/pr39-gamma-closed-source-20261105.json`. This is successful recovery
+of the observed upload/submission path, not a broad reliability certification.
+
+Moderator JavaScript claim still failed to reveal the review form within the
+unchanged 25-second observation. Actual D1 remained open/unclaimed. Reload and
+the existing standard HTML form then claimed it successfully; proof verdict,
+case decision, both reasons and personal-inspection confirmation were left blank
+for the owner. Claim waiting age/first-submission time are preserved. The owner
+was asked to personally review the new exact PDF under INV-1. The initial network
+attempt was not retained across reload, so its HTTP status/cause is unknown;
+the later HTML response was 200. Keep the JavaScript observation open, separately
+from the fixed upload retry and old Windows failures. Gamma publication and
+manual release acceptance are not inferred.
+
+The actual hosted record after Beta approval shows 4.5/5, two contributors, two
+published logs, Limited record, the expected tags and no private links; pending
+Gamma is absent. Content-free checks are in
+`temporary/synthetic-two-contributor-record-20261105.json`. The prior stop-stage
+statement that this average was unobserved is superseded by this read.
+Source review found generic/auth HTTP 429 was labelled as the daily proof limit.
+A scoped local feedback correction reserves that message for `code=quota`;
+limits and dispatch are unchanged. Focused lint and app/tests/browser typecheck
+pass; required CI and delivery remain pending while the owner reviews Gamma.
 
 ## 2. Happy path cases
 
