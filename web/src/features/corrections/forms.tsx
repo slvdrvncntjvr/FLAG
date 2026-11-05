@@ -1,0 +1,18 @@
+"use client";
+import { useActionState, useState } from "react";
+import { correctionAction } from "./actions";
+import { ProofUpload } from "@/features/logs/proof-upload";
+export function CorrectionOpenForm({ logId }: { logId: string }) {
+  const [state, action, pending] = useActionState(correctionAction, null);
+  return <form action={action} className="my-6 space-y-4" aria-busy={pending}><input type="hidden" name="operation" value="open" /><input type="hidden" name="logId" value={logId} /><label className="block">Private factual correction note<textarea name="note" required maxLength={1000} rows={5} className="mt-1 block w-full border border-rule bg-white p-3" /></label><p>Describe the factual error and any new evidence. Opinion disagreement alone does not justify removal. Do not include government ID details.</p><button disabled={pending} className="min-h-11 bg-ink px-4 py-3 text-paper disabled:opacity-60">{pending ? "Saving…" : "Open private correction draft"}</button>{state && <p role={state.ok ? "status" : "alert"}>{state.ok ? "Correction draft opened. Add counterproof below." : state.error}</p>}</form>;
+}
+export function CorrectionSubmitForm({ logId, requestId, count }: { logId: string; requestId: string; count: number }) {
+  const [state, action, pending] = useActionState(correctionAction, null), [uploading, setUploading] = useState(false);
+  return <div><ProofUpload logId={logId} endpoint={`/api/corrections/${encodeURIComponent(requestId)}/proofs`} count={count} onBusy={setUploading} /><form action={action} className="mt-5 space-y-4" aria-busy={pending}><input type="hidden" name="operation" value="submit" /><input type="hidden" name="logId" value={logId} /><input type="hidden" name="requestId" value={requestId} /><p>Submission freezes this note and counterproof for independent human review. It does not change the publication or hide it.</p><button disabled={pending || uploading || count < 1} className="min-h-11 bg-ink px-4 py-3 text-paper disabled:opacity-60">{pending ? "Submitting…" : "Submit private correction"}</button>{state && <p role={state.ok ? "status" : "alert"}>{state.ok ? "Submitted for independent review." : state.error}</p>}</form></div>;
+}
+export function CorrectionEvidenceForm({ logId, requestId, activeProofIds, proofs }: { logId: string; requestId: string; activeProofIds: string[]; proofs: { id: string; kind: string; status: string }[] }) {
+  const [state, action, pending] = useActionState(correctionAction, null);
+  return <form action={action} className="my-5 space-y-4" aria-busy={pending}><input type="hidden" name="operation" value="select" /><input type="hidden" name="logId" value={logId} /><input type="hidden" name="requestId" value={requestId} /><input type="hidden" name="expectedProofIds" value={JSON.stringify(activeProofIds)} />
+    <fieldset disabled={pending} className="space-y-3"><legend className="font-medium">Select up to five counterproofs for the next review</legend><p>Deselect an earlier proof to make room for new evidence. Earlier submitted files and review receipts remain private history; deselection does not erase them.</p>{proofs.map((p, index) => <label key={p.id} className="flex min-h-11 items-center gap-3"><input type="checkbox" name="proofIds" value={p.id} defaultChecked={activeProofIds.includes(p.id)} /><span>Counterproof {index + 1}: {p.kind} · {p.status}</span></label>)}<button className="min-h-11 border border-rule px-4 py-3 disabled:opacity-60" disabled={pending}>{pending ? "Saving…" : "Save evidence selection"}</button></fieldset>{state && <p role={state.ok ? "status" : "alert"}>{state.ok ? "Evidence selection saved." : state.error}</p>}
+  </form>;
+}

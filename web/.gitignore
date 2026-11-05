@@ -44,3 +44,7 @@ next-env.d.ts
 .dev.vars*
 .wrangler/
 .open-next/
+
+# Browser test reports (may contain authenticated state)
+/test-results/
+/playwright-report/

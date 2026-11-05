@@ -1,7 +1,9 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"main": ".open-next/worker.js",
+	"main": "custom-worker.ts",
+	"triggers": { "crons": ["0 * * * *"] },
 	"name": "flag",
+	"account_id": "1af65da586efd62d6f6d429240395f28",
 	"compatibility_date": "2026-10-01",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 	"workers_dev": true,
@@ -10,7 +12,15 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	"observability": { "enabled": true },
+	// Capability URLs may enrich custom logs too. Emit safe app events without storage.
+	"observability": {
+		"enabled": true,
+		"logs": { "enabled": true, "invocation_logs": false, "persist": false },
+		"traces": { "enabled": false, "persist": false }
+	},
+	"build": {
+		"command": "node scripts/check-wrangler-build.mjs --env="
+	},
 
 	// ---- Production (default): deployed from `main` ----
 	// URL: https://flag.factsfirst.workers.dev
@@ -22,7 +32,12 @@
 			"migrations_dir": "drizzle"
 		}
 	],
+	// Private proof storage; no public bucket domain or presigned reads.
+	"r2_buckets": [
+		{ "binding": "PROOFS", "bucket_name": "flag-proofs", "remote": false }
+	],
 	"vars": {
+		"PRIVATE_INTAKE_ENABLED": "false",
 		"BETTER_AUTH_URL": "https://flag.factsfirst.workers.dev",
 		"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
 	},
@@ -32,10 +47,19 @@
 	// Secrets are per-environment: set with `wrangler secret put <NAME> --env dev`.
 	"env": {
 		"dev": {
+			"triggers": { "crons": ["0 * * * *"] },
+			"build": {
+				"command": "node scripts/check-wrangler-build.mjs --env=dev"
+			},
 			"name": "flag-dev",
 			"workers_dev": true,
 			"preview_urls": false,
-			"observability": { "enabled": true },
+			// Repeat the URL-safety policy explicitly for this environment.
+			"observability": {
+				"enabled": true,
+				"logs": { "enabled": true, "invocation_logs": false, "persist": false },
+				"traces": { "enabled": false, "persist": false }
+			},
 			"d1_databases": [
 				{
 					"binding": "DB",
@@ -44,7 +68,11 @@
 					"migrations_dir": "drizzle"
 				}
 			],
+			"r2_buckets": [
+				{ "binding": "PROOFS", "bucket_name": "flag-proofs-dev", "remote": false }
+			],
 			"vars": {
+				"PRIVATE_INTAKE_ENABLED": "false",
 				"BETTER_AUTH_URL": "https://flag-dev.factsfirst.workers.dev",
 				"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
 			}

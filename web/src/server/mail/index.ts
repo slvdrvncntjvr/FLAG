@@ -1,5 +1,3 @@
-import { Resend } from "resend";
-
 type Mail = { to: string; subject: string; text: string };
 
 export type MailEnv = {
@@ -23,6 +21,7 @@ export async function sendMail(env: MailEnv, mail: Mail): Promise<{ sent: boolea
   if (env.BREVO_API_KEY) {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
+      signal: AbortSignal.timeout(10_000),
       headers: {
         "api-key": env.BREVO_API_KEY,
         "content-type": "application/json",
@@ -36,16 +35,26 @@ export async function sendMail(env: MailEnv, mail: Mail): Promise<{ sent: boolea
       }),
     });
     if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      throw new Error(`mail_failed:brevo_${res.status}${detail ? `:${detail.slice(0, 200)}` : ""}`);
+      // Provider bodies can contain contact data. Keep only the status in errors/logs.
+      throw new Error(`mail_failed:brevo_${res.status}`);
     }
     return { sent: true };
   }
 
   if (env.RESEND_API_KEY) {
-    const resend = new Resend(env.RESEND_API_KEY);
-    const { error } = await resend.emails.send({ from: env.MAIL_FROM, ...mail });
-    if (error) throw new Error(`mail_failed:resend_${error.name}`);
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      signal: AbortSignal.timeout(10_000),
+      headers: {
+        authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ from: env.MAIL_FROM, ...mail }),
+    });
+    if (!res.ok) {
+      // Do not parse or log provider bodies, which can contain contact data or OTPs.
+      throw new Error(`mail_failed:resend_${res.status}`);
+    }
     return { sent: true };
   }
 

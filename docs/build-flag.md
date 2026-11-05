@@ -3,218 +3,263 @@ spine_type: BUILD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 1.0
-status: Locked
+doc_version: 2.44
+status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-10-13
+updated: 2026-11-03
 reconciled: 2026-10-13
 ---
 
-# Build Guide: FLAG
+# Build guide: FLAG
 
-**IDEA:** [idea-flag.md](idea-flag.md)
-**PRD:** [prd-flag.md](prd-flag.md)
-**SDD:** [sdd-flag.md](sdd-flag.md)
+## 1. Read for the task
 
----
+Read INDEX, IDEA scope/invariants and the relevant PRD/SDD sections. QAD owns
+acceptance coverage; OPS owns deployments. Current LOG is log-current-flag.md;
+the Superseded log and archive are not startup reading.
 
-## 1. How to build from these docs
-
-Read in this order before writing code:
-
-1. `docs/index.md`
-2. `IDEA` - scope, especially §4 Out of Scope and §4.1 invariants
-3. `PRD` - the feature you are implementing, by ID
-4. `SDD` - how it fits the system, especially §3 ERD and §5.1
-5. The `RFC` for that feature, if one exists
-6. This guide
-7. `QAD` - before calling anything done
-
-**Only build against `Locked` docs.** All docs are `Draft` as of 2026-10-13. The owner may authorize building a specific feature against Draft; record that in `LOG`.
-
-Docs-only alignment changes no shipped legal pages: the live privacy/terms copy still reflects the prior scope (no rating, one public reply, permanent retention) and must be reconciled with the approved contract before launch of the new scope.
-
-### To build X, read Y
-
-| To implement... | Read | Verify against |
-|---------------|------|----------------|
-| A feature `PRD-F#` | PRD, then SDD, then RFC if one exists | QAD cases tagged with that ID |
-| A schema change | SDD §3 ERD first (CR if Locked), then the migration | Migration applies to a fresh local D1; ERD and `web/src/server/db/schema.ts` agree |
-| An API endpoint or server action | SDD §4 and §5.1 | QAD sad and abuse cases; invariant negative tests it touches |
-| A UI surface | PRD acceptance criteria and §7 of this guide | QAD happy path; §7 checklist |
-
----
+Use Locked requirements or the owner's explicit named-task authorization. The
+authorized consolidation and repairs are recorded in the current LOG while docs
+remain Review. Old grants and
+next-work tables do not automatically authorize a different implementation.
 
 ## 2. Pinned stack
 
-Pins for `web/package.json`. Versions read from the npm registry on 2026-10-12. Manifest-verified on 2026-10-12 for: next, react, react-dom, @opennextjs/cloudflare, wrangler, drizzle-orm, drizzle-kit, better-auth, @better-auth/drizzle-adapter, zod, resend, vitest, @cloudflare/vitest-plugin, typescript, tailwindcss, @tailwindcss/postcss, eslint, eslint-config-next. The rest are planned and installed with the feature that needs them. Exact versions only, no ranges. No versions bumped in this alignment (2026-10-13).
+Node is **24.22.1**, verified locally 2026-10-31; `.nvmrc` and `web/.nvmrc` are
+the pins. Source: https://github.com/nodejs/node/releases/tag/v24.22.1.
+`web/.npmrc` enforces the Node 24 engine range. All package pins and overrides
+are in `web/package.json` and `web/package-lock.json`; install with npm ci.
 
-QR/phone ID-check helpers (`jsqr`, `cbor-x`) are DEFERRED future per RFC 001: pilot verification is manual live inspection, and no paid-SMS or QR-scan dependency is required for v1. They are not in `web/package.json` as installed deps. Brevo is preferred at runtime via fetch (no npm dep); `resend` stays as the fallback.
+The table records local manifest/installed verification, not a new registry or
+security audit. Source URLs identify the exact package versions.
 
-| Layer | Technology | Version | Verified | Source |
-|-------|-----------|---------|----------|--------|
-| Language | TypeScript | 5.9.3 | 2026-10-12 | https://www.npmjs.com/package/typescript |
-| Runtime (local) | Node.js | 22.21.1 | 2026-10-12 | https://nodejs.org/en/docs |
-| Runtime (deployed) | Cloudflare Workers, `nodejs_compat` | compatibility_date 2026-10-01 | 2026-10-12 | https://developers.cloudflare.com/workers/configuration/compatibility-dates/ |
-| Framework | Next.js App Router | 16.3.8 | 2026-10-12 | https://github.com/vercel/next.js/releases/tag/v16.3.8 |
-| UI runtime | React, React DOM | 19.2.8 | 2026-10-12 | https://react.dev/ |
-| Adapter | @opennextjs/cloudflare | 1.20.10 | 2026-10-12 | https://github.com/opennextjs/opennextjs-cloudflare/releases |
-| CLI | wrangler | 4.149.0 | 2026-10-12 | https://www.npmjs.com/package/wrangler |
-| Database | Cloudflare D1 | managed | 2026-10-12 | https://developers.cloudflare.com/d1/ |
-| ORM | drizzle-orm / drizzle-kit | 0.45.4 / 0.31.11 | 2026-10-12 | https://orm.drizzle.team/docs/get-started/d1-new |
-| Files | Cloudflare R2 | managed | 2026-10-12 | https://developers.cloudflare.com/r2/ |
-| Auth | better-auth, @better-auth/drizzle-adapter | 1.7.7 | 2026-10-12 | https://www.better-auth.com/docs |
-| Bot check | Cloudflare Turnstile | managed | 2026-10-12 | https://developers.cloudflare.com/turnstile/ |
-| Email | resend | 6.32.1 | 2026-10-12 | https://resend.com/docs |
-| Styling | tailwindcss, @tailwindcss/postcss | 4.3.3 | 2026-10-12 | https://tailwindcss.com/docs |
-| Components | shadcn CLI (Base UI base) | 4.21.4 | 2026-10-12 | https://ui.shadcn.com/docs/changelog |
-| Primitives | @base-ui/react | 1.9.0 | 2026-10-12 | https://base-ui.com/ |
-| Forms | react-hook-form, @hookform/resolvers, zod | 7.90.0, 5.9.1, 4.6.6 | 2026-10-12 | https://react-hook-form.com/ , https://zod.dev/ |
-| Tables | @tanstack/react-table | 9.2.8 | 2026-10-12 | https://tanstack.com/table/latest |
-| URL state | nuqs | 2.10.2 | 2026-10-12 | https://nuqs.dev/ |
-| Uploads | react-dropzone | 20.1.3 | 2026-10-12 | https://react-dropzone.js.org/ |
-| Toasts | sonner | 2.0.8 | 2026-10-12 | https://sonner.emilkowal.ski/ |
-| Icons | lucide-react | 1.55.0 | 2026-10-12 | https://lucide.dev/ |
-| QR decode (browser) | jsqr | 1.4.0 | 2026-10-12 | https://www.npmjs.com/package/jsqr |
-| CBOR (ID check) | cbor-x | 1.6.6 | 2026-10-12 | https://www.npmjs.com/package/cbor-x |
-| Unit and integration tests | vitest, @cloudflare/vitest-plugin | 4.1.11, 1.3.6 | 2026-10-12 | https://developers.cloudflare.com/workers/testing/vitest-integration/ |
-| End-to-end tests | @playwright/test | 1.64.0 | 2026-10-12 | https://playwright.dev/ |
-| Lint | eslint, eslint-config-next | 9.39.5, 16.3.8 | 2026-10-12 | https://nextjs.org/docs/app/api-reference/config/eslint |
-| Fonts | Source Serif 4, Inter, IBM Plex Mono via next/font/google | bundled by Next | 2026-10-12 | https://nextjs.org/docs/app/getting-started/fonts |
+| Package | Version | Verified | Source |
+|---------|---------|----------|--------|
+| next | 16.4.3 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/next/v/16.4.3 |
+| react | 19.2.8 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/react/v/19.2.8 |
+| react-dom | 19.2.8 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/react-dom/v/19.2.8 |
+| @opennextjs/cloudflare | 1.20.12 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/@opennextjs/cloudflare/v/1.20.12 |
+| better-auth | 1.7.7 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/better-auth/v/1.7.7 |
+| @better-auth/core | 1.7.7 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/@better-auth/core/v/1.7.7 |
+| @better-auth/drizzle-adapter | 1.7.7 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/@better-auth/drizzle-adapter/v/1.7.7 |
+| drizzle-orm | 0.45.4 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/drizzle-orm/v/0.45.4 |
+| zod | 4.6.6 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/zod/v/4.6.6 |
+| typescript | 5.9.3 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/typescript/v/5.9.3 |
+| tailwindcss | 4.3.3 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/tailwindcss/v/4.3.3 |
+| wrangler | 4.149.0 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/wrangler/v/4.149.0 |
+| drizzle-kit | 0.31.11 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/drizzle-kit/v/0.31.11 |
+| vitest | 4.1.12 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/vitest/v/4.1.12 |
+| @cloudflare/vitest-plugin | 1.4.2 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/@cloudflare/vitest-plugin/v/1.4.2 |
+| @playwright/test | 1.64.1 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/@playwright/test/v/1.64.1 |
+| eslint | 9.39.5 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/eslint/v/9.39.5 |
+| eslint-config-next | 16.4.3 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/eslint-config-next/v/16.4.3 |
+| resend | 6.32.1 | 2026-10-31, manifest + installed | https://www.npmjs.com/package/resend/v/6.32.1 |
+| glob (scoped OpenNext/node-minify override) | 14.0.2 | 2026-11-01, manifest + disposable clean install | https://www.npmjs.com/package/glob/v/14.0.2 |
+| minimatch (scoped typescript-estree override) | 11.0.1 | 2026-11-01, manifest + disposable clean install | https://www.npmjs.com/package/minimatch/v/11.0.1 |
 
-Version notes:
-- Next 16.4.0 is out, but OpenNext's support PR for it was still open on 2026-10-12. 16.3.8 is the lowest 16.x the adapter accepts and includes the image-optimizer SSRF fix.
-- better-auth below 1.7.7 has a critical magic-link account takeover (GHSA-965c-763c-88jm). Never downgrade.
-- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin` (package README, 2026-10-12). 1.3.6 (2026-10-02) is the newest release older than 7 days. Its peer range is vitest ^4.1.0.
-- TypeScript stays on 5.x and ESLint on 9.x until Next's tooling confirms the new majors.
-- Wait 7 days after a release before bumping a pin, unless the release fixes a security advisory.
+Font packages and type packages remain pinned in the manifest/lockfile. Fonts
+are local; build does not fetch Google Fonts. Resend's SDK is installed, but
+mail uses bounded direct fetch; do not infer active SDK usage from installation.
 
-### Known deprecations
+Scoped compatibility overrides use glob 14.0.2 for OpenNext and node-minify, and
+minimatch 11.0.1 for typescript-estree. Legacy lint consumers retain their required
+callable/makeRe minimatch API; a global major override is incompatible. Audit
+both full and production graphs and keep remaining development advisories visible.
+Exact transitive versions and integrity hashes are owned by the lockfile.
 
-APIs in this stack that look correct but are not, with the current replacement.
+Workers compatibility stays 2026-10-01 with nodejs_compat and
+global_fetch_strictly_public (`web/wrangler.jsonc:6`). This controls workerd
+behavior independently of build Node. Do not change compatibility flags or
+upgrade packages as a side effect of documentation cleanup.
 
-| Deprecated | Use instead | Since | Notes |
-|-----------|-------------|-------|-------|
-| `output: "export"` in next.config | OpenNext Cloudflare build | this rewrite | The static export cannot run auth, uploads, or moderation |
-| `framer-motion` import | `motion/react` | motion 11+ | Registry components sometimes pull `framer-motion`; rewrite the import and dedupe |
-| `asChild` prop on shadcn components | `render` prop | Base UI default, shadcn Jul 2026 | Radix-era snippets online still use `asChild` |
-| `useReactTable`, `getCoreRowModel` | `useTable` with `tableFeatures` | TanStack Table v9 | Most blog examples are v8 |
-| `hsl(var(--chart-1))` | `var(--chart-1)` | shadcn charts on Recharts v3 | Only if a chart is ever added |
-| `middleware.ts` | `proxy.ts` | Next 16 | Neither is used for auth here; see SDD §7 |
-| `revalidateTag(tag)` | `revalidateTag(tag, profile)` or `updateTag(tag)` | Next 16 | Use `updateTag` after a moderator decision |
-| `cacheComponents: true` | leave off | OpenNext 1.20.x | Open production crash in the adapter |
-| vaul (drawer) | shadcn Drawer or Sheet on Base UI | vaul unmaintained | |
+### Known API differences
 
----
+Read `web/AGENTS.md` and relevant installed Next docs under
+`web/node_modules/next/dist/docs/`. Use the pinned version's APIs. Route params
+and headers are async in the existing app. Better Auth core password-reset
+paths need explicit denial despite emailAndPassword.enabled=false; preserve
+those hooks and logout-revocation handling (`web/src/server/auth/config.ts:46`).
 
 ## 3. Commands
 
-Script block in `web/package.json`, confirmed against the manifest on 2026-10-12. Run from `web/`. `e2e` is planned and lands with Playwright.
+Run from web unless the row says repo root. On Windows PowerShell, use npm.cmd
+and npx.cmd if execution policy blocks the .ps1 shims; no policy change needed.
 
 | Task | Command |
 |------|---------|
-| Install | `npm ci` |
-| Dev | `npm run dev` (`next dev`, with local D1 and R2 through `initOpenNextCloudflareForDev`) |
-| Build | `npm run build` (`next build`) |
-| Preview on Workers runtime | `npm run preview` (`opennextjs-cloudflare build && opennextjs-cloudflare preview`) |
-| Deploy | `npm run deploy` (`opennextjs-cloudflare build && opennextjs-cloudflare deploy`) |
-| Test | `npm test` (`vitest run`) |
-| End-to-end | `npm run e2e` (`playwright test`) |
-| Lint | `npm run lint` (`eslint`) |
-| Typecheck | `npm run typecheck` (`tsc --noEmit` for the app, then for `tests/`) |
-| Generate migration | `npm run db:generate` (`drizzle-kit generate`) |
-| Apply migrations locally | `npm run db:migrate:local` (`wrangler d1 migrations apply flag-db --local`) |
-| Apply migrations remote | `npm run db:migrate:remote -- --env preview` (`wrangler d1 migrations apply flag-db --remote`) |
-| Cloudflare binding types | `npm run cf-typegen` (`wrangler types --env-interface CloudflareEnv`) |
-| Docs validator | `python $SPINE_HOME/scripts/check.py docs/` (from repo root) |
+| Install exact lockfile | npm ci |
+| Create safe local configuration | node scripts/setup-local.mjs |
+| Repair only existing local auth URL | node scripts/setup-local.mjs --repair-url |
+| Check local prerequisites | node scripts/check-local.mjs |
+| Apply all source migrations to local D1 | npm run db:migrate:local |
+| Developer server | npm run dev |
+| Typecheck app, integration and browser tests | npm run typecheck |
+| Lint | npm run lint |
+| Workers tests | npm test |
+| Deployment, redirects, harness, observability and migration-generation tests | npm run test:deploy |
+| Local setup regression tests | node --test scripts/setup-local.test.mjs |
+| Isolated browser suite | npm run test:e2e |
+| Slower local full browser run, bounded 30-minute suite budget | npm run test:e2e -- --global-timeout=1800000 |
+| Dev Worker build | npm run build:worker:dev |
+| Production Worker build | npm run build:worker |
+| Packaged local workerd smoke | npm run test:worker:smoke |
+| Generate binding types after binding changes | npm run cf-typegen |
+| Generate a reviewed migration | npm run db:generate |
+| Local SPINE validation, repo root | python scripts/spine.py check docs/ |
+| Checkpoint verification, repo root | python scripts/spine.py checkpoint verify |
+| Pinned runner tests, repo root | python -m unittest discover -s scripts -p test_*.py |
 
-Long-running commands (dev servers, watchers) must be run by the owner in their own terminal, not by an agent in a blocking shell call.
+Local setup uses the approved account ID from wrangler.jsonc when Wrangler
+requires account selection. Keep developer secrets and data intact. Console OTP
+requires HTTP localhost and both mail keys absent; setting a key sends real mail.
+The setup/check scripts print no secrets and preserve existing .dev.vars by
+default. See web/README.md for the short setup path.
 
----
+The isolated browser harness keeps its default 15-minute Playwright suite budget
+and 16-minute child wait. An explicit positive integer global-timeout argument
+up to 1,800,000 milliseconds extends the enclosing wait by the existing one-minute
+completion margin; invalid, duplicate or unbounded values fail before creating
+temporary data. Per-test/assertion limits, zero retries and verified teardown
+are unchanged. CI keeps its default invocation.
+
+### 3.1 Deploy and migrations
+
+OPS owns remote procedures. The package scripts include db:migrate:dev,
+db:migrate:remote, deploy:dev and deploy, but running a local check is not release
+authorization. Build and deployment do not apply SQL. Schema 0008 compatibility
+with disabled intake covers only the supported private read/query regression
+paths, without new writes or 0009-field reads. It is not full-Worker deployment
+compatibility. The full pilot Worker needs the current reviewed migrations
+before deployment even with intake false; inspect and apply only the compatible
+pending set under [OPS §7](ops-flag.md#7-production-readiness-gate).
+
+### 3.2 Encrypted D1 backup command (Windows)
+
+Run from the repo root with installed `web/node_modules` and Node/npm available.
+These review commands validate the source configuration against the existing
+approved binding guard and print the intended command without exporting data:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/backup-d1.ps1 -Target dev
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/backup-d1.ps1 -Target production
+python -m unittest discover -s scripts -p test_backup_d1.py -v
+```
+
+`-Mode SelfTest` runs the same synthetic DPAPI/cleanup cases directly, without
+Wrangler, developer data or network. The Python suite skips on non-Windows.
+Both targets use account `1af65da586efd62d6f6d429240395f28`: dev is
+`flag-db-dev` / `54aca5df-2ae7-4150-bd75-0f6365e5bfa3`; production is
+`flag-db` / `e196d1b5-82e7-45bf-b1c5-725fa1faf184`. There is no implicit target.
+
+Only after the approved dev prerequisites and target/ledger review in
+[OPS](ops-flag.md#6-backup-and-recovery), execute:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/backup-d1.ps1 -Target dev -Mode Backup -PrerequisitesVerified
+```
+
+Production execution additionally requires later owner release approval and
+`-Target production -Mode Backup -PrerequisitesVerified -ProductionReleaseApproved`.
+These switches attest to approval and prerequisite review; the script cannot
+establish either. Preparing or reviewing the command grants no release approval.
+
+The helper invokes the installed Node executable and the absolute project-local
+Wrangler entrypoint directly, with an isolated configuration for the validated
+target and explicit remote export/environment flags. Redirected native streams
+are drained without displaying their content and the actual process exit code
+is checked; native stderr cannot become a PowerShell terminating error before
+the result is assessed. No packages are installed or upgraded. It encrypts the
+SQL bytes with Windows DPAPI CurrentUser (no optional entropy) into a new unique
+`.sql.dpapi` in existing `C:/Users/Vincent/FLAG-backups`; optional `-OutputName`
+accepts only a new filename there. Existing output is never replaced. SQL and
+Wrangler scratch files stay in a private OS temporary directory outside the repo.
+The helper disables Wrangler disk logging/telemetry, suppresses subprocess
+output and exception content, verifies the written artifact by in-memory decrypt,
+length and SHA-256, clears sensitive byte arrays and removes its plaintext in
+`finally`. Success emits only target, time, encrypted path and integrity result;
+failure exits nonzero and removes an artifact created by the failed operation.
+
+Preserve the original Windows profile for recovery. This verifies encrypted
+byte recovery, not SQL restore compatibility, D1/R2 restore, finite backup
+disposition or release prerequisites. Forced process/OS termination can interrupt
+`finally`; a cleanup-permission failure is a failed backup, never verified
+success. Follow OPS for assessed retention and recovery. Export flags were
+checked against installed Wrangler 4.149.0 `d1 export --help` and the
+[official command reference](https://developers.cloudflare.com/d1/wrangler-commands/#d1-export).
 
 ## 4. Repo conventions
 
-| Area | Convention |
-|------|-----------|
-| Branch policy | `main` is graded and deployed to production. `dev` integrates and deploys to preview. Feature branches `f<n>-<short-name>` off `dev`, merged by pull request with one review from another developer. `foverhaul` holds this rewrite until it merges to `dev` |
-| Commit format | Short imperative subject naming the feature ID when there is one: `PRD-F8 add policy acceptance gate` |
-| Directory layout | `docs/` SPINE suite. `web/` the app: `src/app` routes only; `src/features/<module>` UI, actions, and queries per module; `src/components/ui` shadcn components; `src/components` shared FLAG components; `src/server/{auth,db,mail}`; `src/lib` pure helpers; `drizzle/` migrations; `tests/` unit and integration; `e2e/` Playwright. The retired `prototype/` static mock was deleted on 2026-10-14 |
-| Module ownership | One developer owns each `src/features/<module>` folder and reviews every change to it. Assignments (owner 2026-10-13, LOG Q14): Dev A owns `verification`; Dev B owns `engagements` and `logs` (`src/features` log intake/proof); Dev C owns `moderation` and retention/maintenance. Shared `server/{auth,db,mail}` and `components` changes need the owning dev of the consuming module plus one reviewer |
-| Naming | Files kebab-case; React components PascalCase; server actions verbNoun; DB tables snake_case singular |
-| Error handling | Server actions return `{ ok: true, data }` or `{ ok: false, fieldErrors?, message }` and never throw to the client. Route handlers return JSON `{ error: code }` with the status codes in SDD §5. Another party's data is 404, not 403 |
-| Data access | Pages and actions never call `db` directly; they call functions in `src/server/db/queries/*` that take the viewer as the first argument |
-| Test location | `web/tests/**/*.test.ts` (Vitest in the Workers pool, local D1; config `web/vitest.config.mts`), `web/e2e/**/*.spec.ts` (Playwright). Negative tests named `nt-<nn>-*.test.ts` to match QAD |
-
----
+- Source: web/src/app routes, features domain/actions/forms, server auth/db/mail.
+  Worker integration tests: web/tests; browser tests: web/e2e; Node safety tests:
+  web/scripts. Python runner tests: scripts.
+- dev is the dev deployment branch; main is production. INDEX records the
+  current source baseline and integration state.
+- Role/session identity comes from the server. Actions return bounded generic
+  failures and useful field errors; no submitted content or provider body logs.
+- Parameterize SQL values. Atomic writes recheck live actor/policy/relationship
+  state; zero-row races must not commit preceding writes.
+- No new entity/column without the SDD ERD first. Published migrations are
+  forward-only. Generated binding types follow source Wrangler configuration.
+- Update one owning doc when a contract changes; link from other docs. Routine
+  test transcripts are not a reason to churn every document.
 
 ## 5. Guardrails
 
-Repo-specific prohibitions. These are enforced like engine §8 Hard Rules.
+IDEA defines all eight invariants; SDD section 5.1 and QAD section 4.1 map their
+enforcement and tests: INV-1 human publication, INV-2 accepted engagement/proof,
+INV-3 no stored raw ID, INV-4 private proofs, INV-5 approved ratings only,
+INV-6 no client publication edits, INV-7 signed-in records, INV-8 verified and
+acknowledged filers. Keep their negative cases with every affected change.
 
-- Never commit secrets. Secrets live in Wrangler secrets per environment and in `web/.dev.vars` locally, which is gitignored. `group_context/` holds course files with member names; it stays out of git unless the team agrees otherwise.
-- **INV-1:** only `decideCase` sets a log to `published` (no public reply path exists; PRD-F5 Retired). Reader queries select the current revision of `status = 'published'` non-expired logs unless the viewer is the filer, the named client, or a moderator.
-- **INV-2:** `submitLog` checks the engagement is `accepted`, at least one attached PROOF_FILE exists, the anchor is valid, and the 15-calendar-day filing window holds, inside the same `db.batch()`; the D1 trigger is the backstop.
-- **INV-3:** pilot verification is manual live inspection only. Never add a column, R2 prefix, log line, or analytics event that can hold an ID image, a full ID number, a QR payload, a phone proof, or any required ID-derived value. No ID hash is declared or stored in v1; future QR-derived hashing requires the deferred RFC and an ERD update before implementation. No paid-SMS step exists for v1. The verification handler is excluded from request logging.
-- **INV-4:** proof bytes are served only by `/api/proofs/[id]` after the relationship check (moderator, filer, or named client; an admin only under a moderator permission or persona). No public bucket, no custom domain on the bucket, no presigned GET. `Cache-Control: private, no-store`; everyone else gets 404.
-- **INV-5:** the ONLY permitted rating signals are the approved integer 1-5 per-log rating and the read-time client average derived from it (1-2 Negative, 3 Mixed, 4-5 Positive; tags explain nuance and never override the derived outcome). No score, rank, leaderboard, endorsement or trust badge, or any other score anywhere in schema, API, or UI. Sorting clients by outcome share is also forbidden.
-- **INV-6:** no server action available to a client role writes ENGAGEMENT_LOG, LOG_REVISION, LOG_TAG, or PROOF_FILE. Decided revisions are frozen; changes land only through new moderated revisions via the private correction path (PRD-F13). No public-reply or corroboration write path exists (PRD-F5, PRD-F10 Retired).
-- **INV-7:** every page outside `(public)` lives under the `(app)` or `(moderation)` route group, whose layouts require a session. Data access requires a viewer. noindex on everything but `/` plus `robots.txt` disallow and `X-Robots-Tag: noindex, nofollow`.
-- **INV-8:** `createEngagement`, `saveLogDraft`, `submitLog`, and `submitFilerUpdate` call `requireVerifiedFreelancer()` as their first statement (verified status plus current policy acknowledgments). There is no `corroborate` path. No phone-OTP or QR-scan gate is required for v1.
-- Copy rules: product copy is plain English that states facts. No exclamation marks, no "Welcome to...", no "This is for...", no "seamless", "empower", "unlock", or emoji. Write what the screen does in the fewest words.
-- Never describe a client in product copy. The subject of a log sentence is the freelancer ("Reported by a verified freelancer").
-
----
+Secrets live in ignored .dev.vars/.env files or per-environment Cloudflare
+secret storage. Preserve policy versions, real developer credentials/data,
+retained evidence and active holds. Never enable real intake before the approved
+lifecycle/correction prerequisite. No paid upgrade without owner approval.
 
 ## 6. Definition of done
 
-- [ ] Implements a requirement by `PRD-F#` (Locked, or Draft with an owner authorization in `LOG`)
-- [ ] Build passes: `npm run build`
-- [ ] Tests pass: `npm test`
-- [ ] Lint and typecheck clean: `npm run lint && npm run typecheck`
-- [ ] QAD cases for the feature ID pass, including every negative test for the invariants it touches
-- [ ] §7 UI checklist passes for any screen touched
-- [ ] Docs updated if behavior changed; `INDEX` row bumped
-- [ ] Legal copy reconciled before launch of new scope (live privacy/terms still promise the prior scope); docs-only alignment changes no shipped legal pages
+The named task's requirement and source contract agree; relevant checks pass;
+changed intent/contracts/commands/status are recorded once; documentation
+validation passes. Run checkpoint verification and classify every finding:
+the recorded owner-deleted `docs/log-flag.md` finding against
+`spine-cp-2026-10-26-1` remains expected and visible; unexpected drift must be
+resolved or reported before completion. Do not suppress that finding, restore
+history or create a replacement checkpoint to obtain a clean result.
+Distinguish local implementation, local tests, independent review, integration,
+deployment and human acceptance.
+Only claim levels actually observed for the current candidate.
 
----
+For CI/release coverage see QAD. For a reversible copy/doc change, run its
+relevant existing checks; no new ceremony or tests mirroring prose are needed.
 
 ## 7. Interface system
 
-Direction chosen by the owner on 2026-10-12: civic record. The reference points are public-record explorers (ProPublica Nonprofit Explorer), court dockets, and newspaper corrections. The app should read as a record kept carefully, not as a social feed or a marketing site.
+Owner direction: civic record. Plain English, factual labels, restrained borders
+and small radii; avoid social-feed, gamification and marketing patterns.
 
-**Type**
-- Source Serif 4 for page titles and client names only (24 px and up).
-- Inter for interface and body text, 16 px base on mobile.
-- IBM Plex Mono with tabular figures for counts, references (FL-1042), dates, and amounts.
-- Never more than three type sizes on one mobile screen.
+- Source Serif 4 for headings/client names, Inter for body/interface, IBM Plex
+  Mono for references/counts/dates/amounts. Mobile body base 16px; at most three
+  type sizes on one mobile screen. Fonts/tokens: `web/src/app/layout.tsx:5`,
+  `web/src/app/globals.css:4`.
+- Existing tokens are paper/ink/muted/rule/accent/danger. Approved future outcome
+  colors are blue #0072B2, neutral hatched mixed, vermillion #D55E00; always pair
+  color with glyph and Positive/Mixed/Negative text. Text contrast at least 4.5:1,
+  bar segments at least 3:1. Radius at most 2px; 1px rules instead of shadows.
+- Build at 360px with keyboard access, visible focus and clear empty/loading/error
+  states. Use dvh/svh, session cookies and appropriate form actions. Target LCP
+  <=2.5s, INP <=200ms, task-route JS under 150KB compressed; targets are not
+  measured results. Feedback transitions 150-200ms and respect reduced motion;
+  no parallax or scroll-linked decoration.
+- If library components are needed, the approved direction is shadcn on Base UI;
+  neither it nor an animation library is installed now. Do not document planned
+  component names or MotionConfig as existing app infrastructure.
+- Existing optional Messenger external-browser help is retained as support copy;
+  it creates no device or release gate. Availability copy must describe what the
+  current product slice offers without claiming unfinished workflows exist.
 
-**Color tokens** (OKLCH, defined once in `web/src/app/globals.css` as shadcn theme variables)
-- `--paper`, `--ink`, `--rule`: neutral record surface and text.
-- `--outcome-positive` blue (Okabe-Ito #0072B2), `--outcome-mixed` neutral gray with a hatch pattern, `--outcome-negative` vermillion (#D55E00). These are color-blind safe as a set.
-- Outcome is never shown by color alone: every outcome carries a glyph and a word (check, tilde, exclamation; "Positive", "Mixed", "Negative").
-- Text contrast at least 4.5:1, bar segments at least 3:1 against `--paper`.
-- Radius 2 px or less. Rules (1 px borders) separate sections instead of cards and shadows.
+## 8. Scope references
 
-**Components**
-- shadcn on Base UI, added with the CLI, then restyled through tokens. Registries allowed: shadcn core and Dice UI (MIT). Anything else needs a review of its license and its `motion` major first.
-- FLAG components: `RecordBar` (stacked counts with labels), `OutcomeMark`, `TagCount`, `LogEntry` (rating, filer name, date, correction/update history), `ProofChip`, `AverageBlock` (average with distinct contributor count plus Limited-record label under five), `CaseRow`, `StatusStamp` (dated "Reviewed Mar 02"). No `ReplyBlock`, same-experience control, upvote, or corroboration count exists.
-
-**Motion**
-- Only for feedback: 150-200 ms transitions on state change, toasts, sheet open. No scroll-linked animation, smooth-scroll library, parallax, or draggable decoration in the app.
-- `MotionConfig reducedMotion="user"` at the root.
-
-**Mobile and Messenger**
-- Design at 360 px first. Primary action anchored at the bottom on forms.
-- Use `dvh`/`svh`, never `100vh`.
-- Keep the session in cookies, never localStorage.
-- Detect the Facebook and Messenger in-app browser and, before the proof upload step, offer "Open in Chrome".
-- JavaScript budget for task routes: under 150 KB compressed. Target LCP 2.5 s or less and INP 200 ms or less on a mid-range Android phone.
-
-**Checklist for any screen**
-- [ ] Works at 360 px wide with no horizontal scroll
-- [ ] Every control reachable and operable by keyboard; visible focus
-- [ ] Empty, loading, and error states exist and say what to do next
-- [ ] No unapproved score, rank, leaderboard, endorsement badge, or ordering by outcome share; only the approved 1-5 rating and client average appear
-- [ ] Copy follows §5 copy rules
-- [ ] Outcome never conveyed by color alone
+INDEX owns baseline/remaining work; PRD owns product intent; SDD owns source
+contracts; QAD owns verification; OPS owns releases. Do not recreate a second
+milestone queue or current-status narrative here.

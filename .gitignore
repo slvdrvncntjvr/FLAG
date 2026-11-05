@@ -4,3 +4,18 @@ cockpit.html
 
 # Course files with member names; never commit (BUILD §5)
 group_context/
+
+# Local agent handoffs; never commit
+temporary/
+
+# Archived local release evidence; never used as instructions or shipped.
+.local-evidence/
+
+# Local historical snapshots; excluded from routine search by .rgignore too.
+/archive/
+
+# Local Orca/Chromium diagnostics.
+/debug.log
+
+# Python helper bytecode
+scripts/__pycache__/
