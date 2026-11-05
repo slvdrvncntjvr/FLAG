@@ -3,11 +3,11 @@ spine_type: INDEX
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.115
+doc_version: 0.116
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-04
+updated: 2026-11-05
 reconciled: 2026-09-14
 ---
 
@@ -30,10 +30,10 @@ verification and OPS for operations. The active decision log is
 | IDEA: scope and invariants | [idea-flag.md](idea-flag.md) | 2.1 | Review | 2026-10-31 | 2026-10-13 |
 | BUILD: setup, commands and conventions | [build-flag.md](build-flag.md) | 2.44 | Review | 2026-11-03 | 2026-10-13 |
 | PRD: approved product requirements | [prd-flag.md](prd-flag.md) | 2.3 | Review | 2026-11-01 | 2026-10-13 |
-| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.44 | Review | 2026-11-04 | 2026-10-13 |
-| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.67 | Review | 2026-11-04 | 2026-10-13 |
+| SDD: source schema and technical contracts | [sdd-flag.md](sdd-flag.md) | 2.45 | Review | 2026-11-05 | 2026-10-13 |
+| QAD: test coverage and acceptance | [qad-flag.md](qad-flag.md) | 2.68 | Review | 2026-11-05 | 2026-10-13 |
 | OPS: release and recovery procedures | [ops-flag.md](ops-flag.md) | 2.48 | Review | 2026-11-04 | 2026-10-13 |
-| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.33 | Draft | 2026-11-04 | 2026-09-14 |
+| LOG: current decisions and open questions | [log-current-flag.md](log-current-flag.md) | 0.34 | Draft | 2026-11-05 | 2026-09-14 |
 
 Review means the owner has not newly reconciled or locked the consolidated text.
 The owner explicitly authorized this overhaul and factual web-copy changes on
@@ -272,13 +272,21 @@ Corrected publication, a later-day filer update, broader ratings and owner
 manual acceptance remain. The later update cannot run before a real later Manila
 date; no clock manipulation is permitted.
 Beta's separately accepted engagement has its own fresh client-consent receipt.
-Its complete draft **FL-1043** saved, but the actual PDF upload returned HTML 503
-and persisted no proof or submission. The containing aggregate metrics interval
-reports one exceededResources error; exact request causation is not established.
-The window restored false and its original deadline guard completed 0. A local
-candidate reuses one request-local D1 client through initial proof-upload auth,
-viewer lookup and handling; it is not yet delivered or accepted as a hosted fix.
-Keep reliability and Beta submission open; preserve the failed upload evidence.
+Its first PDF upload returned HTML 503 without persisting proof or submission;
+the containing aggregate metrics interval reports one exceededResources outcome
+without exact request attribution. [PR38](https://github.com/slvdrvncntjvr/FLAG/pull/38)
+merged normally as `453b4d8` after required CI; both merge CI runs and its normal
+Workers Build passed. It shares lazy request-local setup through auth and upload.
+The hosted retest then uploaded Beta's 2,336-byte proof and submitted FL-1043.
+The owner personally reviewed and approved it: published at
+2026-11-04T15:00:38.541Z, expiry 2027-11-04 at the same UTC time.
+Gamma independently accepted its engagement with a fresh consent receipt, but
+its normal proof upload still returned HTML 503 after PR38. FL-1044 remains a
+draft with no proof or submission, confirmed again on 2026-11-05. Do not infer
+reliability from Beta's success. All windows restored false and settled their
+original deadline guards. The owner stopped testing on November 4 and resumed
+on November 5. A scoped local Worker proof-POST dispatch candidate is being
+verified; it is not deployed or accepted as the hosted fix. QAD owns evidence.
 Production planning follows accepted dev evidence; main and production remain
 unchanged and PR20 remains draft.
 The latest full local Windows result remains failed at 1,301/1,311 with ten
@@ -296,14 +304,14 @@ broaden the limited owner acceptance report stated below.
 | Email-code accounts and policy onboarding | Implemented | Available |
 | Manual freelancer verification and moderator review | Implemented; approve/reject, corrected new requests, immutable submitted profile history | Available |
 | Engagement invitations and explicit client consent | Implemented; accept/decline/cancel, separate per-engagement receipt | Available |
-| Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled | Alpha passed; Beta draft saved but upload returned 503; scoped setup repair and hosted verification pending |
-| Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Alpha human ask-changes/resubmission/publication and one-contributor record observed; broader ratings acceptance remains |
+| Private log draft, proof upload and initial submission | Implemented through pending; new intake disabled; scoped Worker dispatch candidate local only | Alpha and Beta submitted; Gamma upload still 503 after PR38, draft without proof; reliability remains open |
+| Log moderation/publication, client search/records and aggregate ratings | Implemented and merged in PR26; bounded reviews and final application/browser checks pass | Alpha ask-changes/resubmission/publication and Beta owner-approved publication observed; one-contributor record observed before Beta, later aggregate display still unverified |
 | Full retention, assessed account closure/export, private corrections and filer updates | PR28/PR29/PR31/PR32 integrated; full local Windows verification unresolved | Scoped closure/revocation, combined/post-closure exports, holds/hourly erasure and independent-account correction uphold observed; corrected publication, later update and broader lifecycle acceptance remain |
 | Optional feature notifications | Deferred; sign-in email is implemented separately | Unavailable |
 
 | Location | Last recorded revision | Schema |
 |----------|------------------------|--------|
-| Dev: `flag-dev`, branch `dev` | PR36 merge `5d40b7e`; restored settings-derived version `35b7d92d-1be5-43e5-abfe-e0ba2a6a9ce3`, intake false confirmed by the successful guarded restoration/deadline check, 2026-11-04 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
+| Dev: `flag-dev`, branch `dev` | PR38 merge `453b4d8`; restored settings-derived version `9e195632-4b81-44be-8f3c-7c10c3d1e6f0`, actual false and reviewed-source/settings fingerprints confirmed 2026-11-05 | 0000-0012 applied; exact reviewed filename set; last foreign_key_check clean |
 | Production: `flag`, branch `main` | `3582f7e`; accounts/onboarding baseline, predates PROOFS binding | 0000-0007 |
 
 PR24 preserves the prior dev-2 work and published SQL. Generation metadata covers

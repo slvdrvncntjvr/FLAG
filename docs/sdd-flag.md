@@ -3,11 +3,11 @@ spine_type: SDD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.44
+doc_version: 2.45
 status: Review
 owner: slvdrvncntjvr
 created: 2026-09-14
-updated: 2026-11-04
+updated: 2026-11-05
 reconciled: 2026-10-13
 ---
 
@@ -708,6 +708,23 @@ losers must roll back preceding statements. This slice cannot publish and leaves
 current_revision_id/published_at/expires_at NULL. Sources:
 `web/src/features/logs/draft.ts:5`, `web/src/features/logs/submit.ts:6`,
 `web/src/server/db/queries/logs.ts:26`.
+
+**Proof HTTP dispatch (PRD-F3, scoped repair target).** The custom Worker handles
+only canonical POST `/api/logs/<id>/proofs`, using the same ID grammar as intake.
+Other paths and methods retain the Next dispatcher. Reject absent cookies,
+cross-origin requests and disabled intake before setup or body parsing. For an
+eligible request create one request-local D1 client, call the existing Better
+Auth HTTP get-session handler (including closure hooks and normal session
+refresh), then load the current viewer and call the unchanged `uploadProof`.
+Forward distinct auth Set-Cookie headers on the private response. No session,
+viewer or binding cache is introduced. Domain guards retain current policy,
+verification, accepted engagement, consent, quota and storage authority. Errors
+remain bounded/private, with nosniff/noindex; auth infrastructure failure cannot
+be treated as an anonymous success. This changes dispatch, not the schema, proof
+API or publication authority. INDEX owns delivery; hosted reliability remains
+unproven until an actual retest. The internal get-session HTTP call also retains
+the existing auth rate limiter and bounded Retry-After response. Sources:
+`web/custom-worker.ts:8`, `web/src/server/proof-upload-http.ts:15`.
 
 **Proof upload/delivery.** Bound multipart before parsing. Enforce PRD file types,
 actual size/signature and max five proofs. Upload quota is twenty attempts per
