@@ -3,7 +3,7 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.34
+doc_version: 0.35
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
@@ -1018,3 +1018,26 @@ invariant, timeout or paid-plan change is included. Initial real-auth/storage
 checks pass after replacing a guard-rejected closure fixture with the actual
 assessed workflow. Local complete uploads pass; this does not establish the
 hosted cause or fix. Broader verification and protected dev delivery remain open.
+
+## 38. Protected upload repair and Gamma human-review boundary, 2026-11-05
+
+PR39 passed required CI, merged through unchanged dev protections and deployed
+normally. Actual readiness preceded the guarded synthetic window. Gamma's normal
+upload and submission now pass with the exact proof attached and one pending case;
+no publication or human decision was fabricated. Early close and the original
+deadline guard both completed with actual false. INDEX owns current source and
+delivery; QAD owns the bounded observations and original failures.
+
+The moderator JavaScript claim stalled without a stored claim. The supported
+HTML form subsequently claimed the case. This is a separate unresolved browser
+observation, not proof of CPU failure or complete release reliability. The new
+proof's verdict/decision/reasons/personal-inspection fields were left blank and
+the exact moderator tab was visibly focused for the owner's actual review.
+The two-contributor record after Beta approval was also actually observed.
+
+Source review identified a narrow feedback defect exposed by HTTP session
+throttling: the upload UI called every 429 a daily proof quota. Correct that
+message only when the domain reports `code=quota`; generic throttling should ask
+for a later retry. No limit, timeout, schema or authorization change is needed.
+Prepare and verify this scoped follow-up while human review is pending; avoid
+deploying over the owner's active review form. Production remains unchanged.
