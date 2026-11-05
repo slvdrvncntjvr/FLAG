@@ -3,11 +3,11 @@ spine_type: QAD
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 2.67
+doc_version: 2.68
 status: Review
 owner: slvdrvncntjvr
 created: 2026-10-12
-updated: 2026-11-04
+updated: 2026-11-05
 reconciled: 2026-10-13
 ---
 
@@ -536,7 +536,44 @@ The local dev Worker build, no-upload packaging and isolated 19-route packaged
 smoke pass, including the scheduled handler, no-mail rate-limit checks and verified
 teardown/cleanup/free port. The local profiling attempt instead reached an origin
 denial; it does not reproduce a valid hosted upload or establish its CPU cause.
-Required CI, hosted validation and Beta proof submission remain open.
+Those were candidate-stage observations. PR38 subsequently passed required and
+both merge CI runs, merged normally and deployed. Beta's checked hosted retry
+uploaded its 2,336-byte proof, submitted pending, and received the owner's actual
+approval: FL-1043 published 2026-11-04T15:00:38.541Z with the original
+14:47:44.500Z first-submission time and exact-hash review receipt preserved.
+No later client-record aggregate display was observed before the owner stopped.
+
+Gamma's separate fresh consent is confirmed, but its 2,652-byte PDF upload
+returned HTML 503 after PR38. Actual disabled-dev reads on November 4 and 5 show
+FL-1044 still draft, with no proof, first submission or case. The bounded window
+restored false and its original deadline guard completed 0. This remains a real
+hosted reliability failure, without exact CPU attribution; neither a passing
+Beta retry nor local wall time resolves it.
+
+On owner resume November 5, the existing deployment/settings/source fingerprints
+still match with intake false. Orca restarted; the saved Gamma profile was
+reconnected and its genuine session/read-only draft observed. The local repair
+target is SDD §3.7's Worker proof POST dispatch. Five new real-auth/D1/R2 cases
+plus the existing route/viewer/rollout cases pass (52 tests), covering exact
+bytes, no publication, session refresh headers, policy/verification/role/ban,
+logout and closure, unrelated/named-client/bare-admin denial, forged cookies and
+early unread-body rejection. The first closure fixture attempted an unauthorized
+raw deactivation and correctly hit the database guard; it was replaced with the
+actual assessed workflow, preserving the original failure. No timeout changed.
+Four complete local multipart uploads through packaged workerd returned 201 with
+verified teardown, removed owned data and free ports. These use isolated synthetic
+consent and storage and do not establish hosted CPU or release reliability. The
+earlier Next-path local origin denials and one sandbox startup failure are retained;
+their incomplete profiles cannot be used as a full-upload speed comparison.
+All 197 affected auth/proof/rollout/closure/writer regressions pass. The dev build,
+no-upload packaging and 19-route packaged smoke pass, including scheduled work,
+no-mail rate limits and verified cleanup/free ports. Packaging reports 15,625.87
+KiB uncompressed / 3,118.44 KiB gzip; current Cloudflare documentation specifies
+64 MiB uncompressed and no compressed-size limit. The coordinator initially cited
+the obsolete 3 MiB compressed limit, checked the current source and corrected it;
+no auth split or paid change was made. App/tests/browser typecheck and focused
+lint also pass. Protected delivery remains pending. Human review/publication and
+hosted reliability are not inferred.
 
 ## 2. Happy path cases
 

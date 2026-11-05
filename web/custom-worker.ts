@@ -2,10 +2,11 @@
 import handler from "./.open-next/worker.js";
 import { runMaintenance } from "./src/features/lifecycle/maintenance";
 import { privateResourcePreflight } from "./src/lib/private-http";
+import { proofUploadHttp } from "./src/server/proof-upload-http";
 
 export default {
-  fetch(request, env, ctx) {
-    return privateResourcePreflight(request) ?? handler.fetch(request, env, ctx);
+  async fetch(request, env, ctx) {
+    return privateResourcePreflight(request) ?? await proofUploadHttp(request, env) ?? handler.fetch(request, env, ctx);
   },
   async scheduled(controller, env) {
     // Await all work; no request data or tokens are emitted to platform logs.

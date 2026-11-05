@@ -3,11 +3,11 @@ spine_type: LOG
 spine_version: 0.3.0
 project: FLAG
 slug: flag
-doc_version: 0.33
+doc_version: 0.34
 status: Draft
 owner: slvdrvncntjvr
 created: 2026-10-31
-updated: 2026-11-04
+updated: 2026-11-05
 reconciled: 2026-09-14
 ---
 
@@ -991,3 +991,30 @@ accepted fix; local profiling limitations are not represented as successful
 reproduction of the real upload. Broader tests caught eager setup preceding the
 closed-route gates; a lazy per-request client preserves those existing expectations
 without weakening them. The initial 189-pass/3-fail regression result is retained.
+
+## 37. Owner stop, resume and remaining upload failure, 2026-11-05
+
+PR38 delivered the request-local setup repair through normal dev protections;
+required CI, both merge CI runs and Workers Build passed. Beta subsequently
+uploaded/submitted successfully and the owner actually reviewed and approved
+FL-1043. Gamma accepted its own engagement but its proof upload still returned
+HTML 503. INDEX owns current deployment/publication state and QAD owns the
+acceptance limits and preserved failures.
+
+After Beta approval the owner asked to stop testing on November 4. The
+coordinator stopped tests/repairs, confirmed only final state and saved the
+handoff. The owner's November 5 “continue” resumes that controlled dev work;
+it does not authorize production, real intake or invented human decisions.
+Fresh reads confirm the same reviewed source/settings, intake false and Gamma
+still draft without proof/submission. The existing run has no new mail or live
+worker; no duplicate worker was launched. Orca restarted; only the needed saved
+Gamma profile was reconnected.
+
+The scoped local candidate on `slvdrvncntjvr/fix-worker-proof-upload-20261105`
+handles the existing canonical proof POST directly in the custom Worker using
+the same Better Auth HTTP session hooks, current viewer query and upload domain
+function. SDD §3.7 records the dispatch contract before implementation. No schema,
+invariant, timeout or paid-plan change is included. Initial real-auth/storage
+checks pass after replacing a guard-rejected closure fixture with the actual
+assessed workflow. Local complete uploads pass; this does not establish the
+hosted cause or fix. Broader verification and protected dev delivery remain open.
