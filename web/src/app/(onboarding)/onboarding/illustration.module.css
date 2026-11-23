@@ -1,0 +1,10 @@
+.illustration {
+  height: 7.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 1.25rem;
+  background-color: var(--tint);
+  background-image: url("./sun.svg"), url("./hill-dark.svg"), url("./hill-light.svg");
+  background-repeat: no-repeat;
+  background-position: 74.7% 1.1375rem, 173.6% 5.7875rem, -202.8% 4.5875rem;
+  background-size: auto, 80% 5.25rem, 90% 6rem;
+}

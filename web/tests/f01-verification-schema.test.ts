@@ -20,7 +20,6 @@ async function seed() {
 const inspection = { id_kind: "passport", result: "pass", name_match: 1, inspected_at: "2026-10-02T00:00:00.000Z" };
 type DatabasePatch = Record<string, string | number | null>;
 async function patch(id: string, fields: DatabasePatch) {
-  // Test fixtures deliberately bypass the handler for database constraint coverage.
   return env.DB.prepare(`UPDATE verification_case SET ${Object.keys(fields).map((key) => `${key} = ?`).join(",")} WHERE id = ?`).bind(...Object.values(fields), id).run();
 }
 
@@ -85,14 +84,12 @@ describe("PRD-F1/F4 direct D1 constraints", () => {
       { status: "decided", decision: "ask_changes", reason: "Wrong kind", decidedBy: f.reviewer, decidedAt: "2026-10-01T00:30:00.000Z" },
       { status: "decided", decision: "approve", reason: " ", decidedBy: f.reviewer, decidedAt: "2026-10-01T00:30:00.000Z" },
     ]) {
-      // Invalid enum values are intentional direct SQL attacks, beyond TypeScript.
       await expect(env.DB.prepare(`INSERT INTO moderation_case(id,kind,subject_id,status,claimed_by,claimed_until,decision,reason,decided_by,decided_at) VALUES (?,'verification',?,?,?,?,?,?,?,?)`)
         .bind(crypto.randomUUID(), f.id, row.status, "claimedBy" in row ? row.claimedBy : null, "claimedUntil" in row ? row.claimedUntil : null, "decision" in row ? row.decision : null, "reason" in row ? row.reason : null, "decidedBy" in row ? row.decidedBy : null, "decidedAt" in row ? row.decidedAt : null).run()).rejects.toThrow(/case must start open/i);
     }
     const id = crypto.randomUUID();
     await db.insert(moderationCase).values({ id, kind: "verification", subjectId: f.id, verificationSubjectUserId: f.owner });
     await env.DB.prepare("UPDATE moderation_case SET status='claimed',claimed_by=?,claimed_until=strftime('%Y-%m-%dT%H:%M:%fZ','now','+30 minutes') WHERE id=?").bind(f.reviewer, id).run();
-    // With a real claimed subject, malformed terminal tuples reach the current CHECKs.
     const terminal = { status: "decided", claimed_by: null, claimed_until: null, decision: "reject", reason: "Review grounds", decided_by: f.reviewer, decided_at: "2026-10-03T00:00:00.000Z", closed_at: "2026-10-03T00:00:00.000Z", closure_kind: "decision" };
     const updateCase = (fields: DatabasePatch) => env.DB.prepare(`UPDATE moderation_case SET ${Object.keys(fields).map(key => `${key}=?`).join(",")} WHERE id=?`).bind(...Object.values(fields), id).run();
     for (const invalid of [{ decision: "ask_changes" }, { reason: " \t\n" }, { decided_at: null }, { closed_at: "2026-10-04T00:00:00.000Z" }, { closure_kind: "abandoned" }]) {

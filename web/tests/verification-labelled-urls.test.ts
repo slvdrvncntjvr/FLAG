@@ -14,7 +14,6 @@ const originalRepros = [
   "https://example.invalid/social_security_system_account_number/12-3456789-0",
   "https://example.invalid/work#sss_account_number:12-3456789-0",
 ];
-// Synthetic complete shorter shapes expose the numeric-project exception.
 const labelledNumbers = [
   ["tin", "123456789"], ["sss", "12-3456789-0"], ["ssn", "123-45-6789"],
   ["tax_identification_number", "123.456.789"], ["Tax-Payer-Identity-Number", "123456789"],
@@ -86,8 +85,6 @@ const encodedUrls = [
     return `https://example.invalid/work?detail=${content}`;
   }),
 ];
-// These scripts keep decimal digits through NFKC, but URL.hostname punycodes
-// them. Inspecting only the parsed host therefore loses the labelled number.
 const unicodeHosts = [
   "sss-account-number-१२-३४५६७८९-०.example.invalid",
   "sss-account-number-၁၂-၃၄၅၆၇၈၉-၀.example.invalid",
@@ -165,8 +162,6 @@ async function actor(role: Role) {
   return id;
 }
 
-// Compare every application table, including immutable history and staff audit
-// rows. Table names come only from SQLite's own schema, never submitted input.
 async function snapshot() {
   const tables = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT GLOB 'sqlite_*' AND name NOT GLOB '_cf_*' ORDER BY name").all<{ name: string }>();
   const results = await env.DB.batch(tables.results.map(({ name }) => env.DB.prepare(`SELECT * FROM "${name.replace(/"/g, '""')}" ORDER BY rowid`)));
@@ -201,7 +196,6 @@ it("NT-05: denied corrected requests preserve history; safe resubmission keeps i
   const claim = await claimVerification(db, moderator, { caseId: first.moderationCaseId });
   if (!claim.ok) throw new Error(claim.code);
   expect(await decideVerification(db, moderator, { caseId: first.moderationCaseId, expectedClaimUntil: claim.claimUntil, decision: "reject", reason: "Please correct the portfolio" })).toEqual({ ok: true });
-  // Read by SQL here to retain every original field, including its frozen JSON.
   const oldRows = await env.DB.prepare("SELECT * FROM verification_case WHERE id = ?").bind(first.verificationCaseId).all();
   await assertDeniedWithoutEffects(owner);
   const corrected = { name: "Corrected Owner", city: "Cebu City", portfolioLinks: [{ url: "https://caf%C3%A9.example.invalid/caf%25C3%25A9?project=12345678901&other=98765432101#work%20samples", label: "Corrected portfolio" }] };

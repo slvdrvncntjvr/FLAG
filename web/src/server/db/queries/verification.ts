@@ -44,8 +44,6 @@ export async function loadVerificationReview(db: Db, actorId: string | null, cas
   const [row] = await reviewQuery(db).where(and(eq(moderationCase.id, caseId), eq(moderationCase.kind, "verification"), ne(verificationCase.freelancerId, actorId!))).limit(1);
   if (!row) return null;
   const submittedProfile = parseSubmittedProfile(row.request.submittedProfile);
-  // Current values are available only for fresh inspection of a legacy open
-  // request; never expose them as evidence of an older inspection/decision.
   const currentProfile = !submittedProfile && !row.request.decidedAt
     ? { name: row.profile.displayName, city: row.profile.city, portfolioLinks: await db.select({ url: portfolioLink.url, label: portfolioLink.label }).from(portfolioLink).where(eq(portfolioLink.freelancerId, row.request.freelancerId)) }
     : null;

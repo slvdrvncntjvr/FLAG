@@ -16,8 +16,6 @@ const privateError = () => new Error("SELECT private_sql params private-name@exa
 });
 const assertSafe = (spies: ReturnType<typeof captureConsole>, body: unknown) => {
   const events = spies.flatMap(spy => spy.mock.calls);
-  // JSON.stringify(Error) hides its message/stack/cause. Inspect the actual
-  // argument shape too, so forwarding an Error object cannot pass unnoticed.
   for (const [code, ...metadata] of events) {
     expect(code).toMatch(/^AUTH_[A-Z_]+$/);
     if (metadata.length) {
@@ -81,7 +79,6 @@ describe("auth route and error safety", () => {
     await f.db.insert(verificationCase).values({
       id: crypto.randomUUID(), freelancerId: id, createdAt: reviewedAt,
       submittedProfile: JSON.stringify({ name: "Reviewed Person", city: null, portfolioLinks: ["https://example.invalid/work"] }),
-      // Exercise verified-profile freezing independently of an open-case freeze.
       ...(status === "verified" ? { reviewerId, idKind: "passport" as const, result: "pass" as const,
         nameMatch: true, inspectedAt: reviewedAt, decision: "approve" as const,
         reason: "Manual review completed", decidedAt: reviewedAt } : {}),
@@ -101,7 +98,6 @@ describe("auth route and error safety", () => {
       expect(await snapshot()).toEqual(before);
       assertSafe(spies, FROZEN);
       expect((await f.post("/update-user", { name: "Reviewed Person" }, signed.cookie)).status).toBe(200);
-      // Role input keeps the library's existing denial, including a same-name request.
       expect((await f.post("/update-user", { name: "Reviewed Person", role: "freelancer" }, signed.cookie)).status).toBe(400);
     } finally { spies.forEach(spy => spy.mockRestore()); }
   });
@@ -130,8 +126,6 @@ describe("auth route and error safety", () => {
     const before = await f.db.select().from(user);
     const lookup = vi.spyOn(ctx.adapter, "findOne").mockRejectedValueOnce(privateError());
     try {
-      // Better Auth intentionally absorbs getSessionFromCtx errors as a missing
-      // session. Keep that 401, while direct get-session failures remain 503.
       const response = await f.post("/update-user", { name: "Safe Replacement" }, signed.cookie);
       expect(response.status).toBe(401);
       const body = await response.json();

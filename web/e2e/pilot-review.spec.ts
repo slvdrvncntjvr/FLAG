@@ -1,5 +1,5 @@
 import { expect, test, type Page, type APIResponse, type Locator } from "@playwright/test";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, join, resolve } from "node:path";
 import { isolateOtpIp } from "./network";
@@ -9,9 +9,6 @@ const diagnosticPath = (url: string) => new URL(url).pathname.replace(/\/invite\
 
 test.beforeAll(async ({ request }) => {
   test.setTimeout(240_000);
-  // This harness runs Next's dev compiler. Compile the pilot entries before
-  // opening actors so first-use HMR cannot reload a page during an action's
-  // redirect. These anonymous GETs create no fixture data or authorization.
   const id = "00000000-0000-0000-0000-000000000000";
   for (const path of [
     "/engagements", "/invite/continue", `/invite/${"0".repeat(64)}`,
@@ -61,17 +58,12 @@ async function followLink(page: Page, link: Locator) {
   try {
     await Promise.all([page.waitForURL(new URL(href, page.url()).href, { timeout: 60_000 }), link.click()]);
   } catch (error) {
-    const report = test.info().outputPath("link-navigation.json");
     const body = JSON.stringify({ href, current: page.url(), anchor: await link.evaluate(node => ({ html: node.outerHTML, target: (node as HTMLAnchorElement).target, connected: node.isConnected })).catch(() => null), requests });
-    await writeFile(report, body);
-    await writeFile(resolve("../temporary", `pilot-link-${test.info().project.name}-${Date.now()}.json`), body);
-    await test.info().attach("link-navigation", { contentType: "application/json", path: report });
+    await test.info().attach("link-navigation", { contentType: "application/json", body });
     throw error;
   } finally { page.off("request", requested); page.off("response", responded); page.off("requestfailed", failed); }
 }
 
-// Only bootstrap staff/verification in the disposable harness. Every engagement,
-// draft, proof, review, publication and correction below uses the actual UI.
 async function bootstrap(email: string, role: "verified" | "moderator") {
   if (!/^pilot-review-[a-z0-9-]+@example\.invalid$/.test(email)) throw new Error("Synthetic actor required");
   const otpFile = process.env.E2E_OTP_FILE;
@@ -178,8 +170,6 @@ test("pilot publication, record search and independent private correction withdr
     for (const checkbox of await client.getByRole("checkbox").all()) await checkbox.check();
     const acceptButton = client.getByRole("button", { name: "Accept engagement", exact: true });
     await acceptButton.click();
-    // Wait for the action's own redirect before further navigation. A hidden
-    // form can be a transition and does not establish the action has settled.
     await expect(client).toHaveURL(/\/engagements\?response=accepted$/);
     await expect(client.getByText(/^Consent recorded/)).toBeVisible();
     console.info("[Pilot review] Engagement accepted with consent");
@@ -206,11 +196,13 @@ test("pilot publication, record search and independent private correction withdr
     await expect(client).toHaveURL(/\/clients\/[a-zA-Z0-9_-]+$/);
     const recordUrl = client.url();
     await expect(client.getByText("No published experiences in the past 12 months", { exact: false })).toBeVisible();
+    console.info("[Pilot review] Client record is empty before publication");
 
     const reviewerEmail = `pilot-review-reviewer-${stamp}@example.invalid`;
     await signIn(reviewer, reviewerEmail, "Client");
     await bootstrap(reviewerEmail, "moderator");
     await reviewer.goto("/moderation/logs");
+    console.info("[Pilot review] Reviewer signed in and reached the review queue");
     const logRef = (await page.locator("main p.font-mono").first().innerText()).trim();
     await followLink(reviewer, reviewer.getByRole("link", { name: `${logRef} · log`, exact: true }));
     await expect(reviewer).toHaveURL(/\/moderation\/logs\/[a-zA-Z0-9_-]+$/);
@@ -254,7 +246,6 @@ test("pilot publication, record search and independent private correction withdr
     expect(ordinaryHtml).not.toContain(counterproofPath);
     privateResponse(await outsider.request.get(counterproofPath), 404);
     expect((await outsider.request.get(`${logUrl}/correction`)).status()).toBe(404);
-    // The original decider must not even discover the correction in their queue.
     await reviewer.goto("/moderation/corrections");
     await expect(reviewer.getByRole("link", { name: `${logRef} · correction`, exact: true })).toHaveCount(0);
     const independentEmail = `pilot-review-independent-${stamp}@example.invalid`;
@@ -290,11 +281,8 @@ test("pilot publication, record search and independent private correction withdr
       expect((await anonymous.request.get(recordUrl, { maxRedirects: 0 })).status()).toBe(307);
     } finally { await anonymous.close(); }
   } catch (error) {
-    const diagnostics = info.outputPath("navigation-diagnostics.json");
     const body = JSON.stringify({ browserErrors, consoleErrors, actionResponses, actionRequests }, null, 2);
-    await writeFile(diagnostics, body);
-    await writeFile(resolve("../temporary", `pilot-navigation-${stamp}.json`), body);
-    await info.attach("navigation-diagnostics", { path: diagnostics, contentType: "application/json" });
+    await info.attach("navigation-diagnostics", { body, contentType: "application/json" });
     await info.attach("browser-errors", { body: JSON.stringify(browserErrors), contentType: "application/json" });
     await info.attach("console-errors", { body: JSON.stringify(consoleErrors), contentType: "application/json" });
     for (const [label, target] of [["client", client], ["reviewer", reviewer], ["independent", independent], ["reader", outsider]] as const) {

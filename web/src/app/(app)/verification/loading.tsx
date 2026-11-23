@@ -1,3 +1,3 @@
 export default function VerificationLoading() {
-  return <p role="status" className="py-6">Loading verification…</p>;
+  return <p role="status" className="register-narrow register-panel text-sm text-muted">Loading verification…</p>;
 }

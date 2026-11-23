@@ -4,8 +4,6 @@ param(
  [switch]$PreflightOnly,
  [switch]$OpenReviewedWindow
 )
-# Draft for coordinator review. Fixed five-minute deadline, dev only. This is
-# not a guarantee during host/network loss. Never wait for human review while open.
 $ErrorActionPreference='Stop'
 if(-not $NoConcurrentWriters -or ($PreflightOnly -eq $OpenReviewedWindow)){throw 'Choose exactly one of preflight-only or reviewed-open and assert no concurrent external writers'}
 $taskRepo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -71,9 +69,6 @@ if(-not $taskProxy.IsBypassed($taskTarget)){$env:HTTPS_PROXY=$taskProxy.GetProxy
  $taskAction=New-ScheduledTaskAction -Execute $taskShell -Argument $taskArguments -WorkingDirectory $taskRepo
  $taskPrincipal=New-ScheduledTaskPrincipal -UserId ([Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
  $taskTrigger=New-ScheduledTaskTrigger -Once -At $taskDeadline.ToLocalTime()
- # Operational guard budget: wait180s + abandoned-owner quiet30s + restore120s
- # + owner-timeout quiet30s + startup/receipt margin30s =390s; round to7minutes.
- # Existing application/suite timeout limits remain unchanged.
  $taskSettings=New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 7)
  Register-ScheduledTask -TaskName $taskName -Action $taskAction -Principal $taskPrincipal -Trigger $taskTrigger -Settings $taskSettings -Description 'Reviewed FLAG dev synthetic window; fixed deadline restores only reviewed source fingerprint'|Out-Null
  $taskRegistered=$true
@@ -82,7 +77,6 @@ if(-not $taskProxy.IsBypassed($taskTarget)){$env:HTTPS_PROXY=$taskProxy.GetProxy
  if($taskObserved.Actions.Execute -ne $taskShell -or $taskObserved.Actions.Arguments -ne $taskArguments -or $taskObserved.Actions.WorkingDirectory -ne $taskRepo -or $taskObserved.Principal.RunLevel -ne 'Limited' -or (Get-WindowSid $taskObserved.Principal.UserId) -ne (Get-WindowSid $taskPrincipal.UserId) -or $taskObserved.Triggers.Count -ne 1 -or (Convert-WindowUtc $taskObserved.Triggers[0].StartBoundary) -ne $taskDeadline){throw 'Exact independent guard registration mismatch'}
  $taskNext=(Get-ScheduledTaskInfo -TaskName $taskName).NextRunTime
  if(-not $taskNext -or $taskNext.ToUniversalTime() -ne $taskDeadline -or $taskDeadline -le [DateTime]::UtcNow){throw 'Future independent deadline not armed at exact authority time'}
- # Exercise the same armed guard action now, while false, before any true PATCH.
  $taskPreflightAt=[DateTime]::Now
  Start-ScheduledTask -TaskName $taskName
  $taskPreflight=Wait-WindowTask $taskPreflightAt
@@ -102,8 +96,6 @@ if(-not $taskProxy.IsBypassed($taskTarget)){$env:HTTPS_PROXY=$taskProxy.GetProxy
  $taskOpened=Get-Content -LiteralPath $taskOpen -Raw|ConvertFrom-Json
  if($taskOpened.result -ne 'pass' -or $taskOpened.confirmedState -ne 'true'){throw 'Actual open not confirmed'}
  [ordered]@{phase='opened';windowId=$taskAuthority.windowId;deadline=$taskAuthority.deadline;guardTask=$taskName;authority=$taskBaseline;receipt=$taskOpen;hostOrNetworkLossGuaranteed=$false}|ConvertTo-Json
- # Browser synthetic work can run while this process remains alive. The armed
- # independent task also survives loss of this process; it needs host/network.
  while([DateTime]::UtcNow -lt $taskDeadline){Start-Sleep -Seconds 2}
  $taskClosed=Wait-WindowTask $taskDeadline.ToLocalTime()
  Write-WindowReceipt (Join-Path $taskDirectory 'independent-final.json') $taskClosed
@@ -111,13 +103,9 @@ if(-not $taskProxy.IsBypassed($taskTarget)){$env:HTTPS_PROXY=$taskProxy.GetProxy
  $taskRegistered=$false
  [ordered]@{phase='closed';windowId=$taskAuthority.windowId;confirmedState='false';guardCompleted=$true;receipt=$taskClosed.receipt;hostOrNetworkLossGuaranteed=$false}|ConvertTo-Json
 }catch{
- # Never race an already-running independent restore with another writer.
  $taskRunning=$false
  if($taskRegistered){$taskRunning=(Get-ScheduledTask -TaskName $taskName).State -in @('Running','Queued')}
  $taskRecovery=$null
- # Once armed, let that independent task own deadline restoration: a parent
- # fallback can race its start. Node open already attempts immediate restoration
- # after an uncertain open. Retain the armed task on every parent failure.
  if($taskMayHaveOpened -and -not $taskRegistered){
   $taskRecovery=Join-Path $taskDirectory ('parent-failure-restore-'+[Guid]::NewGuid().ToString('N')+'.json')
   & $taskNode $taskHelper restore $taskBaseline $taskRecovery *> $null

@@ -22,7 +22,7 @@ export default async function VerificationReview({ params }: { params: Promise<{
   return <>
     <h1 className="font-serif text-2xl">Verification review</h1>
     <SubmittedProfile submitted={detail.submittedProfile} current={detail.currentProfile} />
-    <dl className="mt-6 border-b border-rule">
+    <dl className="register-panel mt-6">
       <RecordValue label="Review status">{review.status === "decided" ? "Decided" : mine ? "Claimed by you" : active ? "Claimed by another moderator" : "Available to claim"}</RecordValue>
       {active && review.claimedUntil && <RecordValue label="Claim expires (UTC)"><time className="font-mono" dateTime={review.claimedUntil}>{review.claimedUntil}</time></RecordValue>}
       <RecordValue label="Live inspection">{request.inspectedAt ? `${request.result === "pass" ? "Pass" : "Fail"}; name ${request.nameMatch ? "matches" : "does not match"}; ${request.idKind}; ${request.inspectedAt}${request.reviewerId !== viewer.id && review.status !== "decided" ? ". Recorded by another moderator; a new claimant must inspect again." : ""}` : "Not recorded"}</RecordValue>
@@ -31,8 +31,8 @@ export default async function VerificationReview({ params }: { params: Promise<{
     </dl>
     {review.status !== "decided" && (mine && review.claimedUntil
       ? <ReviewerForms key={review.claimedUntil} caseId={review.id} expectedClaimUntil={review.claimedUntil} canApprove={canApprove} />
-      : active ? <div className="mt-6 space-y-3"><p>Another moderator holds the current claim. Reload after release or expiry.</p><ReloadStatus /></div> : <ClaimReviewForm key={review.status + (review.claimedUntil ?? "")} caseId={review.id} />)}
-    <section className="mt-8 space-y-3"><h2 className="font-medium">Review history</h2>
+      : active ? <div className="register-callout mt-6 space-y-3"><p>Another moderator holds the current claim. Reload after release or expiry.</p><ReloadStatus /></div> : <ClaimReviewForm key={review.status + (review.claimedUntil ?? "")} caseId={review.id} />)}
+    <section className="register-staff-section space-y-3"><h2 className="font-serif text-xl">Review history</h2>
       {detail.history.length ? <ol className="space-y-3">{detail.history.map(event => <li key={event.id} className="min-w-0 border-t border-rule pt-3 text-sm [overflow-wrap:anywhere]"><p>{event.action.replaceAll("_", " ")}</p><p className="font-mono"><time dateTime={event.createdAt}>{event.createdAt}</time></p><p className="text-muted">Actor reference: {event.actorId ?? "System"}</p></li>)}</ol> : <p>No review events are available.</p>}
     </section>
   </>;

@@ -1,13 +1,7 @@
-// Fixed query aliases only; no submitted values enter these SQL fragments.
-// The assessment view owns subject/scope/processor validation. Reads must not
-// wait for a task to be issued or claimed, and holds never extend visibility.
-// Materialize the authority view once per statement; natural content clocks
-// stay correlated to the requested object, including shared-proof lifetimes.
 export const contentDeadlineCtes = `read_assessed_deadlines AS MATERIALIZED (
   SELECT target_type,target_id,due_at FROM pilot_assessed_source_deadline
 )`;
 
-// Callers include contentDeadlineCtes in their statement's WITH clause.
 export function contentDeadlineSql(kind: "revision" | "proof", alias: "r" | "p") {
   const natural = kind === "revision" ? "pilot_revision_retention" : "pilot_proof_retention";
   const target = kind === "revision" ? "log_revision" : "proof_file";

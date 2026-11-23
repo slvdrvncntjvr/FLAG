@@ -1,11 +1,8 @@
-// Schema contract: docs/sdd-flag.md §3.1. Add an entity here only after the ERD has it.
-// Timestamps are ISO-8601 text and booleans are 0/1 integers (SDD §3).
 import { sql } from "drizzle-orm";
 import { type AnySQLiteColumn, check, customType, foreignKey, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const isoNow = sql`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`;
 
-// Better Auth passes Date objects; D1 cannot bind them. Store ISO-8601 text so values sort lexically.
 const isoTime = customType<{ data: string; driverData: string }>({
   dataType: () => "text",
   toDriver: (value: string | Date) => (value instanceof Date ? value.toISOString() : value),
@@ -22,7 +19,6 @@ export const user = sqliteTable(
     email: text("email").notNull().unique(),
     emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
     image: text("image"),
-    // Null until onboarding (LOG 2026-10-12); never set from a sign-up payload (AB-12).
     role: text("role", { enum: ROLES }),
     banned: integer("banned", { mode: "boolean" }).notNull().default(false),
     banReason: text("ban_reason"),
@@ -74,7 +70,6 @@ export const account = sqliteTable(
   (t) => [index("account_user_idx").on(t.userId)],
 );
 
-// Better Auth's "verification" model, renamed so it is not confused with freelancer verification.
 export const authVerification = sqliteTable(
   "auth_verification",
   {
@@ -88,7 +83,6 @@ export const authVerification = sqliteTable(
   (t) => [index("auth_verification_identifier_idx").on(t.identifier)],
 );
 
-// cr-001: atomic, durable auth buckets. Keys never contain raw IP/email values.
 export const authRateLimit = sqliteTable(
   "auth_rate_limit",
   {
@@ -102,8 +96,6 @@ export const authRateLimit = sqliteTable(
 export const POLICIES = ["privacy", "terms", "freelancer_ack", "client_consent"] as const;
 export type Policy = (typeof POLICIES)[number];
 
-// Append-only; triggers in drizzle/0001_triggers.sql reject UPDATE and DELETE (SDD §3.3).
-// Application-owned policy authority. Ordinary SQL writes are frozen by migration guards.
 export const currentPolicyVersion = sqliteTable("current_policy_version", {
   policy: text("policy", { enum: POLICIES }).primaryKey(),
   version: text("version").notNull(),
@@ -222,7 +214,6 @@ export const moderationCase = sqliteTable("moderation_case", {
   check("moderation_case_decision_check", sql`${t.decision} IS NULL OR (${t.kind} = 'verification' AND ${t.decision} IN ('approve','reject')) OR (${t.kind} IN ('log','filer_update') AND ${t.decision} IN ('approve','ask_changes','reject')) OR (${t.kind} = 'correction' AND ${t.decision} IN ('uphold','ask_changes','correct','withdraw'))`),
 ]);
 
-// No content/metadata field: audit records ids, server-selected actions and time only.
 export const auditEvent = sqliteTable("audit_event", {
   id: text("id").primaryKey(),
   actorId: text("actor_id").references(() => user.id, { onDelete: "restrict" }),
@@ -300,21 +291,16 @@ export const engagement = sqliteTable(
     index("engagement_freelancer_idx").on(t.freelancerId),
     index("engagement_freelancer_created_idx").on(t.freelancerId, t.createdAt),
     index("engagement_client_idx").on(t.clientId),
-    // Target of the log's composite key, so a log always names its engagement's own parties.
     uniqueIndex("engagement_id_parties_idx").on(t.id, t.freelancerId, t.clientId),
     check("engagement_status_check", sql`${t.status} IN ('invited','accepted','declined','expired','cancelled')`),
   ],
 );
 
-// PRD-F9: one explicit consent event belongs to exactly one engagement.
-// Trigger-enforced account/profile/time consistency and append-only evidence.
 export const engagementConsent = sqliteTable("engagement_consent", {
   engagementId: text("engagement_id").primaryKey().references(() => engagement.id, { onDelete: "restrict" }),
   policyAcceptanceId: text("policy_acceptance_id").notNull().unique().references(() => policyAcceptance.id, { onDelete: "restrict" }),
 });
 
-// PRD-F2/PRD-F3 foundation (SDD §3.1). Submission, moderation, and retention
-// transitions land with their feature handlers and hand-written trigger migrations.
 export const LOG_STATUSES = ["draft", "pending", "ask_changes", "published", "hidden", "withdrawn", "rejected", "expired"] as const;
 export const ANCHOR_KINDS = ["completed", "terminated", "missed_milestone"] as const;
 export const REVISION_KINDS = ["initial", "filer_update", "correction"] as const;
@@ -325,7 +311,6 @@ export const engagementLog = sqliteTable(
   "engagement_log",
   {
     id: text("id").primaryKey(),
-    // Allocated by the future intake handler; UNIQUE prevents reference collisions.
     ref: text("ref").notNull().unique(),
     engagementId: text("engagement_id").notNull().unique().references(() => engagement.id, { onDelete: "restrict" }),
     freelancerId: text("freelancer_id").notNull().references(() => freelancerProfile.userId, { onDelete: "restrict" }),
@@ -334,7 +319,6 @@ export const engagementLog = sqliteTable(
     status: text("status", { enum: LOG_STATUSES }).notNull().default("draft"),
     anchorKind: text("anchor_kind", { enum: ANCHOR_KINDS }).notNull(),
     anchorDate: text("anchor_date").notNull(),
-    // Legacy NULL falls back to createdAt for the approved 30-day idle-draft cleanup.
     draftUpdatedAt: isoTime("draft_updated_at"),
     firstSubmittedAt: isoTime("first_submitted_at"),
     submittedAt: isoTime("submitted_at"),
@@ -392,7 +376,6 @@ export const logRevision = sqliteTable(
     check("log_revision_kind_check", sql`${t.kind} IN ('initial','filer_update','correction')`),
     check("log_revision_rating_check", sql`typeof(${t.rating}) = 'integer' AND ${t.rating} BETWEEN 1 AND 5`),
     check("log_revision_outcome_check", sql`(${t.rating} IN (1,2) AND ${t.outcome} = 'negative') OR (${t.rating} = 3 AND ${t.outcome} = 'mixed') OR (${t.rating} IN (4,5) AND ${t.outcome} = 'positive')`),
-    // IS rejects NULL from an invalid date, which an ordinary CHECK comparison permits.
     check("log_revision_period_start_check", sql`${t.periodStart} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND date(${t.periodStart}, '+0 days') IS ${t.periodStart}`),
     check("log_revision_period_end_check", sql`${t.periodEnd} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND date(${t.periodEnd}, '+0 days') IS ${t.periodEnd}`),
     check("log_revision_period_order_check", sql`${t.periodEnd} >= ${t.periodStart}`),
@@ -456,8 +439,6 @@ export const proofFile = sqliteTable(
   ],
 );
 
-// Pilot lifecycle/review contract: SDD §§3.8–3.12. SQL triggers enforce
-// relationship, actor, immutable-history and exact maintenance authority.
 export const correctionRequest = sqliteTable("correction_request", {
   id: text("id").primaryKey(),
   logId: text("log_id").references(() => engagementLog.id, { onDelete: "restrict" }),

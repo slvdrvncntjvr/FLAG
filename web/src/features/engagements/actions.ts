@@ -90,8 +90,6 @@ export async function cancelEngagement(_previous: EngagementResult | null, data:
   return result;
 }
 
-// The rendered ID is only a target check; the HttpOnly capability and live actor
-// checks remain authoritative. Reject stale forms without clearing a newer cookie.
 async function matchesRenderedInvite(actorId: string, hash: string, data: FormData) {
   const target = idInput.safeParse(data.get("engagementId"));
   if (!target.success || !hash) return false;

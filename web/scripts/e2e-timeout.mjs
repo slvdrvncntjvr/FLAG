@@ -1,5 +1,3 @@
-// Keep the enclosing wait longer than Playwright's finite suite budget so its
-// own result and teardown can complete on slower local hosts.
 export function playwrightChildWait(args) {
   let suiteTimeout = 900_000;
   let supplied = false;

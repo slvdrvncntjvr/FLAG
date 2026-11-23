@@ -11,11 +11,7 @@ import { ANONYMOUS_ROUTES, checkAnonymousRoute } from "./release-routes.mjs";
 import { assertPortFree } from "./e2e-isolation.mjs";
 import { createOwnedDirectory, finishOwnedRun, lifecycleDiagnostic, stopOwnedChildren, trackOwnedChild, unrefFailedOwnedChild, waitOwnedChild } from "./process-lifecycle.mjs";
 
-// Run the deployable artifact in workerd, never `next dev`. All mutable state,
-// config and credentials are synthetic and confined to an OS temporary folder.
 const root = resolve(import.meta.dirname, "..");
-// Existing invocations select dev; --env= explicitly selects the production
-// compatibility settings while runtime bindings remain entirely synthetic.
 const environment = getCliEnvironment() ?? "dev";
 const sourceConfig = unstable_readConfig({ config: join(root, "wrangler.jsonc"), env: environment });
 const worker = resolve(root, sourceConfig.main);
@@ -36,8 +32,6 @@ const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
 Object.assign(env, {
   CI: "true", NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1", WRANGLER_SEND_METRICS: "false",
   CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false", WRANGLER_LOG_PATH: join(temporary, "wrangler.log"),
-  // Wrangler's global auth/config/registry must also stay outside the real
-  // user profile, even though every operation below is explicitly local.
   HOME: temporary, USERPROFILE: temporary, APPDATA: temporary, LOCALAPPDATA: temporary,
   XDG_CONFIG_HOME: temporary, XDG_CACHE_HOME: temporary, XDG_DATA_HOME: temporary,
 });
@@ -78,8 +72,6 @@ try {
   const config = join(temporary, "wrangler.json");
   const persist = join(temporary, "state");
   await writeFile(config, JSON.stringify({
-    // Wrangler joins tsconfig to the config directory; an absolute POSIX path
-    // would be prefixed with this temporary directory instead of replacing it.
     name: "flag-packaged-smoke", main: worker, tsconfig: relative(temporary, join(root, "tsconfig.json")),
     triggers: { crons: ["0 * * * *"] },
     compatibility_date: sourceConfig.compatibility_date, compatibility_flags: sourceConfig.compatibility_flags,
@@ -97,8 +89,6 @@ try {
   while (true) {
     if (spawnError) throw spawnError;
     if (server.exitCode !== null || server.signalCode !== null) throw new Error("Packaged Worker exited during startup");
-    // Readiness is Wrangler's listener signal. Repeated timed-out HTTP probes
-    // can leave cold-start requests running and obscure the first real error.
     if (diagnostics.includes("Ready on http://")) break;
     if (Date.now() > deadline) throw new Error("Packaged Worker startup timed out");
     await new Promise(accept => setTimeout(accept, 250));
@@ -114,9 +104,6 @@ try {
     } catch (error) { failures.push(error.message); }
   }
   assert.deepEqual(failures, [], "Packaged Worker anonymous route checks failed");
-  // Exercise the packaged custom entry point through a real local scheduled
-  // event. A config cron alone does not prove the handler survived bundling.
-  // All D1/R2 state belongs to this disposable local smoke run.
   const scheduled = await fetch(base + "/cdn-cgi/local/scheduled?format=json&cron=0+*+*+*+*", {
     signal: AbortSignal.timeout(20000),
   });
@@ -124,8 +111,6 @@ try {
   const scheduledResult = await scheduled.json();
   assert.equal(scheduledResult.outcome, "ok", "Packaged scheduled handler did not complete");
   console.log(JSON.stringify({ packagedScheduledVerified: true }));
-  // Invalid verification codes touch only synthetic local limiter state. They
-  // never call a send-code endpoint, print a code or create an account.
   const statuses = [];
   const email = `worker-smoke-${randomUUID()}@example.invalid`;
   for (let attempt = 0; attempt < 6; attempt++) {

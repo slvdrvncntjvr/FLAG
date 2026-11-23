@@ -2,8 +2,6 @@ import { applyD1Migrations } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import { expect, it } from "vitest";
 
-// This binding is created only by the local Vitest configuration. It is never
-// the application DB, a Wrangler resource, or a caller-selected database.
 const db = env.MIGRATION_DB;
 const stamp = "2026-10-01T00:00:00.000Z";
 const inspected = "2026-10-02T00:00:00.000Z";
@@ -24,8 +22,6 @@ async function snapshot() {
 async function healthy() {
   expect((await db.prepare("PRAGMA foreign_keys").first())?.foreign_keys).toBe(1);
   expect((await db.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
-  // D1 rejects integrity_check (SQLITE_AUTH). Exact row/schema comparison and
-  // FK checks here complement the separate native SQLite integrity rehearsal.
 }
 
 async function seed() {
@@ -49,23 +45,17 @@ async function seed() {
 }
 
 it("preserves populated D1 evidence, rolls back unsafe 0005/invalid 0006, and backfills valid 0006 without invented history", async () => {
-  // This regression owns the published 0000–0006 boundary; additive later
-  // migrations have dedicated preservation tests with their own row shapes.
   const migrations = env.TEST_MIGRATIONS.filter(migration => migration.name <= "0006_verification_review.sql");
   expect(migrations.map(migration => migration.name)).toContain("0006_verification_review.sql");
   await applyD1Migrations(db, migrations.slice(0, 5));
   await seed();
   await healthy();
 
-  // The published migration cannot disable FKs inside a D1 batch. Its unsafe
-  // populated-table rebuild must fail atomically, including its ledger entry.
   const populated = await snapshot();
   await expect(applyD1Migrations(db, migrations.slice(0, 6))).rejects.toThrow(/FOREIGN KEY/i);
   expect(await snapshot()).toEqual(populated);
   await healthy();
 
-  // Only this test's synthetic log graph is removed to model today's empty-log
-  // production precondition. This is not a remediation procedure for real data.
   await db.batch([
     db.prepare("DELETE FROM proof_file WHERE id='proof'"),
     db.prepare("UPDATE engagement_log SET current_revision_id=NULL WHERE id='log'"),
@@ -80,14 +70,11 @@ it("preserves populated D1 evidence, rolls back unsafe 0005/invalid 0006, and ba
   }
   await healthy();
 
-  // Legacy rows admitted by 0002 can violate the new evidence contract. Abort
-  // rather than erase them, fabricate reasons, or record a partial migration.
   const invalidLegacy = await snapshot();
   await expect(applyD1Migrations(db, migrations)).rejects.toThrow(/CHECK constraint/i);
   expect(await snapshot()).toEqual(invalidLegacy);
   await healthy();
 
-  // Explicit synthetic fixture remediation, not an application migration rule.
   await db.prepare("UPDATE verification_case SET reason='Synthetic corrected review grounds' WHERE id='case-invalid'").run();
   const before0006 = await snapshot();
   await applyD1Migrations(db, migrations);

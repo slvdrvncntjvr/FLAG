@@ -8,7 +8,6 @@ import { contentDeadlineCtes, contentDeadlineSql } from "./content-deadlines";
 import type { ProofRecord } from "@/features/logs/proof-storage";
 
 export const intakeNow = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
-// Gates are repeated INSIDE conditional writes; a stale session/view model is not authority.
 export function filerGate(actorId: string) {
   const actor = engagementActor("freelancer", actorId);
   return {
@@ -27,8 +26,6 @@ export function editableDraftGate(actorId: string) {
     args: [actorId, ...actor.args],
   };
 }
-// A zero-row conditional write must roll back all preceding statements in a batch.
-// json() on invalid JSON raises in SQLite/D1; unlike an ignored UPDATE it cannot commit partial work.
 export function assertChanged(db: Db) {
   return db.$client.prepare("SELECT CASE WHEN changes()=1 THEN 1 ELSE json('private-intake-conflict') END AS applied");
 }
@@ -49,16 +46,12 @@ async function reader(db: Db, actorId: string | null) {
   const viewer = await loadViewer(db, actorId);
   return viewer && !viewer.banned && isOnboarded(viewer) ? viewer : null;
 }
-// The retention views account for shared evidence and independent proposal clocks.
-// Keep legacy deployed-schema reads compatible; lifecycle writers never use this fallback.
 export async function contentWithinDeadline(db: Db, kind: "revision" | "proof", id: string): Promise<boolean> {
   if (!await hasLifecycleSchema(db)) return true;
   const table = kind === "revision" ? "log_revision" : "proof_file";
   const alias = kind === "revision" ? "r" : "p";
   return !!await db.$client.prepare(`WITH ${contentDeadlineCtes} SELECT 1 FROM ${table} ${alias} WHERE ${alias}.id=? AND ${contentDeadlineSql(kind, alias)}`).bind(id).first();
 }
-// Both page reads and proof delivery select the same authorized log revision.
-// Fixed SQL aliases only; every actor/object value remains a bound parameter.
 const privateLogJoins = `JOIN engagement e ON e.id=l.engagement_id
     JOIN client_profile cp ON cp.id=l.client_id
     JOIN log_revision r ON r.log_id=l.id AND r.id=COALESCE(l.current_revision_id,(SELECT newest.id FROM log_revision newest WHERE newest.log_id=l.id AND newest.kind='initial' ORDER BY newest.rev_no DESC LIMIT 1))`;
@@ -71,8 +64,6 @@ export async function loadReadableProof(db: Db, actorId: string, proofId: string
   const viewer = await reader(db, actorId);
   if (!viewer) return null;
   const pilot = await hasLifecycleSchema(db);
-  // Authorize bytes without constructing unrelated page tags, evidence lists
-  // or review history. The same query checks the selected revision AND proof.
   return db.$client.prepare(`${pilot ? `WITH ${contentDeadlineCtes}` : ""}
     SELECT p.* FROM proof_file p JOIN engagement_log l ON l.id=p.log_id ${privateLogJoins}
     WHERE p.id=? AND p.status IN ('uploading','attached') AND ${privateLogPredicate(pilot)}
@@ -83,8 +74,6 @@ export async function loadPrivateLog(db: Db, actorId: string | null, logId: stri
   if (!idInput.safeParse(logId).success) return null;
   const viewer = await reader(db, actorId);
   if (!viewer) return null;
-  // Existing private reads must survive a disabled-intake deployment at 0008/0009.
-  // Probe schema capability on this D1 binding; do not cache across databases/migrations.
   const pilot = await hasLifecycleSchema(db);
   const row = await db.$client.prepare(`${pilot ? `WITH ${contentDeadlineCtes}` : ""} SELECT l.id,l.ref,l.engagement_id AS engagementId,e.title,l.status,
     l.anchor_kind AS anchorKind,l.anchor_date AS anchorDate,l.first_submitted_at AS firstSubmittedAt,l.submitted_at AS submittedAt,
@@ -110,7 +99,6 @@ export async function loadPrivateLog(db: Db, actorId: string | null, logId: stri
 }
 export async function loadLogForEngagement(db: Db, actorId: string | null, engagementId: string): Promise<IntakeEngagement | null> {
   if (!idInput.safeParse(engagementId).success || !actorId) return null;
-  // Legacy capability affects this read only. All mutators retain the full live SQL gate.
   const pilot = await hasLifecycleSchema(db);
   const gate = pilot ? filerGate(actorId) : {
     text: "EXISTS(SELECT 1 FROM freelancer_profile fp WHERE fp.user_id=? AND fp.status='verified')",

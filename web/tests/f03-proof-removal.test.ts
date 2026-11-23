@@ -19,7 +19,6 @@ function deferred() {
 function withClient(db: Db, client: D1Database): Db {
   return new Proxy(db, { get(target, key, receiver) { return key === "$client" ? client : Reflect.get(target, key, receiver); } });
 }
-// Pause AFTER the final successful read, leaving the actual mutation and R2 calls real.
 function afterEditableRead(db: Db) {
   const reached = deferred(), resume = deferred();
   const client = new Proxy(env.DB, { get(target, key) {
@@ -74,7 +73,6 @@ describe("atomic explicit proof removal", () => {
       if (kind === "ban") await env.DB.prepare("UPDATE user SET banned=1 WHERE id=?").bind(f.freelancerId).run();
       if (kind === "role") await env.DB.prepare("UPDATE user SET role='client' WHERE id=?").bind(f.freelancerId).run();
       if (kind === "verification") await env.DB.prepare("UPDATE freelancer_profile SET status='suspended' WHERE user_id=?").bind(f.freelancerId).run();
-      // A policy rollout invalidates old receipts; immutable acceptance history is preserved.
       if (policy) Reflect.set(POLICY_VERSIONS, policy, "2099-01-01");
       barrier.resume();
       expect.soft(await pending).toMatchObject({ ok: false });
@@ -120,8 +118,6 @@ describe("atomic explicit proof removal", () => {
       if (key === "batch") return (statements: D1PreparedStatement[]) => {
         expect(statements).toHaveLength(4);
         injected = true;
-        // The first mutation must execute in either case, and the claim must
-        // execute before the injected final error in the second case.
         const changed = [...statements];
         if (mode === "zero-row claim") changed[2] = target.prepare("UPDATE proof_file SET status=status WHERE id='synthetic-missing-proof'");
         else changed.push(target.prepare("SELECT json('synthetic-removal-rollback')"));
@@ -259,7 +255,6 @@ describe("atomic explicit proof removal", () => {
     expect(await proofState(id)).toEqual({ status: "pending_purge", purge_attempts: 1, purge_inflight: 0 });
     expect(await env.PROOFS.head(`logs/${f.logId}/${id}`)).not.toBeNull();
     await env.DB.prepare("UPDATE user SET banned=1 WHERE id=?").bind(f.freelancerId).run();
-    // Internal retry succeeds even though explicit actions are no longer authorized.
     await runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });
     expect(await proofState(id)).toEqual({ status: "purged", purge_attempts: 2, purge_inflight: 0 });
     expect(await activity(f)).toBe(acceptedAt);
@@ -293,7 +288,7 @@ describe("atomic explicit proof removal", () => {
         const wrap = (statement: D1PreparedStatement): D1PreparedStatement => new Proxy(statement, { get(stmt, method) {
           if (method === "bind") return (...args: Parameters<D1PreparedStatement["bind"]>) => wrap(stmt.bind(...args));
           if (method === "first" && sql.startsWith("UPDATE proof_file SET purge_attempts=")) return async () => {
-            await stmt.first(); // Persist ownership, then lose the invocation's result.
+            await stmt.first();
             throw new Error("synthetic owner crashed after D1 commit");
           };
           const value = Reflect.get(stmt, method); return typeof value === "function" ? value.bind(stmt) : value;
@@ -319,8 +314,6 @@ describe("atomic explicit proof removal", () => {
     await ageActivity(f);
     expect(await removeDraftProof(f.db, env.PROOFS, f.freelancerId, id)).toMatchObject({ ok: true });
     const acceptedAt = (await activity(f))!;
-    // Move the synthetic activity against the real SQL clock, with all guards
-    // restored before cleanup. No production clock/authorization is bypassed.
     async function cleanupAt(days: number) {
       if (days >= 30) await ageSyntheticDrafts([f.logId], new Date(Date.now() - days * 86400000).toISOString());
       return runPrivateIntakeCleanup(f.db, env.PROOFS, { limit: 25 });

@@ -4,15 +4,12 @@ import { CLIENT_SEARCH_LIMIT, RECORD_PAGE_SIZE, type ClientMatch, type ClientRec
 import { engagementActor } from "./engagements";
 import { contentDeadlineCtes, contentDeadlineSql } from "./content-deadlines";
 
-// Fixed identifiers only. julianday alone accepts bare numbers and normalizes
-// impossible calendar dates, so also require the project's ISO calendar form.
 function timestampSql(column: "l.published_at" | "l.expires_at" | "r.decided_at") {
   return `(${column} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T*'
     AND date(substr(${column},1,10),'+0 days') IS substr(${column},1,10)
     AND julianday(${column}) IS NOT NULL)`;
 }
 
-// Fixed aliases l/r; shared boundary for lifecycle/publication integration.
 export const eligibleRecordSql = `(l.status='published' AND julianday(l.published_at) IS NOT NULL
     AND ${timestampSql("l.published_at")} AND ${timestampSql("l.expires_at")} AND ${timestampSql("r.decided_at")})
   AND (julianday(l.published_at)<=julianday('now')
@@ -35,8 +32,6 @@ export const eligibleRecordSql = `(l.status='published' AND julianday(l.publishe
         OR NOT EXISTS(SELECT 1 FROM proof_review pr WHERE pr.round_id=rr.id AND pr.proof_id=p.id
           AND pr.proof_sha256=p.sha256 AND pr.verdict='accepted'))))`;
 
-// Every read repeats the live role, suspension and current-policy predicates in
-// SQL. A page guard or a previously loaded Viewer is not data authorization.
 export async function searchClientNames(db: Db, actorId: string | null, input: unknown, after: string | null = null): Promise<ClientMatch[]> {
   if (!actorId || typeof input !== "string") return [];
   if (after !== null && !idInput.safeParse(after).success) return [];
@@ -64,10 +59,6 @@ export async function loadOwnClientRecordId(db: Db, actorId: string | null): Pro
   return row?.id ?? null;
 }
 
-// A single statement gives header, complete aggregates and the requested log
-// page one coherent snapshot. Only allowlisted approved content leaves D1.
-// Uses the reviewed lifecycle schema and approval receipts; preserved legacy
-// rows with no genuine review receipts remain ineligible until actually reviewed.
 export async function loadClientRecord(db: Db, actorId: string | null, clientId: string, requestedPage = 1): Promise<ClientRecord | null> {
   if (!actorId || !idInput.safeParse(clientId).success) return null;
   const page = Number.isSafeInteger(requestedPage) && requestedPage >= 1 && requestedPage <= 99999 ? requestedPage : 1;

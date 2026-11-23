@@ -24,7 +24,6 @@ export async function removeProposalEvidence(db: Db, bucket: R2Bucket, actor: st
       : db.$client.prepare(`UPDATE log_revision SET draft_updated_at=${intakeNow} WHERE id=? AND state='draft' AND decision IS NULL AND submitted_by=? AND EXISTS(SELECT 1 FROM engagement_log l WHERE l.id=log_revision.log_id AND ${gate.text})`).bind(draft!.id, actor, ...gate.args);
     await db.$client.batch([db.$client.prepare(`UPDATE proof_file SET status=status WHERE id=? AND uploaded_by=? AND ${scope}`).bind(proofId, actor, ...args), assertChanged(db), activity, assertChanged(db)]);
     if (p.status === "attached") {
-      // A revised proposal may deselect reused evidence; its original binding/bytes stay frozen.
       if (correction || !draft) return failure("conflict");
       await db.$client.batch([db.$client.prepare(`DELETE FROM revision_proof WHERE revision_id=? AND proof_id=? AND EXISTS(SELECT 1 FROM engagement_log l WHERE l.id=? AND ${gate.text})`)
         .bind(draft.id, proofId, logId, ...gate.args), assertChanged(db)]);

@@ -15,7 +15,6 @@ export async function privacyAction(_previous: ActionResult | null, form: FormDa
   if (!viewer || viewer.role !== "admin") return failure("forbidden");
   const db = await getDb(); if (!await currentAdmin(db, viewer.id)) return failure("forbidden");
   const value = (key: string) => String(form.get(key) ?? "");
-  // The staff fields are explicitly UTC, independent of the host's timezone.
   const utc = (key: string) => {
     const input = value(key);
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(input)) throw new Error("invalid_utc_field");
@@ -46,7 +45,6 @@ export async function privacyAction(_previous: ActionResult | null, form: FormDa
       case "hold": result = await placeRetentionHold(db, viewer.id, { targetType: value("targetType"), targetId: value("targetId"), kind: value("kind"), reason: value("reason"), reviewDueAt: utc("reviewDueAt"), expiresAt: utc("expiresAt") }); break;
       case "releaseHold": result = await releaseRetentionHold(db, viewer.id, value("holdId")); break;
       case "retry": {
-        // Explicit staff retry never takes over an unresolved claimed invocation.
         const r = await runMaintenance(env); result = { ok: true, message: `${r.completed} completed, ${r.blocked} blocked, ${r.remaining} outstanding.` }; break;
       }
       case "backup": {

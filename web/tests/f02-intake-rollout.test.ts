@@ -16,13 +16,12 @@ import Engagements from "@/app/(app)/engagements/page";
 import Home from "@/app/(app)/home/page";
 import { intakeFixture, pdfBytes, uploadRequest } from "./private-intake-fixtures";
 
-// Only framework/session entry points are replaced. Domain, queries, migrations
-// and storage below execute against actual isolated Workers D1/R2 bindings.
 const mocks = vi.hoisted(() => ({ context: vi.fn(), viewer: vi.fn(), getDb: vi.fn(), revalidate: vi.fn() }));
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: mocks.context }));
 vi.mock("@/server/auth/guards", () => ({ getViewer: mocks.viewer, requireVerifiedFreelancer: mocks.viewer, viewerOrRedirect: mocks.viewer }));
 vi.mock("@/server/db", async original => ({ ...await original<typeof import("@/server/db")>(), getDb: mocks.getDb }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
+vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("next/navigation", () => ({
   notFound: () => { throw new Error("not-found"); },
   redirect: (path: string) => { throw new Error(`redirect:${path}`); },
@@ -30,8 +29,6 @@ vi.mock("next/navigation", () => ({
 vi.mock("next/link", () => ({ default: ({ href, children }: PropsWithChildren<{ href: string }>) => createElement("a", { href }, children) }));
 vi.mock("@/features/logs/forms", async original => ({
   ...await original<typeof import("@/features/logs/forms")>(),
-  // Next's client-action serialization is outside this composition test. Keep
-  // the actual ProofList; stub only the interactive editing component boundary.
   DraftWorkspace: () => createElement("form", null, "Draft editing workspace"),
   DraftForm: () => createElement("form", null, "New draft form"),
 }));
@@ -184,8 +181,6 @@ describe("disabled private intake on the actual 0008 schema", () => {
     const home = renderToStaticMarkup(await Home());
     expect(home).toContain('href="/engagements"'); expect(home).toContain('href="/verification"');
     expect(home).not.toContain("create or view a private engagement log");
-    // Positive control: the exact same accepted relationship is eligible when
-    // the server explicitly enables it; no 0009 write is performed here.
     setting("true");
     expect(renderToStaticMarkup(await Engagements({ searchParams: Promise.resolve({}) }))).toContain('href="/engagements/no-log/log"');
     expect(renderToStaticMarkup(await EngagementLog({ params: Promise.resolve({ id: "no-log" }) }))).toContain("New draft form");

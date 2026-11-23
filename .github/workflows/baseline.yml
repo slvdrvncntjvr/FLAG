@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Retain full project history and tags.
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -38,11 +38,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      # The canonical engine is private; public CI must remain credential-free.
-      - name: Notice - canonical SPINE validation is a LOCAL release gate
-        run: |
-          echo '::notice::Canonical SPINE 0.3.0 documentation and checkpoint validation requires the owner-installed pinned engine and is a LOCAL release gate. Hosted CI does not run or claim these checks passed. Locally run: python scripts/spine.py check docs/ and python scripts/spine.py checkpoint verify.'
-      - name: Pinned SPINE runner tests
+      - name: tests
         working-directory: .
         run: python -m unittest discover -s scripts -p 'test_*.py'
       - name: Install exact lockfile
@@ -68,8 +64,6 @@ jobs:
       - name: Configure bounded Ubuntu package downloads
         timeout-minutes: 1
         run: |
-          # The previous PR run stalled on the Azure mirror until the job expired.
-          # Use official HTTPS mirrors on this disposable hosted runner only.
           if [ -f /etc/apt/apt-mirrors.txt ]; then
             printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           fi
@@ -113,9 +107,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: web/.nvmrc
-      # Audit the complete locked graph, including build/test dependencies.
-      # High/critical findings fail this job; lower findings remain visible in its log.
-      # No audit fix, omission, severity suppression, or continue-on-error exception.
       - name: Reject high or critical dependency advisories
         run: npm audit --audit-level=high
       - name: Audit production dependency graph

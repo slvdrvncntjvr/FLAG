@@ -35,7 +35,6 @@ async function syntheticVerifiedFreelancer(email: string) {
   if (!basename(temp).startsWith("flag-e2e-")) throw new Error("Isolated harness path required");
   const config = JSON.parse(await readFile(join(temp, "app", "wrangler.json"), "utf8"));
   if (config.name !== "flag-local-e2e" || config.d1_databases?.[0]?.database_name !== "flag-e2e") throw new Error("Synthetic local database required");
-  // Synthetic status fixture only: this does not represent an actual ID inspection.
   const result = spawnSync(process.execPath, [resolve("node_modules/wrangler/bin/wrangler.js"), "d1", "execute", "flag-e2e", "--local", "--persist-to", join(temp, "state"), "--command",
     `INSERT INTO freelancer_profile(user_id,display_name,status) SELECT id,'Synthetic Freelancer','verified' FROM user WHERE email='${email}'`],
   { cwd: join(temp, "app"), encoding: "utf8", timeout: 60_000, windowsHide: true });
@@ -136,7 +135,6 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
         await expect(otherTab).toHaveURL(/\/invite\/continue$/);
         await otherTab.getByLabel("Display name", { exact: true }).fill("Profile B");
         await otherTab.getByLabel("City", { exact: true }).fill("Makati");
-        // Label text includes the nested select's option text in Playwright.
         const profileType = otherTab.getByLabel(/^Profile type/);
         await profileType.selectOption("business");
         await expect(profileType).toHaveValue("business");
@@ -148,8 +146,6 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
         await otherTab.getByRole("button", { name: "Accept engagement", exact: true }).click();
         await expect(otherTab).toHaveURL(/\/engagements\?response=accepted$/);
         console.info("[F9] profile race: B accepted; restore A capability");
-        // Restore A's cookie through the real continuation flow while keeping
-        // A's original first-profile form and bound expectation intact.
         await otherTab.goto(acceptedLink);
         await otherTab.getByRole("button", { name: "Continue to sign in or respond" }).click();
         await expect(otherTab).toHaveURL(/\/invite\/continue$/);
@@ -159,8 +155,6 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
         await expect(client.getByLabel("City", { exact: true })).toHaveValue("Quezon City");
         await client.getByRole("button", { name: "Accept engagement", exact: true }).click();
         await expect(client.locator('form [role="alert"]')).toContainText("Reload and try again");
-        // A resolved React form action resets uncontrolled values. The rejected
-        // form must still show profile creation, without silently adopting B.
         await expect(client.getByLabel("Display name", { exact: true })).toBeVisible();
         await expect(client.getByLabel("City", { exact: true })).toBeVisible();
         await expect(client.getByText("Profile B", { exact: true })).toHaveCount(0);
@@ -219,8 +213,6 @@ test("synthetic invite sign-up, explicit acceptance, decline and single-use repl
         await client.getByRole("button", { name: "Decline invitation", exact: true }).click();
         await expect(client.locator('form [role="alert"]')).toHaveCount(2);
         expect((await clientContext.cookies()).find(c => c.name === "flag-pending-invite")!.value).toBe(cookieB);
-        // Both links remain live after both stale responses; B can still be
-        // accepted from its matching tab using the preserved capability.
         await page.reload();
         for (const title of ["Cross-tab invitation A", "Cross-tab invitation B"]) {
           const card = page.getByRole("heading", { name: title, exact: true }).locator("..");

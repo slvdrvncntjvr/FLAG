@@ -98,7 +98,7 @@ describe("actual private client correction", () => {
     expect((await uploadProposalProof(f.db, env.PROOFS, f.clientUserId, { requestId: f.requestId }, uploadRequest(new TextEncoder().encode("%PDF-1.7\nNew factual counterproof replaces the disputed invoice item.\n%%EOF")))).status).toBe(201);
     expect(await submitCorrection(f.db, env.PROOFS, f.clientUserId, f.requestId)).toMatchObject({ ok: true });
     const next = correctionFields(await reviewInput(f, f.reviewer, f.correctionCaseId));
-    expect(next.proofVerdicts).toHaveLength(6); // One filer proof plus exactly five selected client proofs.
+    expect(next.proofVerdicts).toHaveLength(6);
     expect(next.proofVerdicts.some(p => p.proofId === originalIds[0])).toBe(false);
     expect(await decideCorrection(f.db, env.PROOFS, f.reviewer, { ...next, requestId: f.requestId, decision: "uphold" }, reviewSecret)).toMatchObject({ ok: true });
     const after = await env.DB.prepare("SELECT new_evidence_note,submitted_at FROM correction_request WHERE id=?").bind(f.requestId).first();
@@ -166,8 +166,6 @@ describe("actual private client correction", () => {
     if (!guard) throw new Error("Publication guard missing");
     const oldPublication = new Date(Date.UTC(new Date().getUTCFullYear() - 1, 0, 1, 12)).toISOString();
     const deadline = addTwelveMonthsUtc(oldPublication);
-    // Set up an elapsed clock on a genuinely reviewed publication, restoring the
-    // exact production trigger before any decision or restoration is attempted.
     await expect(env.DB.prepare("UPDATE engagement_log SET published_at=?,expires_at=? WHERE id=?").bind(oldPublication, deadline, f.logId).run()).rejects.toThrow();
     await env.DB.prepare("DROP TRIGGER pilot_log_update").run();
     try { await env.DB.prepare("UPDATE engagement_log SET published_at=?,expires_at=? WHERE id=?").bind(oldPublication, deadline, f.logId).run(); }
@@ -177,7 +175,6 @@ describe("actual private client correction", () => {
     expect(await publication(f.logId)).toEqual(before);
     expect((await env.DB.prepare("SELECT id FROM log_revision WHERE log_id=? AND kind='correction'").bind(f.logId).all()).results).toHaveLength(0);
     expect((await env.DB.prepare("SELECT id FROM review_round WHERE case_id=?").bind(f.correctionCaseId).all()).results).toHaveLength(0);
-    // A retained private case may close, but an uphold never renews visibility.
     expect(await decideCorrection(f.db, env.PROOFS, f.reviewer, { ...input, requestId: f.requestId, decision: "uphold" }, reviewSecret)).toMatchObject({ ok: true });
     expect(await publication(f.logId)).toEqual(before);
     expect((await env.DB.prepare("SELECT restored_at FROM correction_request WHERE id=?").bind(f.requestId).first())!.restored_at).toBeNull();

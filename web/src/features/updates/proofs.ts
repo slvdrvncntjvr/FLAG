@@ -63,8 +63,6 @@ export async function uploadProposalProof(db: Db, bucket: R2Bucket, actorId: str
     }
     return Response.json({ ok: true, data: { proofId } }, { status: 201, headers });
   } catch {
-    // The put has settled; compensate only this exact unsubmitted, unshared upload.
-    // Failed deletion keeps its fenced tracking row for a bounded retry.
     if (!revision) await db.$client.prepare(`UPDATE correction_request SET active_proof_ids=(SELECT json_group_array(value) FROM json_each(active_proof_ids) WHERE value!=?),updated_at=${intakeNow}
       WHERE id=? AND requested_by=? AND status IN ('draft','ask_changes') AND ${scope}
       AND EXISTS(SELECT 1 FROM proof_file p WHERE p.id=? AND p.correction_request_id=correction_request.id AND p.status='uploading')`)

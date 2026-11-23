@@ -2,8 +2,6 @@ import { env } from "cloudflare:workers";
 import { expect } from "vitest";
 import { addActor } from "./private-intake-fixtures";
 
-// Only local isolated synthetic fixtures may travel in time. Restore the exact
-// production guard before invoking any behavior under test.
 export async function ageSyntheticDrafts(ids: string[], value: string) {
   const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_log_update'").first<{ sql: string }>();
   if (!guard) throw new Error("Synthetic clock requires the production log guard");

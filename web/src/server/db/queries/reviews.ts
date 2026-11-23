@@ -4,7 +4,6 @@ import { moderatorPredicate, nowSql } from "./moderation";
 import { contentWithinDeadline } from "./logs";
 import { contentDeadlineCtes, contentDeadlineSql } from "./content-deadlines";
 
-// Alias c is always the exact moderation case being changed. Values are bound.
 export function caseGate(actorId: string) {
   return {
     text: `c.kind IN ('log','filer_update','correction') AND ${moderatorPredicate.text}

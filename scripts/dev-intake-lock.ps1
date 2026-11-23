@@ -3,9 +3,6 @@ param(
  [Parameter(Mandatory=$true)][ValidateSet('open','restore','close','test')][string]$Role,
  [Parameter(Mandatory=$true)][string]$ReceiptPath
 )
-# One OS-owned mutex for every supported dev settings writer. A separate lease
-# process survives owner loss, observes a quiet period, then releases. If this
-# lease itself dies, the OS marks the mutex abandoned for the next lease.
 $ErrorActionPreference='Stop'
 $taskReceipt=[ordered]@{at=[DateTime]::UtcNow.ToString('o');role=$Role;ownerPid=$OwnerProcessId;leasePid=$PID;acquired=$false;abandoned=$false;ownerDied=$false;ownerWallLimitReached=$false;recoveryQuietSeconds=0;released=$false;result='failed'}
 $taskMutex=$null
@@ -21,7 +18,6 @@ function Write-WriterMarker([string]$State){
 }
 try{
  if(Test-Path -LiteralPath $ReceiptPath){throw 'Preserve existing lock receipt'}
- # Compile before acquiring: compiler startup cannot consume lock ownership.
  Add-Type -TypeDefinition 'public static class FlagDevLeaseInput { public static System.Threading.Tasks.Task<string> Read() { return System.Threading.Tasks.Task.Run(() => System.Console.In.ReadLine()); } }'
  $taskOwner=[Diagnostics.Process]::GetProcessById($OwnerProcessId)
  if($taskOwner.HasExited){throw 'Writer owner already exited'}
@@ -29,8 +25,6 @@ try{
  try{$taskOwns=$taskMutex.WaitOne([TimeSpan]::FromSeconds(180))}catch [Threading.AbandonedMutexException]{$taskOwns=$true;$taskReceipt.abandoned=$true}
  if(-not $taskOwns){throw 'Writer lock wait budget exhausted'}
  $taskReceipt.acquired=$true
- # A killed lease can destroy the last kernel handle before another waiter
- # exists. The durable marker detects that case even without OS abandonment.
  $taskUnclean=$false
  if(Test-Path -LiteralPath $taskMarker){$taskPrevious=Get-Content -LiteralPath $taskMarker -Raw|ConvertFrom-Json;if($taskPrevious.state -notin @('active','released')){throw 'Unknown writer marker; inspect before mutation'};$taskUnclean=$taskPrevious.state -eq 'active'}
  $taskReceipt.uncleanOwnerMarker=$taskUnclean
@@ -41,8 +35,6 @@ try{
  $taskReceipt.acquiredAt=[DateTime]::UtcNow.ToString('o')
  [Console]::Out.WriteLine('{"event":"acquired"}')
  [Console]::Out.Flush()
- # Console's synchronized TextReader may implement ReadLineAsync synchronously;
- # use a real CLR task so stdin cannot disable the owner/wall-time watchdog.
  $taskReleaseLine=[FlagDevLeaseInput]::Read()
  $taskUntil=[DateTime]::UtcNow.AddSeconds($taskWallSeconds)
  $taskNormalRelease=$false

@@ -1,7 +1,5 @@
 const HOUR_MS = 60 * 60 * 1000;
 
-// Both timestamps come from the queue query, including SQLite's current time.
-// A browser clock must never decide whether a request is overdue.
 export function verificationQueueAge(createdAt: string, serverNow: string) {
   const submitted = Date.parse(createdAt);
   const now = Date.parse(serverNow);

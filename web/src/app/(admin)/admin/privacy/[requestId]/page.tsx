@@ -5,7 +5,7 @@ import { currentAdmin, getPrivacyRequest } from "@/server/db/queries/privacy";
 import { PrivacyForm } from "@/features/privacy/forms";
 import { HOLD_TARGET_TYPES } from "@/server/db/schema";
 
-const field = "block w-full rounded border border-rule bg-white p-2";
+const field = "register-field block w-full";
 export default async function PrivacyDetail({ params }: { params: Promise<{ requestId: string }> }) {
   const { requestId } = await params, viewer = await requireOnboardedViewer(), db = await getDb();
   if (!await currentAdmin(db, viewer.id)) notFound();
@@ -19,7 +19,13 @@ export default async function PrivacyDetail({ params }: { params: Promise<{ requ
   const closed = !!p.closed_at;
   const current = new Date();
   const dt = current.toISOString().slice(0, 16), next = new Date(current.getTime() + 30 * 86400000).toISOString().slice(0, 16);
-  return <><h1 className="font-serif text-3xl">{p.kind} request</h1><p>{p.id} · {p.status} · received {p.received_at} · due {p.due_at}</p><p>Subject: {p.subject_user_id ?? "Detached erased subject"} · responsible: {p.responsible_id ?? "Unassigned"}</p>
+  return <>
+    <h1 className="font-serif text-2xl">{p.kind} request</h1>
+    <div className="register-panel mt-4 space-y-2 text-sm">
+      <p className="font-mono">{p.id} · {p.status}</p>
+      <p className="text-muted">Received {p.received_at} · due {p.due_at}</p>
+      <p>Subject: {p.subject_user_id ?? "Detached erased subject"} · responsible: {p.responsible_id ?? "Unassigned"}</p>
+    </div>
     {p.outcome && <p>Recorded outcome: {p.outcome}</p>}
     {!closed && <>
       <PrivacyForm operation="assign" requestId={p.id} label="Assign processor"><label>Current admin<select name="responsibleId" className={field} defaultValue={p.responsible_id ?? ""}>{admins.results.map(a => <option key={a.id}>{a.id}</option>)}</select></label></PrivacyForm>
@@ -42,7 +48,7 @@ export default async function PrivacyDetail({ params }: { params: Promise<{ requ
       <PrivacyForm operation="export" requestId={p.id} label="Prepare assessed metadata export" />
       <PrivacyForm operation="outcome" requestId={p.id} label="Record truthful outcome"><label>Outcome<select name="status" className={field}><option value="deferred">Deferred — retained work remains</option><option value="denied">Denied — explain why</option><option value="completed">Completed — all required actions verified</option></select></label><label>Reason / completed and remaining work<textarea name="reason" required maxLength={500} className={field} /></label>{["export", "closure"].includes(p.kind) && <><label><input name="deliveryConfirmed" type="checkbox" /> If completing an export, I verified that the subject received the data through the assessed channel; token use alone is insufficient.</label><label>Actual receipt evidence reference<input name="deliveryReceiptReference" maxLength={100} pattern="[A-Za-z0-9_-]+" className={field} /></label></>}<label>Finite follow-up for deferred/denied work (UTC)<input name="followUpAt" type="datetime-local" className={field} /></label></PrivacyForm>
     </>}
-    {p.assessment && <details><summary>Recorded assessment</summary><pre className="whitespace-pre-wrap break-words">{JSON.stringify(JSON.parse(p.assessment), null, 2)}</pre></details>}
+    {p.assessment && <details className="register-panel my-5 text-sm"><summary className="cursor-pointer font-semibold">Recorded assessment</summary><pre className="mt-4 whitespace-pre-wrap break-words">{JSON.stringify(JSON.parse(p.assessment), null, 2)}</pre></details>}
     {p.assessment && ["assessing", "executing", "deferred"].includes(p.status) && <PrivacyForm operation="execute" requestId={p.id} label="Execute due assessed actions" />}
     {(!closed || p.status === "deferred") && <PrivacyForm operation="backup" requestId={p.id} label="Record a known backup disposition"><label>Backup inventory reference<input name="backupRef" required pattern="[A-Za-z0-9_-]+" className={field} /></label><label>Exact target category<input name="targetType" required className={field} /></label><label>Exact target ID<input name="targetId" required className={field} /></label><label>Action<select name="action" className={field}><option value="erase">Erase</option><option value="expire">Finite expiry</option><option value="restore_filter">Restore filter (also needs physical erase/expiry)</option></select></label><label>Assessed basis<input name="reason" required maxLength={500} className={field} /></label><label>Due (UTC)<input name="dueAt" type="datetime-local" required className={field} /></label></PrivacyForm>}
     <h2 className="text-xl">Backup evidence</h2>{backups.results.map((b, i) => <div key={i}><p>{String(b.backup_ref)} · {String(b.target_type)} · {String(b.target_id)} · {String(b.action)} · {String(b.status)} · due {String(b.due_at)}</p>{(!closed || p.status === "deferred") && b.status === "pending" && <PrivacyForm operation="verifyBackup" requestId={p.id} label="Record actual verification"><input name="backupId" type="hidden" value={String(b.id)} /><label>Evidence inventory reference<input name="evidenceReference" required className={field} /></label><label><input name="confirmed" type="checkbox" required /> I verified this copy action in the controlled backup inventory; a restore filter alone is not physical erasure.</label></PrivacyForm>}</div>)}

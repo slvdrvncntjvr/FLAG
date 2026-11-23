@@ -59,8 +59,6 @@ describe("actual log review and publication", () => {
     const firstSubmittedAt = new Date(Date.now() - 19 * 86400000).toISOString();
     const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_log_update'").first<{ sql: string }>();
     if (!guard) throw new Error("Original clock guard missing");
-    // Advance the fixture's elapsed time after a real complete submission; all
-    // original-clock guards are restored before review and resubmission actions.
     await expect(env.DB.prepare("UPDATE engagement_log SET anchor_date=?,first_submitted_at=? WHERE id=?").bind(anchorDate, firstSubmittedAt, f.logId).run()).rejects.toThrow();
     await env.DB.prepare("DROP TRIGGER pilot_log_update").run();
     try { await env.DB.prepare("UPDATE engagement_log SET anchor_date=?,first_submitted_at=? WHERE id=?").bind(anchorDate, firstSubmittedAt, f.logId).run(); }
@@ -87,7 +85,6 @@ describe("actual log review and publication", () => {
     if (kind === "revision") input.expectedCurrentRevisionId = crypto.randomUUID();
     const originalPolicy = POLICY_VERSIONS.terms;
     try {
-      // Simulate a notice-version deployment, preserving immutable acceptance evidence.
       if (kind === "policy") Object.defineProperty(POLICY_VERSIONS, "terms", { value: "2099-01-01", configurable: true, writable: true });
       expect(await decideLogReview(f.db, env.PROOFS, f.moderatorId, { ...input, decision: "approve" }, reviewSecret)).toMatchObject({ ok: false });
     } finally { Object.defineProperty(POLICY_VERSIONS, "terms", { value: originalPolicy, configurable: true, writable: true }); }

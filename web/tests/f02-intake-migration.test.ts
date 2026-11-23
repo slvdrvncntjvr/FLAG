@@ -32,8 +32,6 @@ async function engagement(id: string, client = "c") {
 }
 
 async function fixture(migrate = true) {
-  // Installed plugin's supported reset isolates this file's synthetic local
-  // bindings. No configured Wrangler resource or remote database is reachable.
   await reset();
   await applyD1Migrations(db, through8);
   await db.batch([
@@ -151,7 +149,6 @@ describe("0009 private intake local migration", () => {
     await run("UPDATE user SET banned=1 WHERE id='f'");
     await expect(run(submitSql)).rejects.toThrow(/verified freelancer/);
     await run("UPDATE user SET banned=0 WHERE id='f'");
-    // Fixture anchor is fixed after first creation; direct changes cannot reset a clock.
     await expect(run("UPDATE engagement_log SET anchor_date=date('now','-15 days') WHERE id='l'")).rejects.toThrow(/anchor are immutable/);
     await expect(run("UPDATE engagement SET status='declined' WHERE id='e'")).rejects.toThrow(/Invitation is closed/);
   });
@@ -235,8 +232,6 @@ describe("0009 private intake local migration", () => {
     const assertion = () => expect(run(submitSql)).rejects.toThrow(/proof required/);
     await assertion();
     await run("DROP TRIGGER log_requires_proof");
-    // Mutation proof: the same negative assertion now fails because the raw
-    // bypass succeeds. The next fixture resets every local test binding.
     await expect(assertion()).rejects.toThrow(/resolved.*instead of rejecting/);
     expect(await db.prepare("SELECT status FROM engagement_log WHERE id='l'").first()).toEqual({ status: "pending" });
   });

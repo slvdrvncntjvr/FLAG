@@ -1,11 +1,8 @@
 import type { Db } from "@/server/db";
 import { runMaintenance } from "@/features/lifecycle/maintenance";
 
-// Compatibility entry point: tracked destruction uses the hourly executor's exact grants.
 export async function runPrivateIntakeCleanup(db: Db, proofs: R2Bucket, options: { limit?: number; cursor?: string; scanOrphans?: boolean } = {}) {
   const before = await db.$client.prepare("SELECT count(*) AS count FROM engagement_log WHERE first_submitted_at IS NULL").first<{ count: number }>();
-  // The historical limit bounds object deletion, while dependent D1 task work
-  // keeps the common executor's independent 25-claim ceiling.
   const result = await runMaintenance({ DB: db.$client, PROOFS: proofs }, Date.now(), 25, options.limit);
   const after = await db.$client.prepare("SELECT count(*) AS count FROM engagement_log WHERE first_submitted_at IS NULL").first<{ count: number }>();
   let deletedObjects = result.r2Deletes, cursor: string | undefined;

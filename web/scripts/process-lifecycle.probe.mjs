@@ -1,6 +1,3 @@
-// Run before changing the harness: `node scripts/process-lifecycle.probe.mjs r8`.
-// The r8 mode deliberately exits 1 when the audited smoke predicate rejects an
-// actually closed child. Historical E2E is a separate pre-fix helper probe.
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
@@ -11,8 +8,6 @@ function ownedPidStatus(pid) {
   catch (error) { return error.code === 'ESRCH' ? 'exited' : 'unverifiable'; }
 }
 
-// Preserve the audited E2E algorithm for an independently repeatable diagnosis;
-// the production harness now delegates to process-lifecycle.mjs instead.
 async function historicalStopOwnedChild(child, terminate, timeoutMs) {
   let timer;
   let onClose;

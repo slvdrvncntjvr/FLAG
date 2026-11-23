@@ -156,8 +156,6 @@ describe("PRD-F12 assessed verification history retains exact subject authority"
     const target = purge("audit_event", String(f.audits[0].id), iso(-1));
     await q("UPDATE privacy_request SET status='executing',scope=?,assessment=?,identity_verified_at=?,assessed_at=? WHERE id=?", JSON.stringify({ targets: [target] }), JSON.stringify({ targets: [target] }), iso(-1), iso(-1), forged.id).run();
     await expect(q("INSERT INTO maintenance_task(id,privacy_request_id,authorized_by,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at) VALUES(?,?,?,'audit_event',?,'purge','assessed_erasure',?,strftime('%Y-%m-%dT%H:%M:%fZ','now'),strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'))", crypto.randomUUID(), forged.id, f.admin, target.targetId, target.dueAt).run()).rejects.toThrow(/unassessed/);
-    // Retire this deliberately malformed direct-SQL attack fixture so it cannot
-    // occupy an issuance slot ahead of the legitimate request's final case.
     await q("UPDATE privacy_request SET status='denied',closed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now'),outcome='Wrong subject has no assessed authority' WHERE id=?", forged.id).run();
     await drain(p, 1); await completed(f, p);
   });

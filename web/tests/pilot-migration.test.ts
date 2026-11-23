@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { addTwelveMonthsUtc } from "@/features/lifecycle/calendar";
 import { POLICY_VERSIONS } from "@/lib/policies";
 
-// Only the local test binding, never a configured Wrangler database.
 const db = env.MIGRATION_DB;
 const old = env.TEST_MIGRATIONS.filter(m => m.name < "0010");
 const run = (sql: string, ...args: (string | number | null)[]) => db.prepare(sql).bind(...args).run();
@@ -38,7 +37,6 @@ async function seedOld(beforeIntake = false, caseCreatedAt: string | null = null
   await run("UPDATE proof_file SET status='attached',revision_id='r' WHERE id='p'");
   await run(`INSERT INTO moderation_case(id,kind,subject_id,created_at) VALUES('lc','log','l',coalesce(?,${now}))`,caseCreatedAt);
   await run(`UPDATE engagement_log SET status='pending',first_submitted_at=${now},submitted_at=${now} WHERE id='l'`);
-  // Real legacy unknown history remains NULL, with a genuine stored decision.
   await run("INSERT INTO verification_case(id,freelancer_id,reviewer_id,id_kind,result,name_match,inspected_at,decision,reason,decided_at,created_at) VALUES('vc','f','m','passport','pass',1,'2026-10-01T00:00:00.000Z','approve','Synthetic inspection','2026-10-01T00:00:00.000Z','2026-09-30T00:00:00.000Z')");
   await run("INSERT INTO moderation_case(id,kind,subject_id,status,decision,reason,decided_by,decided_at) VALUES('vcm','verification','vc','decided','approve','Synthetic inspection','m','2026-10-01T00:00:00.000Z')");
   await run("INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id) VALUES('audit','m','verification_decided','verification_case','vc')");
@@ -199,13 +197,11 @@ describe('pilot ordinary and maintenance SQL authority',()=>{
 
 async function expiredParent() {
   await seedOld(true);
-  // Synthetic historical publication admitted by the actual pre-intake schema.
   await run("UPDATE log_revision SET decision='approve',reason='Synthetic historical review',decided_by='m',decided_at='2025-10-01T00:00:00.000Z' WHERE id='r'");
   await run("UPDATE engagement_log SET status='published',current_revision_id='r',published_at='2025-10-01T00:00:00.000Z',expires_at='2026-10-01T00:00:00.000Z' WHERE id='l'");
   await run("UPDATE moderation_case SET status='claimed',claimed_by='m',claimed_until='2025-10-01T00:30:00.000Z' WHERE id='lc'");
   await run("UPDATE moderation_case SET status='decided',claimed_by=NULL,claimed_until=NULL,decision='approve',reason='Synthetic historical review',decided_by='m',decided_at='2025-10-01T00:00:00.000Z' WHERE id='lc'");
   await applyD1Migrations(db,env.TEST_MIGRATIONS.filter(m=>m.name<'0011'));
-  // A later real-case clock is independent of parent publication expiry.
   await run("INSERT INTO correction_request(id,log_id,subject_ref,requested_by,base_revision_id,status,new_evidence_note,created_at,updated_at,submitted_at,closed_at) VALUES('q','l','l','c','r','closed','Synthetic later evidence','2026-09-30T00:00:00.000Z','2026-10-01T00:00:00.000Z','2026-09-30T00:00:00.000Z','2026-10-01T00:00:00.000Z')");
   await run("INSERT INTO moderation_case(id,kind,subject_id,status,log_id,correction_request_id,closed_at,closure_kind) VALUES('qc','correction','q','closed','l','q','2026-10-01T00:00:00.000Z','erased')");
   await applyD1Migrations(db,env.TEST_MIGRATIONS);
@@ -224,7 +220,6 @@ describe('pilot physical erasure dependencies',()=>{
     await run("DELETE FROM revision_proof WHERE revision_id='r'");
     await run("UPDATE proof_file SET status='pending_purge' WHERE id='p'");
     await run("UPDATE proof_file SET purge_attempts=purge_attempts+1,purge_inflight=1 WHERE id='p'");
-    // Models confirmed R2 removal; the runtime runner owns the actual R2 call.
     await run("UPDATE proof_file SET status='purged',purge_inflight=0 WHERE id='p'");
     await run("DELETE FROM proof_file WHERE id='p'");
     await run("DELETE FROM log_tag WHERE revision_id='r'"); await run("DELETE FROM log_revision WHERE id='r'");
@@ -238,7 +233,6 @@ describe('pilot physical erasure dependencies',()=>{
     await expiredParent();
     await run(`INSERT INTO retention_hold(id,target_type,target_id,kind,responsible_id,reason,placed_at,review_due_at,expires_at) VALUES('h','proof','p','legal','m','Synthetic exact scope',${now},strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'),strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 day'))`);
     await expect(scheduled('proof_file','p')).rejects.toThrow();
-    // A proof hold does not extend independent correction visibility/history or authorize parent deletion.
     expect((await db.prepare("SELECT * FROM pilot_unheld_target WHERE target_type='correction_request' AND target_id='q'").all()).results).toHaveLength(1);
     await run(`UPDATE retention_hold SET released_at=${now} WHERE id='h'`);
     await scheduled('proof_file','p');
@@ -273,7 +267,7 @@ describe('private correction active counterproof selection',()=>{
     await run("INSERT INTO moderation_case(id,kind,subject_id,log_id,correction_request_id) VALUES('qc','correction','q','l','q')");
     await run(`UPDATE correction_request SET status='submitted',submitted_at=${now},updated_at=${now} WHERE id='q'`);
     await expect(run("UPDATE correction_request SET active_proof_ids='[]' WHERE id='q'")).rejects.toThrow();
-    await expect(claim('qc','m')).rejects.toThrow(); // original publication reviewer is excluded
+    await expect(claim('qc','m')).rejects.toThrow();
     await run("INSERT INTO user(id,name,email,role) VALUES('independent','Synthetic Independent','independent@example.invalid','moderator')");
     for(const policy of ['privacy','terms'] as const) await run("INSERT INTO policy_acceptance(id,user_id,policy,version) VALUES(?,'independent',?,?)",`independent-${policy}`,policy,POLICY_VERSIONS[policy]);
     await claim('qc','independent');

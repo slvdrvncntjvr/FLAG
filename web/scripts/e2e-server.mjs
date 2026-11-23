@@ -2,8 +2,6 @@ import { createServer } from 'node:http';
 import { basename, dirname, join, resolve } from 'node:path';
 import next from 'next';
 
-// A single owned server process avoids the `next dev` supervisor restarting or
-// exiting while its worker still holds the port or temporary application files.
 const temp = dirname(process.env.E2E_OTP_FILE ?? '');
 const token = process.env.E2E_READY_TOKEN;
 if (!basename(temp).startsWith('flag-e2e-') || resolve(process.cwd()) !== resolve(join(temp, 'app'))

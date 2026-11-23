@@ -7,7 +7,6 @@ const headers = { "Cache-Control": "private, no-store", "X-Content-Type-Options"
 const hash = async (value: string) => hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
 type Source = { targetType: string; targetId: string; deadline: string; digest: string };
 type Delivery = { id: string; privacy_request_id: string; auth_kind: string; object_key: string | null; token_hash: string | null; write_inflight: number; expires_at: string; downloaded_at: string | null; purged_at: string | null };
-// Metadata-only by design: no auth tables, proof keys/bytes, review notes, other contacts or free-text claims.
 async function projection(db: Db, subjectId: string, deadline: string, categories: string[]) {
   const user = await db.$client.prepare("SELECT id,name,email,phone_number,created_at,deactivated_at FROM user WHERE id=?").bind(subjectId).first();
   if (!user) throw new Error("subject_missing");
@@ -21,9 +20,6 @@ async function projection(db: Db, subjectId: string, deadline: string, categorie
   if (policies.results.length > 1000 || logs.results.length > 1000) throw new Error("bounded_export_requires_assessment");
   const sources: Source[] = [];
   const add = async (type: string, key: string, data: unknown, until: string) => {
-    // The shared view includes this request's exact outstanding actions and
-    // excludes only their exact completed receipts. Reapplying raw targets
-    // would expire a newly scrubbed shell at its already fulfilled redaction.
     const assessed = await db.$client.prepare("SELECT due_at FROM pilot_assessed_source_deadline WHERE target_type=? AND target_id=? AND subject_user_id=?")
       .bind(type, key, subjectId).first<{ due_at: string }>();
     if (assessed?.due_at && assessed.due_at < until) until = assessed.due_at;
@@ -70,7 +66,6 @@ export async function prepareExport(db: Db, bucket: R2Bucket, actor: string | nu
   const updated = await db.$client.prepare(`UPDATE privacy_request SET scope=? WHERE id=? AND ${responsibleGate} AND assessment=? AND status IN ('assessing','executing')`)
     .bind(JSON.stringify({ ...JSON.parse(p.scope), sources: projected.sources }), requestId, actor, actor, p.assessment).run();
   if (updated.meta.changes !== 1) throw new Error("assessment_changed");
-  // Reserve durable cleanup metadata before the cross-service write.
   await db.$client.prepare(`INSERT INTO export_delivery(id,privacy_request_id,auth_kind,object_key,token_hash,created_at,expires_at,write_inflight) VALUES(?,?,?,?,?,?,?,1)`)
     .bind(deliveryId, requestId, a.export.authKind, objectKey, tokenHash, now, expiresAt).run();
   try {
@@ -120,7 +115,6 @@ export async function deliverExport(db: Db, bucket: R2Bucket, deliveryId: string
     if (!await validSources(db, p, row.expires_at)) { await purgeExportArtifact(db, bucket, row.id); return denied(); }
     const object = await bucket.get(row.object_key);
     if (!object || object.size > 1024 * 1024) { await purgeExportArtifact(db, bucket, row.id); return denied(); }
-    // Atomically consume capability, including a fresh session/revocation check before bytes.
     const used = await db.$client.prepare(`UPDATE export_delivery SET token_hash=NULL,downloaded_at=${clock} WHERE id=? AND token_hash=? AND write_inflight=0 AND expires_at>${clock} AND downloaded_at IS NULL
       AND EXISTS(SELECT 1 FROM privacy_request p JOIN user u ON u.id=p.subject_user_id WHERE p.id=export_delivery.privacy_request_id AND p.assessment=? AND p.scope=? AND p.status IN ('assessing','executing','completed') AND (export_delivery.auth_kind='assessed_capability' AND p.identity_verified_at>strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day') OR export_delivery.auth_kind='session' AND u.deactivated_at IS NULL AND u.banned=0 AND u.id=?)) RETURNING id`)
       .bind(row.id, candidate, p.assessment, p.scope, subjectSessionId).first();
@@ -128,7 +122,6 @@ export async function deliverExport(db: Db, bucket: R2Bucket, deliveryId: string
     const bytes = await object.arrayBuffer();
     const latest = await db.$client.prepare("SELECT * FROM privacy_request WHERE id=?").bind(p.id).first<PrivacyRequest>();
     if (!latest || !await validSources(db, latest, row.expires_at) || row.auth_kind === "assessed_capability" && (!latest.identity_verified_at || Date.parse(latest.identity_verified_at) <= Date.now() - 86400000) || row.auth_kind === "session" && !await db.$client.prepare("SELECT 1 FROM user WHERE id=? AND deactivated_at IS NULL AND banned=0").bind(subjectSessionId).first()) { await purgeExportArtifact(db, bucket, row.id); return denied(); }
-    // Purge the stored copy before returning this bounded response. Fail closed on deletion failure.
     await purgeExportArtifact(db, bucket, row.id);
     return new Response(bytes, { headers: { ...headers, "Content-Type": "application/json", "Content-Disposition": 'attachment; filename="flag-account-export.json"' } });
   } catch { return denied(); }

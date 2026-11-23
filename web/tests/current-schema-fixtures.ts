@@ -3,7 +3,6 @@ import { POLICY_VERSIONS, requiredPolicies } from "@/lib/policies";
 import type { Role } from "@/server/db/schema";
 import { seedEngagement, seedLog } from "./helpers";
 
-// Foundation tests need current authority; keep seedLog policy-free for stale-policy tests.
 export async function acceptCurrentPolicies(userId: string, role: Role) {
   await env.DB.batch(requiredPolicies(role).map(policy => env.DB.prepare(
     "INSERT INTO policy_acceptance(id,user_id,policy,version) VALUES(?,?,?,?)",

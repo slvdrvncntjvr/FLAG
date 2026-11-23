@@ -115,8 +115,6 @@ describe("Worker proof POST with actual Better Auth, D1 and R2", () => {
     const failed = await response(request(f.logId, session), { BETTER_AUTH_URL: "invalid URL with private content" });
     expect(failed.status).toBe(503);
     expect(await failed.text()).not.toContain("private content");
-    // The same normal auth handler still owns logout; the upload route cannot
-    // create a replacement session for a revoked cookie.
     const auth = setup().auth;
     expect((await auth.handler(new Request(BASE + "/api/auth/sign-out", { method: "POST", headers: { cookie: session.cookie, origin: BASE, "content-type": "application/json", "cf-connecting-ip": session.ip }, body: "{}" }))).status).toBe(200);
     expect((await response(request(f.logId, session))).status).toBe(404);

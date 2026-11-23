@@ -15,10 +15,6 @@ const db = createDb(binding);
 const run = (sql: string, ...args: (string | number | null)[]) => binding.prepare(sql).bind(...args).run();
 const stamp = (days: number) => new Date(Date.now() + days * 86400000).toISOString();
 const through8 = env.TEST_MIGRATIONS.filter(m => m.name < "0009");
-// Query-only historical snapshots: seed content before the initial-intake
-// guard and synthetic review receipts before the new review guards. Then apply
-// ALL migrations before reads. Actual publication actions have separate coverage;
-// no production migration manufactures review receipts for legacy publications.
 const withoutReview = new Set<string>();
 async function seal() {
   await applyD1Migrations(binding, env.TEST_MIGRATIONS.filter(m => m.name < "0011"));
@@ -83,7 +79,7 @@ beforeEach(async () => {
   withoutReview.clear();
   await reset();
   await applyD1Migrations(binding, through8);
-  await actor("reader", "freelancer"); // Verification is required to file, not read.
+  await actor("reader", "freelancer");
   await actor("moderator", "moderator");
   await actor("admin", "admin");
   await actor("stale", "freelancer", false);

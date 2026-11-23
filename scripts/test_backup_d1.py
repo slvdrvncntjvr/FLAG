@@ -46,7 +46,6 @@ class BackupD1Tests(unittest.TestCase):
 
     def test_actual_dpapi_and_failure_cleanup(self):
         before = set((ROOT / "temporary").glob("backup-selftest-*"))
-        # SelfTest uses synthetic Node producers, not installed Wrangler or data.
         result = self.run_script("-Mode", "SelfTest", extra_env={
             "CLOUDFLARE_API_TOKEN": "MUST_NOT_LEAK-synthetic-no-network-token",
         })
@@ -88,8 +87,6 @@ class BackupD1Tests(unittest.TestCase):
                 self.assertTrue(plan["Output"].endswith(".sql.dpapi"))
 
     def test_installed_export_parser_accepts_confirmation_flag_without_remote(self):
-        # The local handler rejects the absent synthetic binding before opening
-        # any local DB. Never pass --remote, project config or real target names.
         node = shutil.which("node.exe")
         entry = ROOT / "web/node_modules/wrangler/bin/wrangler.js"
         self.assertTrue(node and entry.is_file(), "Installed Node/Wrangler required")
@@ -141,8 +138,6 @@ class BackupD1Tests(unittest.TestCase):
             })
 
     def test_temp_inside_repository_is_refused_and_cleaned(self):
-        # SelfTest deliberately uses the caller's temp path. Pointing it at the
-        # repo proves the plaintext-location guard and test-fixture finally path.
         before = set((ROOT / "temporary").glob("backup-selftest-*"))
         self.assert_refused("-Mode", "SelfTest", extra_env={"TEMP": str(ROOT), "TMP": str(ROOT)})
         self.assertEqual(set((ROOT / "temporary").glob("backup-selftest-*")), before)

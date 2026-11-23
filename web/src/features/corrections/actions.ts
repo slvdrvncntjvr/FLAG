@@ -18,7 +18,6 @@ export async function correctionAction(_previous: LogResult | null, data: FormDa
     else if (data.get("operation") === "select") result = await selectCorrectionProofs(db, viewer.id, { requestId: data.get("requestId"), expectedProofIds: JSON.parse(String(data.get("expectedProofIds"))), proofIds: data.getAll("proofIds") });
     else if (data.get("operation") === "submit") {
       const { env } = await getCloudflareContext({ async: true });
-      // The request's own relationship gate is authoritative; route ID is only for revalidation.
       result = await submitCorrection(db, env.PROOFS, viewer.id, String(data.get("requestId")));
     } else return failure("invalid_input");
     if (result.ok) { revalidatePath(`/logs/${logId}/correction`); revalidatePath("/moderation/logs"); }

@@ -15,8 +15,6 @@ export async function claimMaintenanceTask(db: Db, taskId: string) {
     AND EXISTS(SELECT 1 FROM pilot_maintenance_eligible e WHERE e.id=maintenance_task.id) RETURNING *`).bind(taskId).first<MaintenanceTask>();
 }
 export async function issueDueTasks(db: Db, limit: number) {
-  // An expired unclaimed/settled grant is a retained abandoned receipt, never a
-  // fabricated completion. Its independently authorized successor starts afresh.
   await db.$client.prepare(`UPDATE maintenance_task SET status='abandoned',completed_at=${clock},retain_until=(
     strftime('%Y-%m-',${clock},'start of month','+1 year')||printf('%02d',min(CAST(strftime('%d',${clock}) AS INTEGER),CAST(strftime('%d',${clock},'start of month','+1 year','+1 month','-1 day') AS INTEGER)))||substr(${clock},11))
     WHERE status IN ('planned','blocked') AND authorization_expires_at<=${clock}`).run();
@@ -34,7 +32,7 @@ export async function issueDueTasks(db: Db, limit: number) {
     try {
       await db.$client.prepare(`INSERT INTO maintenance_task(id,privacy_request_id,authorized_by,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at) VALUES(?,?,?,?,?,?,?,?,${clock},strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'))`)
         .bind(crypto.randomUUID(), t.request_id, t.responsible_id, t.target_type, t.target_id, t.operation, t.basis, t.due_at).run();
-    } catch { /* A held, revoked or competing exact grant remains visible for review. */ }
+    } catch {  }
   }
   const due = await db.$client.prepare(`SELECT x.* FROM pilot_unheld_target x WHERE (x.purge_due_at<=${clock} OR x.close_due_at<=${clock})
     AND NOT (x.target_type='moderation_case' AND x.purge_due_at<=${clock}
@@ -47,11 +45,10 @@ export async function issueDueTasks(db: Db, limit: number) {
       await db.$client.prepare(`INSERT INTO maintenance_task(id,target_type,target_id,operation,basis,due_at,authorized_at,authorization_expires_at)
         VALUES(?,?,?,?,'retention_due',?,${clock},strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 hour'))`)
         .bind(crypto.randomUUID(), x.target_type, x.target_id, operation, operation === "purge" ? x.purge_due_at : x.close_due_at).run();
-    } catch { /* Another invocation may have issued the same exact target. */ }
+    } catch {  }
   }
 }
 export function completeTaskStatement(db: Db, task: MaintenanceTask) {
-  // Most physical DELETEs complete through SQL's exact-target receipt trigger.
   return db.$client.prepare(`UPDATE maintenance_task SET status='completed',completed_at=${clock},retain_until=(
     SELECT strftime('%Y-%m-',${clock},'start of month','+1 year')||printf('%02d',min(CAST(strftime('%d',${clock}) AS INTEGER),CAST(strftime('%d',${clock},'start of month','+1 year','+1 month','-1 day') AS INTEGER)))||substr(${clock},11))
     WHERE id=? AND status='claimed' AND attempts=? AND claimed_at=?`).bind(task.id, task.attempts, task.claimed_at);

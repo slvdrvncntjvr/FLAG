@@ -75,7 +75,7 @@ test('teardown accepts observed closure after a Windows kill-command normal-exit
   const child = Object.assign(new EventEmitter(), { exitCode: null, signalCode: null });
   await stopOwnedChild(child, () => {
     queueMicrotask(() => { child.exitCode = 0; child.emit('close', 0); });
-    return { status: 128 }; // The exit event cannot be processed until terminate returns.
+    return { status: 128 };
   }, 100);
   assert.equal(child.listenerCount('close'), 0);
 });
@@ -83,7 +83,6 @@ test('teardown accepts observed closure after a Windows kill-command normal-exit
 test('teardown requires actual closure even when termination reports success', async () => {
   const child = new EventEmitter();
   await assert.rejects(stopOwnedChild(child, () => ({ status: 0 }), 10), /did not close/);
-  // Keep one observer for a late close, even after the bounded stop failed.
   assert.equal(child.listenerCount('close'), 1);
   child.emit('close', 0);
   assert.equal(child.listenerCount('close'), 0);

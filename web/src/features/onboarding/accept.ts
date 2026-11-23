@@ -5,7 +5,6 @@ import { onboardingInput, type ActionResult } from "./schema";
 
 const ACK_FIELDS = ["ack_proof", "ack_not_legal", "ack_false_logs"] as const;
 
-// PRD-F8. Pure of Next so the Workers test pool can call it with a local D1.
 export async function acceptOnboarding(db: Db, userId: string, form: Record<string, unknown>): Promise<ActionResult> {
   const viewer = await loadViewer(db, userId);
   if (!viewer || viewer.banned) return { ok: false, message: "Sign in again to continue" };

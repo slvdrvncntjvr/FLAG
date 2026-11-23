@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { POLICY_VERSIONS } from "../src/lib/policies.ts";
 
-// Node 24 reads the policy source directly, so a policy bump updates both probes.
 const protectedPages = [
   "/home", "/onboarding", "/verification", "/moderation/verification", "/moderation/verification/nonexistent",
   "/clients", "/clients/nonexistent", "/logs/nonexistent", "/moderation/logs", "/moderation/logs/nonexistent",
@@ -11,11 +10,6 @@ export const ANONYMOUS_ROUTES = Object.freeze([
   "/", ...protectedPages, "/sign-in", "/legal/privacy", "/legal/terms", "/api/auth/get-session",
 ]);
 
-// The HTTP get-session endpoint runs Better Auth's durable general limiter even
-// with no cookie (api/rate-limiter/index.mjs onRequestRateLimit -> customStorage).
-// Page guards call auth.api.getSession directly, bypassing that HTTP limiter;
-// without a cookie they cannot refresh a session. Keep the full list for isolated
-// packaged smoke, but never describe the HTTP session probe as a read-only GET.
 export const READ_ONLY_ANONYMOUS_ROUTES = Object.freeze(ANONYMOUS_ROUTES.filter(path => path !== "/api/auth/get-session"));
 
 export function checkAnonymousRoute({ path, response, body, base }) {
@@ -30,8 +24,6 @@ export function checkAnonymousRoute({ path, response, body, base }) {
   if (path !== "/") assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow", `${path}: missing noindex`);
   const policy = { "/legal/privacy": "privacy", "/legal/terms": "terms" }[path];
   if (policy) {
-    // Ignore comments and hydration/script data: an incidental current date is
-    // not evidence of the policy version that the page actually presents.
     const visible = body.replace(/<!--[\s\S]*?-->/g, "")
       .replace(/<(script|style|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "");
     const main = visible.match(/<main\b[^>]*>([\s\S]*?)<\/main\s*>/i)?.[1] ?? "";

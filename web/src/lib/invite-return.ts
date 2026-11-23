@@ -1,4 +1,3 @@
-// PRD-F9: auth continuation names a fixed route, never an invite bearer token.
 export const INVITE_RETURN_PATH = "/invite/continue";
 
 export function inviteReturnPath(value: unknown): string {

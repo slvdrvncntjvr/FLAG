@@ -1,8 +1,6 @@
 import { APIError, isAPIError } from "better-auth/api";
 import { BASE_ERROR_CODES } from "@better-auth/core/error";
 
-// Ignore all library text/arguments, including Error.cause and adapter SQL.
-// Only a fixed event and a finite, allowlisted severity reach the console.
 export const authLogger = {
   level: "warn" as const,
   log(level: "debug" | "info" | "warn" | "error") {
@@ -17,8 +15,6 @@ const retryMessages = new Map([
   ["AUTH_UNAVAILABLE", "Authentication is unavailable. Try again later."],
 ]);
 
-// Reconstruct known public errors from fixed definitions, never from exception
-// text or additional body fields. Unknown client errors retain only their status.
 const clientMessages = new Map<string, string>([
   ...Object.values(BASE_ERROR_CODES).map(({ code, message }) => [code, message] as [string, string]),
   ["OTP_EXPIRED", "OTP expired"],
@@ -50,7 +46,6 @@ function retryHeaders(input: HeadersInit | undefined) {
 
 export function safeAuthError(error: unknown): APIError {
   if (isAPIError(error)) {
-    // Preserve redirects; failures carry only fixed messages and retry timing.
     if (error.statusCode < 400) return error;
     if (error.statusCode < 500) {
       const requestedCode = error.body?.code;
@@ -78,13 +73,8 @@ function errorResponse(error: APIError) {
 
 async function safeAuthResponse(response: Response): Promise<Response> {
   if (response.status < 400) return response;
-  // The 1.7.7 dispatcher retains the handler's original status even when an
-  // after hook replaces its APIError. It can also return errors as Responses
-  // without throwing, for HTTP and server APIs using asResponse/request.
   const body = await response.json().catch(() => null) as { code?: string } | null;
   if (response.status < 500) {
-    // APIError accepts a finite set of status names, not arbitrary HTTP numbers.
-    // Unknown client statuses use the same bounded rejection as unknown codes.
     const statuses = {
       400: "BAD_REQUEST", 401: "UNAUTHORIZED", 403: "FORBIDDEN", 404: "NOT_FOUND",
       405: "METHOD_NOT_ALLOWED", 408: "REQUEST_TIMEOUT", 409: "CONFLICT", 410: "GONE",
@@ -97,9 +87,6 @@ async function safeAuthResponse(response: Response): Promise<Response> {
   return errorResponse(retryError(body?.code) ?? safeAuthError(undefined));
 }
 
-// Better Call's router onRequest is outside its error catch. Server-only APIs
-// also bypass router onError entirely. Boundaries cover both without patching
-// dependencies or altering the installed endpoint's hook pipeline.
 export function withAuthSafety<T extends {
   handler: (request: Request) => Promise<Response>;
   fetch: (request: Request) => Promise<Response>;

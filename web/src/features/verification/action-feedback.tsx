@@ -13,9 +13,9 @@ export async function recoverAction(action: (previous: ReviewResult | null, form
   }
 }
 
-export function ReloadStatus() {
+export function ReloadStatus({ className = "min-h-11 underline underline-offset-2" }: { className?: string } = {}) {
   const router = useRouter();
-  return <button type="button" className="min-h-11 underline underline-offset-2" onClick={() => router.refresh()}>Reload status</button>;
+  return <button type="button" className={className} onClick={() => router.refresh()}>Reload status</button>;
 }
 
 export function ActionFeedback({ state, success }: { state: ReviewResult | null; success: string }) {
@@ -28,6 +28,6 @@ export function ActionFeedback({ state, success }: { state: ReviewResult | null;
   );
 }
 
-export function ReadFailure() {
-  return <div className="mt-6 space-y-2"><p role="alert">Could not load this record. Reload to try again.</p><ReloadStatus /></div>;
+export function ReadFailure({ className = "mt-6 space-y-2" }: { className?: string } = {}) {
+  return <div className={className}><p role="alert">Could not load this record. Reload to try again.</p><ReloadStatus /></div>;
 }

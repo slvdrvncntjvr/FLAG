@@ -14,14 +14,12 @@ async function owned(mode = 'hold', inherit = false) {
     detached: process.platform !== 'win32', windowsHide: true,
     stdio: ['ignore', inherit ? 'inherit' : 'pipe', inherit ? 'inherit' : 'pipe', 'ipc'],
   }));
-  // Bound fixture setup independently of stop() so failing tests cannot leak.
   try {
     const [ready] = await once(child, 'message', { signal: AbortSignal.timeout(3000) });
     return { child, ready };
   } catch (error) { await cleanup(child); throw error; }
 }
 async function cleanup(child, ready) {
-  // This path deliberately bypasses a cached failed stop; it only owns fixtures.
   let descendantListening = false;
   if (ready?.port) { try { await assertPortFree(ready.port); } catch { descendantListening = true; } }
   if (ready?.descendantPid && descendantListening && process.platform === 'win32') {
@@ -148,7 +146,6 @@ test('a failed native stop reports exit 1 without hanging on live child handles'
     assert.equal(observed.terminationStatus, 128);
     assert.equal(observed.stdout.closed, false);
   } finally {
-    // Only the PID returned by our synthetic runner; this cleanup is bounded.
     if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(observed.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 3000 });
     else { try { process.kill(-observed.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
   }
@@ -181,9 +178,6 @@ test('parent exit and platform pipe closure never substitute for descendant list
   try {
     if (child.exitCode === null) await once(child, 'exit', { signal: AbortSignal.timeout(3000) });
     assert.equal(child.exitCode, 0);
-    // Windows can close the root's pipe endpoints even while its descendant
-    // still listens. POSIX can keep inherited pipes open. Both require the
-    // independent port check; neither root exit nor close proves tree exit.
     if (!lifecycleDiagnostic(child).closeObserved) {
       await assert.rejects(stopOwnedChild(child, () => ({ status: 128 }), 60), /did not close/);
     } else {
@@ -295,8 +289,6 @@ test('cleanup refuses a replaced root even when its pathname remains inside OS t
     await assert.rejects(remove(directory), /replaced/);
     await access(join(directory.root, 'unowned.txt'));
   } finally {
-    // Only this synthetic replacement is removed, through a fresh owned token:
-    // move it into the other owned directory before restoring the original.
     await rename(directory.root, join(outside.root, 'replacement'));
     await rename(saved, directory.root);
     await remove(directory); await remove(outside);

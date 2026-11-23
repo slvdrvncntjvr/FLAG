@@ -4,16 +4,12 @@ import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { MAX_PROOF_BYTES, MAX_PROOFS } from "./schema";
 
-const field = "mt-1 block w-full min-w-0 rounded-sm border border-rule bg-white px-3 py-3";
+const field = "register-field mt-1 block w-full min-w-0";
 const subscribe = () => () => {};
 const messengerSnapshot = () => /FBAN|FBAV|Messenger|FB_IAB/i.test(navigator.userAgent);
 
-// A fresh canvas has no source EXIF, GPS, camera or textual metadata. Never fall
-// back to the original image bytes if decoding or encoding is unavailable.
 export async function prepareProof(file: File): Promise<File> {
   if (!file.size || file.size > MAX_PROOF_BYTES) throw new Error("Choose a file between 1 byte and 10 MiB.");
-  // Sniff a bounded prefix so a mislabeled image cannot skip re-encoding by
-  // claiming to be a PDF. The server independently validates the full file.
   const prefix = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   const starts = (bytes: number[]) => bytes.every((byte, index) => prefix[index] === byte);
   const text = String.fromCharCode(...prefix);
@@ -59,7 +55,12 @@ export function ProofUpload({ logId, count, onBusy, endpoint }: { logId: string;
       setFeedback({ error: false, text: "Uploading private proof. Keep this page open." });
       const response = await fetch(endpoint ?? `/api/logs/${encodeURIComponent(logId)}/proofs`, { method: "POST", body, signal: AbortSignal.timeout(60_000) });
       const result = await response.json().catch(() => null);
-      if (!response.ok || !result || typeof result !== "object" || !("ok" in result) || result.ok !== true) throw new Error(response.status === 413 ? "The proof exceeds 10 MiB." : response.status === 429 ? "The daily proof limit has been reached. Try again tomorrow." : response.status === 404 ? "This draft is unavailable. Reload the page." : "Proof could not be uploaded. Reload to check whether it was saved, then retry if needed.");
+      if (!response.ok || !result || typeof result !== "object" || !("ok" in result) || result.ok !== true) {
+        const dailyQuota = result && typeof result === "object" && "code" in result && result.code === "quota";
+        throw new Error(response.status === 413 ? "The proof exceeds 10 MiB." : response.status === 429
+          ? dailyQuota ? "The daily proof limit has been reached. Try again tomorrow." : "Too many requests. Try again later."
+          : response.status === 404 ? "This draft is unavailable. Reload the page." : "Proof could not be uploaded. Reload to check whether it was saved, then retry if needed.");
+      }
       form.reset();
       setFeedback({ error: false, text: "Private proof uploaded." });
       router.refresh();
@@ -67,21 +68,21 @@ export function ProofUpload({ logId, count, onBusy, endpoint }: { logId: string;
       setFeedback({ error: true, text: error instanceof Error && error.message !== "Failed to fetch" && !["TimeoutError", "AbortError"].includes(error.name) ? error.message : "Upload interrupted. Reload to check whether it was saved, then retry if needed." });
     } finally { setBusy(false); onBusy?.(false); }
   }
-  return <section className="mt-8 space-y-4 border-t border-rule pt-6" aria-labelledby="proof-heading">
-    <h2 id="proof-heading" className="font-serif text-2xl">Private proof</h2>
-    <p>Attach 1–5 files about this engagement. PNG, JPEG, WebP or PDF; at most 10 MiB (10,485,760 bytes) each.</p>
-    <p>Proof is available only to you, the named client and moderators. Do not upload government IDs, ID numbers or unrelated personal information. Check PDFs for private metadata before uploading.</p>
-    <details open={inMessenger || undefined} className="border-y border-rule py-3"><summary className="cursor-pointer py-2 font-medium">Using Messenger? Open in Chrome</summary><p className="mt-2">Before choosing a file, use Messenger’s menu to open this page in your external browser. Choose Chrome on Android or Safari on iPhone. Sign in there if asked, then return to this draft.</p></details>
-    <p className="text-sm">Images are re-encoded on your device to remove location and camera metadata. This does not remove personal information visible in the image.</p>
+  return <section className="mt-6 space-y-3 border-t border-rule pt-5" aria-labelledby="proof-heading">
+    <h2 id="proof-heading" className="font-serif text-xl">Private proof</h2>
+    <p className="text-sm text-muted">Attach 1–5 files about this engagement. PNG, JPEG, WebP or PDF; at most 10 MiB (10,485,760 bytes) each.</p>
+    <p className="text-sm text-muted">Proof is available only to you, the named client and moderators. Do not upload government IDs, ID numbers or unrelated personal information. Check PDFs for private metadata before uploading.</p>
+    <details open={inMessenger || undefined} className="register-ledger py-2 text-sm"><summary className="cursor-pointer py-2 font-medium text-accent">Using Messenger? Open in Chrome</summary><p className="pb-2 text-muted">Before choosing a file, use Messenger’s menu to open this page in your external browser. Choose Chrome on Android or Safari on iPhone. Sign in there if asked, then return to this draft.</p></details>
+    <p className="text-sm text-muted">Images are re-encoded on your device to remove location and camera metadata. This does not remove personal information visible in the image.</p>
     <form onSubmit={upload} className="space-y-4" aria-busy={busy}>
       <fieldset disabled={busy || count >= MAX_PROOFS} className="min-w-0 space-y-4">
         <legend className="sr-only">Upload a private proof</legend>
-        <label className="block">Proof type<select name="kind" className={field}><option value="screenshot">Screenshot</option><option value="invoice">Invoice</option><option value="agreement">Agreement</option><option value="chat">Chat</option><option value="other">Other</option></select></label>
-        <label className="block">Proof file<input name="file" type="file" required accept="image/png,image/jpeg,image/webp,application/pdf" className={`${field} text-sm`} /></label>
-        <button className="w-full border border-rule px-4 py-3 disabled:opacity-60" disabled={busy || count >= MAX_PROOFS}>{busy ? "Uploading…" : "Upload private proof"}</button>
+        <label className="block text-sm font-medium">Proof type<select name="kind" className={field}><option value="screenshot">Screenshot</option><option value="invoice">Invoice</option><option value="agreement">Agreement</option><option value="chat">Chat</option><option value="other">Other</option></select></label>
+        <label className="block text-sm font-medium">Proof file<input name="file" type="file" required accept="image/png,image/jpeg,image/webp,application/pdf" className={`${field} file:mr-3 file:rounded-lg file:bg-tint file:px-2 file:py-1 file:text-sm file:font-medium file:text-ink`} /></label>
+        <button className="register-secondary w-full" disabled={busy || count >= MAX_PROOFS}>{busy ? "Uploading…" : "Upload private proof"}</button>
       </fieldset>
-      {count >= MAX_PROOFS && <p role="status">Five proofs are already attached.</p>}
-      {feedback && <p role={feedback.error ? "alert" : "status"}>{feedback.text}</p>}
+      {count >= MAX_PROOFS && <p role="status" className="text-sm text-muted">Five proofs are already attached.</p>}
+      {feedback && <p role={feedback.error ? "alert" : "status"} className={feedback.error ? "text-sm text-danger" : "text-sm text-accent"}>{feedback.text}</p>}
     </form>
   </section>;
 }

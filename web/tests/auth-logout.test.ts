@@ -13,7 +13,6 @@ describe("PRD-F7 durable logout", () => {
     const readSession = () => auth.api.getSession({ headers: new Headers({ cookie }) });
     expect((await readSession())?.user.id).toBe(userId);
 
-    // A real SQLite/D1 write failure, below the library and the app hooks.
     await db.$client.exec("CREATE TRIGGER test_logout_failure BEFORE DELETE ON session BEGIN SELECT RAISE(ABORT, 'synthetic private database failure'); END;");
     let lastResponse: Response | undefined;
     const client = createAuthClient({
@@ -35,7 +34,6 @@ describe("PRD-F7 durable logout", () => {
       const result = await client.signOut();
       expect((await readSession())?.user.id).toBe(userId);
       expect(await db.select().from(session).where(eq(session.userId, userId!))).toHaveLength(1);
-      // SignOutButton navigates only when this client's result has no error.
       expect(result.error).toMatchObject({ status: 503, code: "SESSION_REVOCATION_FAILED" });
       expect(result.data).toBeNull();
       expect(lastResponse?.status).toBe(503);
@@ -55,14 +53,10 @@ describe("PRD-F7 durable logout", () => {
     expect(lastResponse?.headers.get("set-cookie")).toMatch(/session_token=;.*Max-Age=0/i);
     expect(await db.select().from(session).where(eq(session.userId, userId!))).toHaveLength(0);
     expect(await readSession()).toBeNull();
-    // Replaying the old signed cookie, or having no cookie, remains idempotent.
     expect((await client.signOut()).error).toBeNull();
     expect((await auth.handler(new Request(`${BASE}/api/auth/sign-out`, {
       method: "POST", headers: { origin: BASE, "content-type": "application/json", "cf-connecting-ip": ip }, body: "{}",
     }))).status).toBe(200);
-  // This case performs real D1 fault injection, session reads and concurrent
-  // retries through the auth client. Allow a bounded budget under pool startup
-  // contention while retaining every failure, cookie and revocation assertion.
   }, 15_000);
 
   it("rejects cross-origin logout and untrusted callbacks before revoking the session", async () => {
@@ -93,7 +87,6 @@ describe("PRD-F7 durable logout", () => {
   it("does not revoke another session when its cookie signature is forged", async () => {
     const { auth, post, signIn } = setup();
     const { cookie, userId } = await signIn("logout-signature@example.invalid");
-    // Keep the real token, corrupt only the signature.
     const forged = `${cookie.slice(0, -1)}${cookie.endsWith("x") ? "y" : "x"}`;
     expect((await post("/sign-out", {}, forged)).status).toBe(200);
     expect((await auth.api.getSession({ headers: new Headers({ cookie }) }))?.user.id).toBe(userId);

@@ -2,7 +2,6 @@ import type { Db } from "@/server/db";
 import { POLICY_VERSIONS } from "@/lib/policies";
 
 export const nowSql = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
-// Only fixed server-owned identifiers are interpolated into SQL; every value is bound.
 export function actorPredicate(role: "freelancer" | "moderator", actorIdSql: "?" | "verification_case.freelancer_id" = "?") {
   const policies = role === "freelancer" ? ["privacy", "terms", "freelancer_ack"] as const : ["privacy", "terms"] as const;
   return {
@@ -19,7 +18,6 @@ export function auditAfterChange(db: Db, eventId: string, actorId: string, actio
   return statement(db, `INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id,moderation_case_id) SELECT ?,?,?,?,?,? WHERE changes() = 1`, [eventId, actorId, action, type, subjectId, caseId]);
 }
 export const moderatorPredicate = actorPredicate("moderator");
-// Future kinds remain inactive: each later handler must add its own conflict rules.
 export function reviewPredicate() {
   return `kind = 'verification' AND ${moderatorPredicate.text}
     AND EXISTS (SELECT 1 FROM verification_case vc JOIN freelancer_profile fp ON fp.user_id = vc.freelancer_id

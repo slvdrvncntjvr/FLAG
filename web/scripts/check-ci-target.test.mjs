@@ -11,8 +11,6 @@ import { checkDeployedBindings, checkResourceBindings } from "./check-resource-b
 const dev = { WORKERS_CI: "1", WORKERS_CI_BRANCH: "dev", WRANGLER_CI_OVERRIDE_NAME: "flag-dev" };
 const production = { WORKERS_CI: "1", WORKERS_CI_BRANCH: "main", WRANGLER_CI_OVERRIDE_NAME: "flag" };
 
-// Evaluate the harness's actual serialized config without launching an app or
-// Worker. This keeps the regression coupled to the config we really execute.
 const smokeSource = await readFile(new URL("./smoke-built-worker.mjs", import.meta.url), "utf8");
 const smokeConfigExpression = smokeSource.match(/await writeFile\(config, JSON\.stringify\((\{[\s\S]*?\n  \})\)\);/)?.[1];
 assert.ok(smokeConfigExpression, "Packaged smoke config generation must remain covered");
@@ -47,7 +45,6 @@ test("installed Wrangler resolves the generated smoke tsconfig to the real proje
     const config = smokeConfig(path, root, isolated);
     const configPath = path.join(isolated, "wrangler.json");
     await writeFile(configPath, JSON.stringify(config));
-    // Production Wrangler children also run with cwd at the isolated directory.
     process.chdir(isolated);
     const normalized = unstable_readConfig({ config: configPath });
     assert.equal(path.resolve(normalized.tsconfig), target);
@@ -145,7 +142,6 @@ test("custom-build entry point checks CLI environment before inherited environme
 test("Wrangler's selected config passes its environment to the custom-build child", () => {
   const productionConfig = unstable_readConfig({ config: "wrangler.jsonc", env: "" });
   const devConfig = unstable_readConfig({ config: "wrangler.jsonc", env: "dev" });
-  // Wrangler launches this command without forwarding its own --env argument.
   for (const [config, vars, status] of [
     [productionConfig, { ...production, CLOUDFLARE_ENV: "dev" }, 0],
     [devConfig, { ...dev, CLOUDFLARE_ENV: "" }, 0],

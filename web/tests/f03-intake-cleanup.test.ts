@@ -32,8 +32,6 @@ describe("bounded internal private-intake cleanup", () => {
         if (key === "run") return async () => {
           const result = await target.run();
           if (result.meta.changes === 1) {
-            // A late-put compensator acquires the next generation immediately
-            // after A finishes, before A's finally is allowed to resume.
             await env.DB.prepare("UPDATE proof_file SET status='pending_purge' WHERE id=?").bind(id).run();
             await env.DB.prepare("UPDATE proof_file SET purge_attempts=purge_attempts+1,purge_inflight=1 WHERE id=?").bind(id).run();
             reacquired = true;
@@ -60,13 +58,12 @@ describe("bounded internal private-intake cleanup", () => {
     const f = await intakeFixture(), id = await agedProof(f);
     const key = `logs/${f.logId}/${id}`;
     const row = (await env.DB.prepare("SELECT sha256 FROM proof_file WHERE id=?").bind(id).first<{ sha256: string }>())!;
-    await env.PROOFS.delete(key); // A reservation whose original put has not completed.
+    await env.PROOFS.delete(key);
     await env.DB.prepare("UPDATE proof_file SET status='pending_purge' WHERE id=?").bind(id).run();
     let deleteCalls = 0;
     const bucket = new Proxy(env.PROOFS, { get(target, property) {
       if (property === "delete") return async (objectKey: string) => {
         deleteCalls++;
-        // A second caller cannot publish 'purged' while this caller can still delete.
         expect(await purgeClaimedProof(f.db, target, id)).toBe(false);
         expect(await env.DB.prepare("SELECT status,purge_inflight FROM proof_file WHERE id=?").bind(id).first()).toEqual({ status: "pending_purge", purge_inflight: 1 });
         await expect(finiteSyntheticHold(f.logId)).rejects.toThrow(/purge.*claimed/);
@@ -79,7 +76,6 @@ describe("bounded internal private-intake cleanup", () => {
     expect(deleteCalls).toBe(1);
     expect(await env.DB.prepare("SELECT status,purge_inflight FROM proof_file WHERE id=?").bind(id).first()).toEqual({ status: "purged", purge_inflight: 0 });
     await finiteSyntheticHold(f.logId);
-    // A still-later put is preserved under the hold; there is no stale second deleter.
     await env.PROOFS.put(key, pdfBytes, { sha256: row.sha256, httpMetadata: { contentType: "application/pdf" } });
     expect(await purgeClaimedProof(f.db, env.PROOFS, id)).toBe(false);
     expect(await env.PROOFS.head(key)).not.toBeNull();
@@ -241,7 +237,6 @@ describe("bounded internal private-intake cleanup", () => {
         observedStatus = (await env.DB.prepare("SELECT status FROM proof_file WHERE object_key=?").bind(objectKey).first<{ status: string }>())?.status;
         try { await finiteSyntheticHold(f.logId); }
         catch { holdBlocked = true; }
-        // An unexpectedly successful hold never authorizes this fixture to erase the bytes.
         if (holdBlocked) await target.delete(objectKey);
       };
       const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;

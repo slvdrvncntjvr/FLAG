@@ -5,7 +5,6 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: { alias: {
     "@": path.resolve(import.meta.dirname, "src"),
-    // Workers tests execute the server modules directly, outside Next's RSC resolver.
     "server-only": path.resolve(import.meta.dirname, "node_modules/next/dist/compiled/server-only/empty.js"),
   } },
   plugins: [

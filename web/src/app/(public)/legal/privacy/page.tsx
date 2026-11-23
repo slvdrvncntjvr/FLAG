@@ -6,11 +6,12 @@ export const metadata: Metadata = { title: "Privacy notice" };
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy notice" version={POLICY_VERSIONS.privacy}>
-      <p>
-        This notice explains what FLAG collects, why, and the rights you have under the Philippine Data Privacy Act of
-        2012 (RA 10173). It applies to everyone who creates a FLAG account.
-      </p>
+    <LegalPage
+      title="Privacy notice"
+      version={POLICY_VERSIONS.privacy}
+      intro="This notice explains what FLAG collects, why, and the rights you have under the Philippine Data Privacy Act of 2012 (RA 10173). It applies to everyone who creates a FLAG account."
+      related={{ href: "/legal/terms", label: "Read the terms" }}
+    >
       <p>
         Accounts, onboarding, manual freelancer verification, moderator review of verification requests, engagement
         invitations, client profiles, and accepting or declining invitations are available. The pilot also includes
@@ -18,7 +19,7 @@ export default function Privacy() {
         log and proof submissions are available only while pilot intake is enabled.
       </p>
 
-      <h2 className="font-serif text-lg">What we collect</h2>
+      <h2 className="register-kicker">What we collect</h2>
       <ul className="list-disc space-y-1 pl-5">
         <li>Your email address, account name and role, and the sign-in and session records needed to run your account.</li>
         <li>Which policies you accepted, their versions, and when. You cannot directly alter acceptance history.</li>
@@ -61,7 +62,7 @@ export default function Privacy() {
         </li>
       </ul>
 
-      <h2 className="font-serif text-lg">Why we use it</h2>
+      <h2 className="register-kicker">Why we use it</h2>
       <p>
         We use this data to authenticate you, verify freelancers, manage engagement invitations and responses, and
         record your explicit account/profile association and engagement-specific consent. We use submitted logs
@@ -69,7 +70,7 @@ export default function Privacy() {
         Request and maintenance records support assessed access, account closure, retention, and physical erasure. We do not sell your data, and we do not use it for advertising.
       </p>
 
-      <h2 className="font-serif text-lg">Who can see it</h2>
+      <h2 className="register-kicker">Who can see it</h2>
       <p>
         Each party can read its own engagement list, including the title, start date, status, and any recorded consent
         version and time. These lists are private to the signed-in freelancer and associated client. Your client profile
@@ -89,7 +90,7 @@ export default function Privacy() {
         receives your address solely to deliver transactional messages.
       </p>
 
-      <h2 className="font-serif text-lg">How long we keep it</h2>
+      <h2 className="register-kicker">How long we keep it</h2>
       <p>
         Account data is kept while needed to run your account. Sign-in codes expire after ten minutes and sessions
         after fourteen days. Authentication rate-limit records contain hashed keys rather than raw IP or email values;
@@ -126,7 +127,7 @@ export default function Privacy() {
         export-only access. Closing an account never restores ordinary account access through an export.
       </p>
 
-      <h2 className="font-serif text-lg">Your rights</h2>
+      <h2 className="register-kicker">Your rights</h2>
       <p>
         Under RA 10173 you may ask for a copy of your data, ask us to correct it, object to how we use it, or ask us to
         delete data we are not required to keep. To make a request, or to raise a privacy concern, write to{" "}

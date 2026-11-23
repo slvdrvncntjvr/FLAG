@@ -169,13 +169,9 @@ describe("PRD-F12 verification close-anchor dependencies", () => {
     const task = await claimMaintenanceTask(db, "old-case-task");
     expect(task).toMatchObject({ status: "claimed", attempts: 1, due_at: deadline });
     await applyD1Migrations(store, all);
-    // The original exact grant remains valid; the additional dependency guard
-    // independently refuses destruction until the close anchor is no longer needed.
     expect(await q("SELECT id FROM pilot_maintenance_eligible WHERE id=?", task!.id).first()).toEqual({ id: task!.id });
     await expect(q("DELETE FROM moderation_case WHERE id=?", f.caseId).run()).rejects.toThrow();
     expect(await q("SELECT status,claimed_at,attempts FROM maintenance_task WHERE id=?", task!.id).first()).toEqual({ status: "claimed", claimed_at: task!.claimed_at, attempts: 1 });
-    // This known original owner explicitly reports settled failure; elapsed
-    // time alone never adopts a pre-existing unknown claimed invocation.
     await q("UPDATE maintenance_task SET status='blocked' WHERE id=? AND attempts=? AND claimed_at=?", task!.id, task!.attempts, task!.claimed_at).run();
     expect(await runMaintenance(runtime, Date.now(), 1)).toMatchObject({ completed: 1, blocked: 0 });
     expect(await q("SELECT 1 FROM verification_case WHERE id=?", f.requestId).first()).toBeNull();

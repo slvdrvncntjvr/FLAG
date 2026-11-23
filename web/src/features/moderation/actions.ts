@@ -13,7 +13,6 @@ async function run(operation: Operation, form: FormData): Promise<ReviewResult> 
   try {
     const viewer = await requireOnboardedViewer().catch(() => null);
     if (!viewer) return failure("unauthenticated");
-    // Admin is deliberately not a reviewer role. The backend rechecks this atomically.
     if (viewer.role !== "moderator") return failure("forbidden");
     const fields = ["caseId", ...(operation !== "claim" ? ["expectedClaimUntil"] : []),
       ...(operation === "inspect" ? ["idKind", "result", "nameMatch", "liveInspection"] : []),
@@ -38,7 +37,6 @@ async function run(operation: Operation, form: FormData): Promise<ReviewResult> 
   } catch { return failure("unavailable"); }
   if (result.ok) {
     revalidatePath("/moderation/verification");
-    // The server revalidates the submitted route only after schema/backend success.
     revalidatePath(`/moderation/verification/${encodeURIComponent(String(form.get("caseId")))}`);
     revalidatePath("/verification");
     revalidatePath("/home");

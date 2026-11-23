@@ -8,8 +8,6 @@ import { engagementActor } from "@/server/db/queries/engagements";
 import { account, policyAcceptance, session, user } from "@/server/db/schema";
 import { BASE, setup } from "./helpers";
 
-// Exercise the real scoped maintenance authority, preserving production guards.
-// These fixtures isolate authentication from the separately tested staff UI.
 async function assessTarget(f: ReturnType<typeof setup>, subjectId: string, targetType: string, targetId: string, operation: string) {
   const adminId = crypto.randomUUID(), requestId = crypto.randomUUID(), taskId = crypto.randomUUID();
   const dueAt = new Date(Date.now() - 1_000).toISOString();

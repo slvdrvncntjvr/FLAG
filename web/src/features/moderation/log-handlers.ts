@@ -42,8 +42,6 @@ export async function releaseLogReview(db: Db, actorId: string | null, input: un
   } catch { return failure("conflict"); }
 }
 type Verdict = z.infer<typeof logReviewInput>["proofVerdicts"][number];
-// Internal terminal-case validation only: never return these retained metadata
-// to a reader or issue a new inspection receipt after content read expiry.
 async function retainedCorrectionEvidence(db: Db, c: CaseRow, revisionId: string): Promise<ProofRecord[]> {
   if (c.kind !== "correction") return [];
   const rows = await db.$client.prepare(`SELECT p.* FROM proof_file p
@@ -82,7 +80,6 @@ function proofGuards(db: Db, c: CaseRow, revisionId: string, checked: NonNullabl
   const list: D1PreparedStatement[] = [];
   for (const { proof: p } of checked) list.push(statement(db, `UPDATE proof_file SET status=status WHERE id=? AND log_id=? AND status='attached'
     AND object_key=? AND sha256=? AND size_bytes=? AND mime=? AND purge_inflight=0 AND write_inflight=0`, [p.id, c.log_id, p.object_key, p.sha256, p.size_bytes, p.mime]), assertChanged(db));
-  // A new binding/evidence file after the R2 awaits must lose the entire batch.
   list.push(statement(db, `SELECT CASE WHEN (SELECT count(*) FROM proof_file p WHERE p.log_id=? AND p.status='attached'
     AND (EXISTS(SELECT 1 FROM revision_proof rp WHERE rp.proof_id=p.id AND rp.revision_id=?) OR (p.revision_id=? AND p.owner_kind='filer')
       OR (?='correction' AND p.owner_kind='client' AND p.correction_request_id=?
@@ -157,7 +154,6 @@ export async function decideCorrection(db: Db, bucket: R2Bucket, actorId: string
       list.push(statement(db, `UPDATE engagement_log SET status=status WHERE id=?
         AND EXISTS(SELECT 1 FROM engagement e WHERE e.id=engagement_log.engagement_id AND e.started_on<=?)
         AND ?<=date('now','+8 hours')`, [c.log_id, v.periodStart, v.periodEnd]), assertChanged(db));
-      // Corrected publications retain filer evidence; counterproof stays private request evidence.
       const filer = checked.filter(p => p.proof.uploaded_by === c.freelancer_id && p.proof.owner_kind === "filer" && p.verdict.verdict === "accept");
       if (!filer.length || filer.length > 5) return failure("conflict");
       list.push(statement(db, `INSERT INTO log_revision(id,log_id,rev_no,kind,rating,outcome,facts,period_start,period_end,amount_centavos,submitted_by,moderation_case_id,draft_updated_at)

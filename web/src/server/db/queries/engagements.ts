@@ -6,7 +6,6 @@ import { isOnboarded, loadViewer } from "./viewer";
 import { tokenInput } from "@/features/engagements/schema";
 
 export const inviteNow = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
-// Values are always bound. Only fixed server identifiers appear in SQL text.
 export function engagementActor(role: "freelancer" | "client", actorId: string) {
   const policies = role === "freelancer" ? ["privacy", "terms", "freelancer_ack"] as const : ["privacy", "terms"] as const;
   return {
@@ -24,7 +23,6 @@ export function liveInvite(hash: string, actorId: string) {
   };
 }
 
-// Public capability read: this deliberately selects only the two disclosed facts.
 export async function loadInviteLanding(db: Db, hash: string) {
   if (!tokenInput.safeParse(hash).success) return null;
   const [row] = await db.select({ inviter: freelancerProfile.displayName, title: engagement.title,
@@ -55,7 +53,6 @@ export async function loadOwnEngagements(db: Db, actorId: string | null) {
   if (!viewer || viewer.banned || !isOnboarded(viewer) || !["freelancer", "client"].includes(viewer.role ?? "")) return [];
   return db.select({ id: engagement.id, title: engagement.title, startedOn: engagement.startedOn,
     status: sql<string>`CASE WHEN ${engagement.status}='invited' AND ${engagement.inviteExpiresAt}<=strftime('%Y-%m-%dT%H:%M:%fZ','now') THEN 'expired' ELSE ${engagement.status} END`,
-    // A missing legacy receipt is explicitly unknown; never inferred from status.
     consentVersion: policyAcceptance.version, consentAt: policyAcceptance.acceptedAt,
   }).from(engagement).leftJoin(clientProfile, eq(engagement.clientId, clientProfile.id))
     .leftJoin(engagementConsent, eq(engagementConsent.engagementId, engagement.id))

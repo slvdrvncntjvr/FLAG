@@ -22,7 +22,6 @@ async function fixture() {
   if (!request.ok) throw new Error("Request fixture failed");
   const caseId = request.moderationCaseId, requestId = request.verificationCaseId;
   expect((await claimVerification(db, reviewer, { caseId })).ok).toBe(true);
-  // Give the first lease a distinct, live expiry without a wall-clock sleep.
   const first = await env.DB.prepare("UPDATE moderation_case SET claimed_until=strftime('%Y-%m-%dT%H:%M:%fZ','now','+29 minutes') WHERE id=? RETURNING claimed_until").bind(caseId).first<{ claimed_until: string }>();
   const lease = { caseId, expectedClaimUntil: first!.claimed_until };
   expect(await inspectVerification(db, reviewer, { ...lease, idKind: "passport", result: "pass", nameMatch: true })).toEqual({ ok: true });
@@ -45,7 +44,6 @@ describe("reviewer-owned inspection across claim renewal", () => {
           const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_case_update'").first<{ sql: string }>();
           if (!guard) throw new Error("Case authority guard unavailable");
           await expect(db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId))).rejects.toThrow();
-          // Clock-only setup; all real actions below retain the production guard.
           await env.DB.prepare("DROP TRIGGER pilot_case_update").run();
           try { await db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId)); }
           finally { await env.DB.prepare(guard.sql).run(); }

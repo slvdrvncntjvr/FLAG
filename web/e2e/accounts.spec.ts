@@ -44,7 +44,6 @@ for (const role of ['freelancer', 'client'] as const) {
     const email = `e2e-${role}-${Date.now()}@example.invalid`;
     await page.goto('/sign-in');
     await page.getByLabel('Email', { exact: true }).fill(email);
-    // Transport fault injection only; the successful retries below hit real D1 auth.
     await page.route('**/api/auth/email-otp/send-verification-otp', route => route.abort('failed'), { times: 1 });
     await page.getByRole('button', { name: 'Send code', exact: true }).click();
     await expect(page.locator('p[role=alert]')).toBeVisible();
@@ -112,7 +111,6 @@ for (const role of ['freelancer', 'client'] as const) {
     await expect(page.locator('p[role=alert]')).toHaveText('Could not sign out. Try again later.');
     await expect(page).toHaveURL(/\/home$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    // Save the old cookie and replay it after logout to prove server revocation.
     const cookies = await context.cookies();
     const cookieHeader = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();

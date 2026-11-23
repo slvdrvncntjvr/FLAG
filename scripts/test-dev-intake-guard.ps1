@@ -1,6 +1,4 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[a-f0-9-]{36}$')][string]$ExpectedVersion)
-# Verify that a separate Windows Task Scheduler invocation can authenticate and
-# confirm dev intake=false. Does not enable intake or claim host-loss immunity.
 $ErrorActionPreference = 'Stop'
 $taskRepo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $taskNode = (Get-Command node.exe -ErrorAction Stop).Source
@@ -52,7 +50,6 @@ try {
   Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
   $taskRegistered = $false
   $taskSummary | ConvertTo-Json
-  # Keep the operation's runner and receipt as evidence; no private bytes present.
 } catch {
   [ordered]@{ at=[DateTime]::UtcNow.ToString('o'); independentSchedulerVerified=$false; enabled=$false; guardRegistered=$taskRegistered; taskName=$taskName; receipt=$taskReceipt; taskCompletionVerified=$taskCompleted; lastTaskResult=if($taskInfo){$taskInfo.LastTaskResult}else{$null}; errorType=$_.Exception.GetType().Name } | ConvertTo-Json
   exit 1

@@ -13,9 +13,10 @@ export default async function SignIn({ searchParams }: {
   const returnTo = inviteReturnPath((await searchParams).returnTo);
   if (await getViewer()) redirect(returnTo === INVITE_RETURN_PATH ? inviteAuthPath("onboarding", returnTo) : "/home");
   return (
-    <PageShell>
-      <h1 className="font-serif text-2xl">Sign in</h1>
-      <p className="mt-2 text-sm text-muted">New accounts are created on first sign-in.</p>
+    <PageShell mainClassName="register-narrow">
+      <h1 className="font-serif text-[1.375rem] leading-tight">Sign in to the register</h1>
+      <p className="mt-2 text-sm">No password. We’ll email you a six-digit code.</p>
+      <p className="mt-1 text-sm text-muted">New accounts are created on first sign-in.</p>
       <SignInForm returnTo={returnTo} />
     </PageShell>
   );

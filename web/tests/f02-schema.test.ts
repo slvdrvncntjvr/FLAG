@@ -65,7 +65,6 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
     const original = await env.DB.prepare("SELECT ref FROM engagement_log WHERE id = ?").bind(fixture.logId).first<{ ref: string }>();
     await expect(env.DB.prepare("UPDATE engagement_log SET ref = ? WHERE id = ?").bind(original!.ref, other.logId).run())
       .rejects.toThrow(/log identity and original anchor are immutable/i);
-    // Use an unused accepted engagement; uniqueness never requires deleting a guarded log.
     const fresh = await seedCurrentEngagement();
     await expect(env.DB.prepare(
       "INSERT INTO engagement_log (id,ref,engagement_id,freelancer_id,client_id,anchor_kind,anchor_date) VALUES (?,?,?,?,?,'completed','2026-10-14')",
@@ -86,14 +85,12 @@ describe("PRD-F2/PRD-F14 migration constraints in D1", () => {
   it("requires real foreign keys and blocks parent deletion with retained children", async () => {
     await expect(insertRevision({ log_id: "missing" })).rejects.toThrow(/editable proposal required/i);
     await expect(insertRevision({ submitted_by: "missing" })).rejects.toThrow(/verified acknowledged filer required/i);
-    // Relationship guards reject earlier; the underlying FK contract remains installed.
     const foreignKeys = (await env.DB.prepare("PRAGMA foreign_key_list(log_revision)").all()).results;
     expect(foreignKeys).toEqual(expect.arrayContaining([
       expect.objectContaining({ from: "log_id", table: "engagement_log", to: "id", on_delete: "RESTRICT" }),
       expect.objectContaining({ from: "submitted_by", table: "user", to: "id", on_delete: "RESTRICT" }),
     ]));
     const revisionId = await insertRevision();
-    // A retained tag exercises the revision FK without fabricating a publication pointer.
     await env.DB.prepare("INSERT INTO log_tag (revision_id, tag) VALUES (?, 'Clear Scope')").bind(revisionId).run();
     await expect(env.DB.prepare("DELETE FROM log_revision WHERE id = ?").bind(revisionId).run()).rejects.toThrow(/foreign key constraint/i);
     await expect(env.DB.prepare("DELETE FROM engagement_log WHERE id = ?").bind(fixture.logId).run()).rejects.toThrow(/foreign key constraint/i);

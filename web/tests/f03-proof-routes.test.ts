@@ -124,7 +124,6 @@ describe("private proof real-D1/R2 transport", () => {
     expect((await uploadProof(f.db, bucket, f.freelancerId, f.logId, uploadRequest())).status).toBe(503);
     const failed = await env.DB.prepare("SELECT id,status FROM proof_file WHERE log_id=?").bind(f.logId).first<{ id: string; status: string }>();
     expect(failed!.status).toBe("pending_purge");
-    // Retrying this SAME draft invokes bounded cleanup before the editable gate.
     await addProof(f);
     expect((await env.DB.prepare("SELECT status FROM proof_file WHERE id=?").bind(failed!.id).first())?.status).toBe("purged");
   });
