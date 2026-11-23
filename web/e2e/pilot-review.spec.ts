@@ -1,5 +1,5 @@
 import { expect, test, type Page, type APIResponse, type Locator } from "@playwright/test";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, join, resolve } from "node:path";
 import { isolateOtpIp } from "./network";
@@ -58,11 +58,8 @@ async function followLink(page: Page, link: Locator) {
   try {
     await Promise.all([page.waitForURL(new URL(href, page.url()).href, { timeout: 60_000 }), link.click()]);
   } catch (error) {
-    const report = test.info().outputPath("link-navigation.json");
     const body = JSON.stringify({ href, current: page.url(), anchor: await link.evaluate(node => ({ html: node.outerHTML, target: (node as HTMLAnchorElement).target, connected: node.isConnected })).catch(() => null), requests });
-    await writeFile(report, body);
-    await writeFile(resolve("../temporary", `pilot-link-${test.info().project.name}-${Date.now()}.json`), body);
-    await test.info().attach("link-navigation", { contentType: "application/json", path: report });
+    await test.info().attach("link-navigation", { contentType: "application/json", body });
     throw error;
   } finally { page.off("request", requested); page.off("response", responded); page.off("requestfailed", failed); }
 }
@@ -199,11 +196,13 @@ test("pilot publication, record search and independent private correction withdr
     await expect(client).toHaveURL(/\/clients\/[a-zA-Z0-9_-]+$/);
     const recordUrl = client.url();
     await expect(client.getByText("No published experiences in the past 12 months", { exact: false })).toBeVisible();
+    console.info("[Pilot review] Client record is empty before publication");
 
     const reviewerEmail = `pilot-review-reviewer-${stamp}@example.invalid`;
     await signIn(reviewer, reviewerEmail, "Client");
     await bootstrap(reviewerEmail, "moderator");
     await reviewer.goto("/moderation/logs");
+    console.info("[Pilot review] Reviewer signed in and reached the review queue");
     const logRef = (await page.locator("main p.font-mono").first().innerText()).trim();
     await followLink(reviewer, reviewer.getByRole("link", { name: `${logRef} · log`, exact: true }));
     await expect(reviewer).toHaveURL(/\/moderation\/logs\/[a-zA-Z0-9_-]+$/);
@@ -282,11 +281,8 @@ test("pilot publication, record search and independent private correction withdr
       expect((await anonymous.request.get(recordUrl, { maxRedirects: 0 })).status()).toBe(307);
     } finally { await anonymous.close(); }
   } catch (error) {
-    const diagnostics = info.outputPath("navigation-diagnostics.json");
     const body = JSON.stringify({ browserErrors, consoleErrors, actionResponses, actionRequests }, null, 2);
-    await writeFile(diagnostics, body);
-    await writeFile(resolve("../temporary", `pilot-navigation-${stamp}.json`), body);
-    await info.attach("navigation-diagnostics", { path: diagnostics, contentType: "application/json" });
+    await info.attach("navigation-diagnostics", { body, contentType: "application/json" });
     await info.attach("browser-errors", { body: JSON.stringify(browserErrors), contentType: "application/json" });
     await info.attach("console-errors", { body: JSON.stringify(consoleErrors), contentType: "application/json" });
     for (const [label, target] of [["client", client], ["reviewer", reviewer], ["independent", independent], ["reader", outsider]] as const) {
