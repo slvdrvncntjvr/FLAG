@@ -13,33 +13,50 @@ export default async function Home() {
   const accountType = isClient ? "Client" : isFreelancer ? "Freelancer" : viewer.role === "moderator" ? "Moderator" : "Admin";
   return (
     <>
-      <h1 className="font-serif text-2xl">{accountType} account</h1>
-      <dl className="mt-6 divide-y divide-rule border-y border-rule text-sm">
+      <h1 className="font-serif text-[1.375rem] leading-tight">{accountType} account</h1>
+      {(isClient || isFreelancer) && <p className="mt-2 text-sm text-muted">
+        {isClient
+          ? "Open an invite link from your freelancer to accept or decline an engagement."
+          : intakeEnabled ? "Open your engagements to create or view a private engagement log." : "Open your engagements to manage invitations and view accepted work."}
+      </p>}
+      <dl className="register-ledger mt-4 divide-y divide-rule text-sm">
         <Row term="Email" value={viewer.email} />
         <Row term="Account type" value={accountType} />
         {isFreelancer && <Row term="Verification" value={viewer.freelancerStatus === "verified" ? "Identity checked" : viewer.freelancerStatus ?? "Not started"} />}
       </dl>
-      <p className="mt-6 text-sm text-muted">
-        {isClient
-          ? "Open an invite link from your freelancer to accept or decline an engagement."
-          : isFreelancer ? intakeEnabled ? "Open your engagements to create or view a private engagement log." : "Open your engagements to manage invitations and view accepted work." : "Use the available account tools below."}
-      </p>
-      {(isClient || isFreelancer) && <p className="mt-6"><Link href="/engagements" className="underline underline-offset-2">View engagements</Link></p>}
-      {(isClient || isFreelancer) && <p className="mt-6"><Link href="/clients" className="underline underline-offset-2">{isClient ? "View your client record" : "Search client records"}</Link></p>}
-      {isFreelancer && <p className="mt-6"><Link href="/verification" className="underline underline-offset-2">View verification or request an identity check</Link></p>}
-      {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/verification" className="underline underline-offset-2">Open verification review queue</Link></p>}
-      {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/logs" className="underline underline-offset-2">Review engagement logs and updates</Link></p>}
-      {viewer.role === "moderator" && <p className="mt-6"><Link href="/moderation/corrections" className="underline underline-offset-2">Review private correction requests</Link></p>}
-      {viewer.role === "admin" && <p className="mt-6"><Link href="/admin/privacy" className="underline underline-offset-2">Process privacy requests and retention</Link></p>}
+      <nav aria-labelledby="account-tools" className="mt-4">
+        <h2 id="account-tools" className="register-kicker">Account tools</h2>
+        <ul className="mt-1 grid gap-2 text-sm">
+          {(isClient || isFreelancer) && <AccountLink href="/engagements">View engagements</AccountLink>}
+          {(isClient || isFreelancer) && <AccountLink href="/clients">{isClient ? "View your client record" : "Search client records"}</AccountLink>}
+          {isFreelancer && <AccountLink href="/verification">View verification or request an identity check</AccountLink>}
+          {viewer.role === "moderator" && <>
+            <AccountLink href="/moderation/verification">Open verification review queue</AccountLink>
+            <AccountLink href="/moderation/logs">Review engagement logs and updates</AccountLink>
+            <AccountLink href="/moderation/corrections">Review private correction requests</AccountLink>
+          </>}
+          {viewer.role === "admin" && <AccountLink href="/admin/privacy">Process privacy requests and retention</AccountLink>}
+        </ul>
+      </nav>
     </>
   );
 }
 
 function Row({ term, value }: { term: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 py-3">
+    <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-3">
       <dt className="text-muted">{term}</dt>
-      <dd className="text-right">{value}</dd>
+      <dd className="min-w-0 font-medium">{value}</dd>
     </div>
+  );
+}
+
+function AccountLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <li>
+      <Link href={href} className="flex min-h-12 items-center rounded-2xl border border-rule px-3 py-2 hover:bg-tint">
+        {children}
+      </Link>
+    </li>
   );
 }

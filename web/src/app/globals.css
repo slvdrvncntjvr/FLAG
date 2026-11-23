@@ -1,12 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --paper: oklch(0.985 0.004 85);
-  --ink: oklch(0.22 0.01 260);
-  --muted: oklch(0.45 0.01 260);
-  --rule: oklch(0.86 0.006 85);
-  --accent: oklch(0.47 0.12 245);
-  --danger: oklch(0.52 0.17 40);
+  --paper: #fffbec;
+  --ink: #1c1b1f;
+  --muted: #6b6671;
+  --rule: #e4ddc8;
+  --accent: #123f36;
+  --danger: #c23e2a;
+  --coupon: #e4d6ff;
+  --tint: #f1e9ff;
+  --surface: #fff;
+  --sand: #f1ead2;
+  --field-border: #dcd4be;
+  --register-width: 42rem;
 }
 
 @theme inline {
@@ -16,10 +22,14 @@
   --color-rule: var(--rule);
   --color-accent: var(--accent);
   --color-danger: var(--danger);
+  --color-coupon: var(--coupon);
+  --color-tint: var(--tint);
+  --color-surface: var(--surface);
+  --color-sand: var(--sand);
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-source-serif);
+  --font-serif: var(--font-fraunces);
   --font-mono: var(--font-plex-mono);
-  --radius-sm: 2px;
+  --radius-sm: 0.875rem;
 }
 
 body {
@@ -28,7 +38,280 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+h1, h2, h3 {
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.register-header, .register-main, .register-footer, .register-dock-inner {
+  width: min(calc(100% - 2rem), var(--register-width));
+  margin-inline: auto;
+}
+
+.register-header {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  min-height: 3.625rem;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--ink);
+  padding-block: 0.75rem 0.625rem;
+}
+
+.register-wordmark {
+  color: var(--ink);
+  font: 700 clamp(1.25rem, 5.65vw, 1.375rem)/1.18 var(--font-serif), Georgia, serif;
+}
+
+.register-main {
+  flex: 1;
+  padding-block: 1.25rem 2.5rem;
+  overflow-wrap: anywhere;
+}
+
+.register-main:has(> .register-narrow), .register-narrow {
+  max-width: 32rem;
+}
+
+.register-narrow {
+  margin-inline: auto;
+}
+
+.register-footer {
+  padding: 0.75rem 0 2rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.register-footer nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.register-dock {
+  position: sticky;
+  z-index: 5;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.register-dock-inner {
+  display: flex;
+  width: min(100%, var(--register-width));
+}
+
+.register-dock a {
+  flex: 1;
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.2rem;
+  min-height: 4.125rem;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.register-dock a:hover, .register-dock [aria-current] {
+  color: var(--accent);
+}
+
+.register-dock [aria-current] {
+  font-weight: 600;
+}
+
+.register-dock [aria-current]::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto auto;
+  width: 1.75rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.register-main:has(~ .register-dock) :focus {
+  scroll-margin-block-end: 5rem;
+}
+
+.register-icon {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: currentColor;
+  mask: var(--register-icon) center / contain no-repeat;
+}
+
+.register-kicker {
+  color: var(--muted);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.register-panel, .register-callout {
+  border: 1px solid var(--rule);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.register-panel { background: var(--surface); }
+.register-callout { background: var(--tint); }
+.register-ledger { border-block: 1px solid var(--rule); }
+
+.register-primary, .register-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 0.875rem;
+  color: var(--ink);
+  font-weight: 600;
+  text-align: center;
+}
+
+.register-primary {
+  min-height: 3.5rem;
+  background: var(--coupon);
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.register-secondary { background: var(--surface); }
+.register-primary:hover:not(:disabled), .register-secondary:hover:not(:disabled) { background: var(--tint); }
+.register-primary:disabled, .register-secondary:disabled { opacity: 0.58; cursor: not-allowed; }
+.register-primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+
+.register-header .register-secondary {
+  min-height: 2rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.875rem;
+  background: var(--coupon);
+  font-size: 0.8125rem;
+}
+
+.register-field,
+.register-main :is(input:not([type]), input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="date"], input[type="datetime-local"], input[type="number"], input[type="search"], textarea, select) {
+  max-width: 100%;
+  min-height: 3.25rem;
+  border: 1px solid var(--field-border);
+  border-radius: 1rem;
+  padding: 0.7rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.register-main :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
+.register-main :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--accent); }
+
+.register-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.875rem;
+  padding: 0.75rem;
+  background: var(--surface);
+}
+
+.register-staff-form > label,
+.register-staff-form fieldset > label,
+.register-staff-form fieldset > div > label {
+  display: block;
+  margin-block: 0.625rem;
+  font-size: 0.875rem;
+}
+
+.register-staff-form fieldset { min-width: 0; }
+.register-staff-form legend { margin-bottom: 0.5rem; font-weight: 700; }
+.register-staff-form > label :is(input:not([type="checkbox"]), select, textarea),
+.register-staff-form fieldset > label :is(input:not([type="checkbox"]), select, textarea) { margin-top: 0.3rem; }
+
+.register-staff-section {
+  margin-top: 1.75rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.875rem;
+}
+
+.register-staff-section > ul > li,
+.register-staff-section > ol > li {
+  padding-block: 0.65rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.register-illustration {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 358 / 170;
+  background: var(--tint);
+  border: 1px solid var(--rule);
+  border-radius: 1.25rem;
+}
+
+.register-illustration span {
+  position: absolute;
+  display: block;
+  background-size: 100% 100%;
+}
+
+.register-illustration .register-sun {
+  top: 15.9%;
+  left: 68%;
+  width: 13.4%;
+  height: 28.2%;
+  background-image: url("/register/sun.svg");
+}
+
+.register-illustration .register-hill-light {
+  top: 61.8%;
+  left: -20.25%;
+  width: 90%;
+  height: 80%;
+  background-image: url("/register/hill-light.svg");
+}
+
+.register-illustration .register-hill-dark {
+  top: 78.2%;
+  left: 35%;
+  width: 80%;
+  height: 70%;
+  background-image: url("/register/hill-dark.svg");
+}
+
+.register-illustration--compact { width: 12.5rem; aspect-ratio: 20 / 17; margin-inline: auto; }
+.register-illustration--compact .register-sun { width: 24%; }
+.register-illustration--compact .register-hill-light { background-image: url("/register/missing-hill-light.svg"); }
+.register-illustration--compact .register-hill-dark { background-image: url("/register/missing-hill-dark.svg"); }
+
+@media (min-width: 48rem) {
+  .register-header { min-height: 4.25rem; }
+  .register-main { padding-block-start: 2rem; }
+  .register-footer { padding-block-end: 1.25rem; }
 }

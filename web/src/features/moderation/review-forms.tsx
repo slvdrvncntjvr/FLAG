@@ -13,7 +13,7 @@ function LeaseFields({ caseId, expectedClaimUntil }: Lease) {
 
 export function ClaimReviewForm({ caseId }: { caseId: string }) {
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>((previous, form) => recoverAction(claimReview, previous, form), null);
-  return <form action={action} className="mt-6 space-y-3" aria-busy={pending}>
+  return <form action={action} className="register-panel mt-5 space-y-3" aria-busy={pending}>
     <input type="hidden" name="caseId" value={caseId} />
     <p>Claim this request for 30 minutes before inspecting or deciding.</p>
     <button disabled={pending || state?.ok === true} className={`${buttonStyle} w-full`}>{pending ? "Claiming…" : "Claim review"}</button>
@@ -43,9 +43,9 @@ export function ReviewerForms({ caseId, expectedClaimUntil, canApprove }: Lease 
 function InspectionForm({ onPending, ...lease }: Lease & { onPending: (pending: boolean) => void }) {
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>((previous, form) => recoverAction(recordInspection, previous, form), null);
   useEffect(() => { onPending(pending); }, [pending, onPending]);
-  return <form action={action} className="space-y-5 border-t border-rule pt-5" aria-busy={pending}>
+  return <form action={action} className="register-panel space-y-5" aria-busy={pending}>
     <LeaseFields {...lease} />
-    <h2 className="font-medium">Record a live inspection</h2>
+    <h2 className="font-serif text-xl">Record a live inspection</h2>
     <p className="text-muted">Inspect the supported ID live and compare it to the captured account/profile name. Do not capture an image, number, recording or QR data. Recording inspection does not approve verification.</p>
     <label className="block" htmlFor="inspection-kind">ID kind inspected
       <select id="inspection-kind" name="idKind" required defaultValue="" className={inputStyle}>
@@ -72,9 +72,9 @@ function DecisionForm({ canApprove, onPending, ...lease }: Lease & { canApprove:
   const [decision, setDecision] = useState("");
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>((previous, form) => recoverAction(decideReview, previous, form), null);
   useEffect(() => { onPending(pending); }, [pending, onPending]);
-  return <form action={action} className="space-y-5 border-t border-rule pt-5" aria-busy={pending}>
+  return <form action={action} className="register-panel space-y-5" aria-busy={pending}>
     <LeaseFields {...lease} />
-    <h2 className="font-medium">Decide verification</h2>
+    <h2 className="font-serif text-xl">Decide verification</h2>
     {!canApprove && <p className="text-muted">Approval requires a passing live inspection recorded by you with a matching name. You may reject an uninspected request with a reason.</p>}
     <label className="block" htmlFor="review-decision">Decision
       <select id="review-decision" name="decision" required value={decision} onChange={e => setDecision(e.target.value)} className={inputStyle}>
@@ -85,7 +85,7 @@ function DecisionForm({ canApprove, onPending, ...lease }: Lease & { canApprove:
       <textarea id="review-reason" name="reason" required maxLength={1000} rows={4} value={reason} onChange={e => setReason(e.target.value)} aria-describedby="review-reason-help" className={inputStyle} />
     </label>
     <p id="review-reason-help" className="text-muted">State the review grounds only. Do not transcribe ID details, numbers, links or QR data. This closes the request and cannot be undone here.</p>
-    <button disabled={pending || !reason.trim() || !decision || (decision === "approve" && !canApprove)} className={`${buttonStyle} sticky bottom-4 w-full`}>{pending ? "Recording decision…" : "Record decision"}</button>
+    <button disabled={pending || !reason.trim() || !decision || (decision === "approve" && !canApprove)} className={`${buttonStyle} w-full`}>{pending ? "Recording decision…" : "Record decision"}</button>
     <ActionFeedback state={state} success="Decision recorded." />
   </form>;
 }
@@ -93,10 +93,10 @@ function DecisionForm({ canApprove, onPending, ...lease }: Lease & { canApprove:
 function ReleaseForm({ onPending, ...lease }: Lease & { onPending: (pending: boolean) => void }) {
   const [state, action, pending] = useActionState<ReviewResult | null, FormData>((previous, form) => recoverAction(releaseReview, previous, form), null);
   useEffect(() => { onPending(pending); }, [pending, onPending]);
-  return <form action={action} className="space-y-3 border-t border-rule pt-5" aria-busy={pending}>
+  return <form action={action} className="register-panel space-y-3" aria-busy={pending}>
     <LeaseFields {...lease} />
     <p>Release this claim if another moderator should continue. A different moderator must perform their own live inspection.</p>
-    <button disabled={pending} className="min-h-11 underline">{pending ? "Releasing…" : "Release claim"}</button>
+    <button disabled={pending} className="register-secondary">{pending ? "Releasing…" : "Release claim"}</button>
     <ActionFeedback state={state} success="Claim released." />
   </form>;
 }

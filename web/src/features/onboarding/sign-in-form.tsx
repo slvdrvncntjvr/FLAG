@@ -52,28 +52,29 @@ export function SignInForm({ returnTo }: { returnTo?: string }) {
     }
   }
 
-  const field = "mt-1 block w-full rounded-sm border border-rule bg-white px-3 py-3";
-  const button = "mt-6 w-full rounded-sm bg-ink px-4 py-3 text-paper disabled:opacity-60";
-
   return step === "email" ? (
-    <form onSubmit={sendCode} className="mt-6">
+    <form key="email" onSubmit={sendCode} className="mt-6">
       <label htmlFor="email" className="text-sm font-medium">Email</label>
       <input id="email" type="email" required autoComplete="email" value={email}
-        onChange={(e) => setEmail(e.target.value)} className={field} />
+        placeholder="name@example.com" onChange={(e) => setEmail(e.target.value)} className="register-field mt-1 block w-full" />
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button type="submit" disabled={pending} className={button}>{pending ? "Sending" : "Send code"}</button>
+      <button type="submit" disabled={pending} className="register-primary mt-6 w-full">{pending ? "Sending" : "Send code"}</button>
     </form>
   ) : (
-    <form onSubmit={verify} className="mt-6">
-      <p className="text-sm">A 6-digit code was sent to <span className="font-mono">{email}</span>. It expires in 10 minutes.</p>
-      <label htmlFor="otp" className="mt-4 block text-sm font-medium">Code</label>
+    <form key="code" onSubmit={verify} className="mt-6">
+      <label htmlFor="otp" className="block text-sm font-medium">Code</label>
       <input id="otp" name="otp" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required
-        autoComplete="one-time-code" className={`${field} font-mono tracking-widest`} />
+        autoComplete="one-time-code" aria-describedby="otp-status"
+        className="register-field mt-1 block w-full border-2! border-ink! font-mono tracking-[0.4em]" />
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button type="submit" disabled={pending} className={button}>{pending ? "Checking" : "Sign in"}</button>
-      <button type="button" disabled={pending} onClick={() => { setError(null); setStep("email"); }} className="mt-3 w-full py-2 text-sm underline disabled:opacity-60">
+      <button type="button" disabled={pending} onClick={() => { setError(null); setStep("email"); }}
+        className="register-secondary mx-auto mt-5 flex! w-fit max-w-full text-sm shadow-[0_3px_0_var(--ink)]">
         Use a different email or send a new code (replaces the current one)
       </button>
+      <p id="otp-status" role="status" className="mt-6 rounded-sm bg-ink px-4 py-3.5 text-sm text-paper">
+        A 6-digit code was sent to <span className="font-mono">{email}</span>. It expires in 10 minutes.
+      </p>
+      <button type="submit" disabled={pending} className="register-primary mt-5 w-full">{pending ? "Checking" : "Sign in"}</button>
     </form>
   );
 }

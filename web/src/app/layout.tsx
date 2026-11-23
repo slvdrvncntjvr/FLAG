@@ -6,9 +6,9 @@ const inter = localFont({
   src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
   variable: "--font-inter", weight: "100 900", display: "swap",
 });
-const serif = localFont({
-  src: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2",
-  variable: "--font-source-serif", weight: "200 900", display: "swap",
+const fraunces = localFont({
+  src: "./fonts/fraunces-latin.woff2",
+  variable: "--font-fraunces", weight: "600 800", display: "swap",
 });
 const mono = localFont({
   src: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${serif.variable} ${mono.variable} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${fraunces.variable} ${mono.variable} antialiased`}>
       <body className="min-h-dvh flex flex-col text-base">{children}</body>
     </html>
   );

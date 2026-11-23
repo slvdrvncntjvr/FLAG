@@ -1,3 +1,3 @@
 export default function Loading() {
-  return <p role="status">Loading client records…</p>;
+  return <p role="status" className="register-panel text-sm text-muted">Loading client records…</p>;
 }

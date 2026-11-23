@@ -17,5 +17,5 @@ export default async function Record({ params, searchParams }: {
   const { page } = await searchParams;
   const record = await loadClientRecord(await getDb(), viewer.id, id, recordPage(page));
   if (!record) notFound();
-  return <ClientRecordView record={record} />;
+  return <ClientRecordView record={record} ownRecord={viewer.role === "client"} />;
 }
