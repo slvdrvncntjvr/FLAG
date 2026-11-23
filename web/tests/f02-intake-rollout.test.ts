@@ -21,6 +21,7 @@ vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: mocks.context }
 vi.mock("@/server/auth/guards", () => ({ getViewer: mocks.viewer, requireVerifiedFreelancer: mocks.viewer, viewerOrRedirect: mocks.viewer }));
 vi.mock("@/server/db", async original => ({ ...await original<typeof import("@/server/db")>(), getDb: mocks.getDb }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
+vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("next/navigation", () => ({
   notFound: () => { throw new Error("not-found"); },
   redirect: (path: string) => { throw new Error(`redirect:${path}`); },
