@@ -12,8 +12,8 @@ export function CreateEngagementForm() {
   const [state, action, pending] = useActionState(createEngagement, null);
   return <form id="new-engagement" action={action} className="scroll-mt-4 space-y-4 border-t border-rule pt-5" aria-labelledby="new-engagement-heading">
     <h2 id="new-engagement-heading" className="font-serif text-2xl">New engagement</h2>
-    <label className="block text-sm">Engagement title<input className={field} name="title" required maxLength={160} placeholder="e.g. Brand site copy" /></label>
-    <label className="block text-sm">Client name as you know it<input className={field} name="clientNameHint" required maxLength={160} placeholder="e.g. Simple Trading Co." /></label>
+    <label className="block text-sm">Engagement title<input className={field} name="title" required maxLength={160} /></label>
+    <label className="block text-sm">Client name as you know it<input className={field} name="clientNameHint" required maxLength={160} /></label>
     <label className="block text-sm">Start date<input className={field} type="date" name="startedOn" required /></label>
     <p className="border-t border-rule pt-4 text-sm text-muted">The link expires in 14 days. You can create 10 invitations per day and 30 per week.</p>
     {state && !state.ok && <p role="alert" className="text-sm text-danger">{state.message}</p>}
