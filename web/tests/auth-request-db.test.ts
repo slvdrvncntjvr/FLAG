@@ -13,8 +13,6 @@ vi.mock("next/headers", () => ({
   headers: async () => request.headers,
   cookies: async () => ({ get: () => undefined, set: vi.fn() }),
 }));
-// Only the server viewer helper is exercised here; Next's browser navigation
-// module cannot initialize in the Workers test runtime.
 vi.mock("next/navigation", () => ({ redirect: vi.fn(() => { throw new Error("Unexpected redirect"); }) }));
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: vi.fn() }));
 vi.mock("@/server/db", async importOriginal => ({

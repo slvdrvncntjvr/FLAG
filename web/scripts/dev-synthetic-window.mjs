@@ -1,5 +1,3 @@
-// Dev-only bounded synthetic window. Review the complete PS/Node interaction
-// before executing: the independent Windows guard must finish a false-only run.
 import {createHash,randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {readFileSync,writeFileSync,renameSync,existsSync,readdirSync} from 'node:fs';
@@ -13,7 +11,6 @@ export function fingerprint(snapshot,{restoration=false}={}){
  const version=snapshot.currentVersion??snapshot.version,script=version.resources.script;
  if(typeof script?.etag!=='string'||!script.etag)throw Error('Authoritative script digest required');
  const settings=retainedMetadata(snapshot.settings);
- // Logging drift is reported separately; it must not prevent emergency close.
  if(restoration)for(const k of ['observability','tail_consumers','logpush'])delete settings[k];
  return createHash('sha256').update(stable({settings,script:{etag:script.etag,handlers:script.handlers??null,named_handlers:script.named_handlers??null},runtime:version.resources.script_runtime,annotations:writable(version)})).digest('hex');
 }
@@ -42,7 +39,6 @@ export async function openWindow({baseline,preflight,readSnapshot,readInventory,
   validatePreflight(preflight,baseline,now());
   before=await readSnapshot();receipt.source=authorizeSnapshot(before,baseline,{now:now()});
   const inventory=await readInventory();if(stable(inventory)!==stable(baseline.eligible))throw Error('Eligible inventory changed');
-  // Recheck source and settings after inventory and immediately before PATCH.
   const fresh=await readSnapshot();authorizeSnapshot(fresh,baseline,{now:now()});
   if(stable(before.settings)!==stable(fresh.settings))throw Error('Settings changed before open');
   if(Date.parse(baseline.deadline)-now()<120000)throw Error('Insufficient bounded opener/recovery time before true PATCH');
@@ -50,7 +46,6 @@ export async function openWindow({baseline,preflight,readSnapshot,readInventory,
   await patch({bindings:closedBindings(fresh.settings).map(b=>b.name==='PRIVATE_INTAKE_ENABLED'?{...b,text:'true'}:b),annotations:writable(fresh.currentVersion??fresh.version)});
   receipt.patchResponseConfirmed=true;
  }catch{receipt.failure='Open refused or transport uncertain';}
- // Every attempted mutation gets fresh readback, including a transport timeout.
  try{
   if(receipt.mutationAttempted){
    const observed=await observeIntakeState({readSnapshot,wait,canWait:()=>now()<Date.parse(baseline.deadline),accept:after=>{
@@ -96,8 +91,6 @@ async function main(){
    const restore=async()=>{
     const initial=await snapshot();authorizeSnapshot(initial,baseline,{restoration:true});
     const expected=initial.version.id;
-    // Validate the reviewed fingerprint on every pre/post close read. Logging
-    // differences are allowed for closing and still reported by closeIntake.
     const guardedRead=async()=>{const s=await snapshot();authorizeSnapshot(s,baseline,{restoration:true});return s;};
     const r=await closeIntake({expected,readSnapshot:guardedRead,patch});
     return {...r,mode:'restore',windowId:baseline.windowId,restorationFingerprint:baseline.restorationFingerprint};

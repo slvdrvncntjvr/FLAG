@@ -8,12 +8,8 @@ const field = "mt-1 block w-full min-w-0 rounded-sm border border-rule bg-white 
 const subscribe = () => () => {};
 const messengerSnapshot = () => /FBAN|FBAV|Messenger|FB_IAB/i.test(navigator.userAgent);
 
-// A fresh canvas has no source EXIF, GPS, camera or textual metadata. Never fall
-// back to the original image bytes if decoding or encoding is unavailable.
 export async function prepareProof(file: File): Promise<File> {
   if (!file.size || file.size > MAX_PROOF_BYTES) throw new Error("Choose a file between 1 byte and 10 MiB.");
-  // Sniff a bounded prefix so a mislabeled image cannot skip re-encoding by
-  // claiming to be a PDF. The server independently validates the full file.
   const prefix = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   const starts = (bytes: number[]) => bytes.every((byte, index) => prefix[index] === byte);
   const text = String.fromCharCode(...prefix);

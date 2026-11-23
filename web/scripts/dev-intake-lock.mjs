@@ -3,9 +3,6 @@ import {resolve} from 'node:path';
 let active;
 export function assertDevIntakeLock(){if(!active?.alive)throw Error('Exclusive dev writer lease required');}
 export function devIntakeSignal(){assertDevIntakeLock();return active.controller.signal;}
-// The lease process owns the Windows mutex and watches this Node process. Node
-// aborts all guarded HTTP work if the lease dies. The next owner waits a recovery
-// quiet period after an abandoned mutex; this is not a remote atomic CAS.
 export async function withDevIntakeLock(role,receiptPath,operation){
  if(process.platform!=='win32'||active)throw Error('One Windows dev writer lease required');
  const child=spawn('pwsh.exe',['-NoProfile','-NonInteractive','-WindowStyle','Hidden','-File',resolve(import.meta.dirname,'../../scripts/dev-intake-lock.ps1'),'-OwnerProcessId',String(process.pid),'-Role',role,'-ReceiptPath',resolve(receiptPath)],{stdio:['pipe','pipe','pipe'],windowsHide:true});

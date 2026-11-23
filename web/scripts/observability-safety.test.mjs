@@ -28,7 +28,6 @@ for (const environment of ["", "dev"]) {
 
   test(`${label} source explicitly protects capability URLs`, () => {
     const source = environment ? parsed.config.env[environment] : parsed.config;
-    // Require an explicit policy in each environment, even when inheritance is safe.
     assertSafeObservability(source.observability);
   });
 

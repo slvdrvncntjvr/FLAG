@@ -1,10 +1,4 @@
 #requires -Version 5.1
-<#
-Prepare/review a FLAG D1 backup with -Target dev|production (default Mode: Plan).
-Backup is an explicitly authorized remote read; it never applies migrations.
-SelfTest uses only synthetic bytes and writes encrypted fixtures inside the repo.
-Raw .sql.dpapi bytes use DPAPI CurrentUser, no optional entropy or text encoding.
-#>
 [CmdletBinding()]
 param(
     [ValidateSet('Plan', 'Backup', 'SelfTest')][string]$Mode = 'Plan',
@@ -23,10 +17,6 @@ $script:backupFailureStage = $null
 
 function Invoke-QuietNode {
     param([string[]]$Arguments, [string]$WorkingDirectory, [switch]$CaptureOutput)
-    # Windows PowerShell promotes native stderr to terminating errors under
-    # ErrorActionPreference=Stop, even with *> $null and a successful exit.
-    # Start Node directly (no cmd/npx/package resolution); drain both pipes
-    # concurrently without retaining export diagnostics in strings or on disk.
     $start = New-Object Diagnostics.ProcessStartInfo
     $start.FileName = (Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
     $start.WorkingDirectory = $WorkingDirectory
@@ -34,8 +24,6 @@ function Invoke-QuietNode {
     $start.CreateNoWindow = $true
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
-    # ProcessStartInfo.ArgumentList is unavailable in Windows PowerShell 5.1.
-    # Quote each argument using the Windows argv backslash/quote rules.
     $start.Arguments = (@($Arguments | ForEach-Object {
         $escaped = [regex]::Replace($_, '(\\*)"', '$1$1\"')
         '"' + [regex]::Replace($escaped, '(\\+)$', '$1$1') + '"'
@@ -74,8 +62,6 @@ function New-PrivateScratch {
         $rule = New-Object Security.AccessControl.FileSystemAccessRule(
             $identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
         $acl.AddAccessRule($rule)
-        # Use .NET directly: Python/CI may inherit a PSModulePath without the
-        # Windows PowerShell Security module that supplies Set-Acl.
         if ($PSVersionTable.PSEdition -eq 'Desktop') { [IO.Directory]::SetAccessControl($path, $acl) }
         else { [IO.FileSystemAclExtensions]::SetAccessControl([IO.DirectoryInfo]::new($path), $acl) }
         return $path
@@ -102,7 +88,6 @@ function Get-ApprovedTarget {
     if (-not [IO.File]::Exists((Join-Path $web 'node_modules/wrangler/bin/wrangler.js'))) {
         throw 'Project-local Wrangler is required; this command never installs packages.'
     }
-    # Use the same parser and approved mapping as deployment; emit only nonsecret IDs.
     $code = @'
 try {
  const { unstable_readConfig } = require('wrangler');
@@ -116,7 +101,6 @@ try {
  console.log(JSON.stringify({account:CLOUDFLARE_ACCOUNT_ID, ...getDeploymentTarget(env)}));
 } catch { process.exitCode = 1; }
 '@
-    # CommonJS -e supports dynamic import but not top-level await.
     $code = '(async () => {' + $code + '})()'
     $native = Invoke-QuietNode -Arguments @('-e', $code, $Target) -WorkingDirectory $web -CaptureOutput
     if ($native.ExitCode -ne 0) { throw 'Approved target validation failed.' }
@@ -148,7 +132,6 @@ function Invoke-EncryptedBackup {
     $cleanupOk = $false
     $script:backupFailureStage = $null
     try {
-        # CreateNew below also closes the race after this preflight.
         $script:backupStage = 'output_preflight'
         if (Test-Path -LiteralPath $Destination) { throw 'Backup output already exists.' }
         $script:backupStage = 'private_scratch'
@@ -188,7 +171,6 @@ function Invoke-EncryptedBackup {
         $verified = $true
     } catch {
         $script:backupFailureStage = $script:backupStage
-        # Neither native stderr nor the caught exception can expose SQL/credentials.
         throw 'D1 backup failed; no verified backup was produced. Sensitive diagnostics suppressed.'
     } finally {
         foreach ($buffer in @($plain, $cipher, $stored, $decoded, $originalHash, $decodedHash)) { Clear-Bytes $buffer }
@@ -210,8 +192,6 @@ function Invoke-EncryptedBackup {
 }
 
 function Invoke-SyntheticTests {
-    # Only test artifacts (never developer files or backups); fake native export
-    # uses Node with synthetic source only, never installed Wrangler or network.
     $testRoot = Join-Path $repoRoot ('temporary\backup-selftest-' + [Guid]::NewGuid().ToString('N'))
     $null = [IO.Directory]::CreateDirectory($testRoot)
     $results = @()
@@ -224,7 +204,6 @@ function Invoke-SyntheticTests {
                 param($sql, $scratch)
                 $state.ProducerCalled = $true
                 $state.Scratch = $scratch
-                # Mutable byte fixture, including non-ASCII/NUL; never encoded as a SQL string.
                 $fixture = [byte[]](0, 45, 45, 32, 83, 89, 78, 84, 72, 69, 84, 73, 67, 255, 10)
                 try {
                     $state.Plain = $sql
@@ -262,8 +241,6 @@ fs.writeFileSync(a[10], Buffer.from([0, 45, 255, 10]));
                     if ($case -eq 'race') { [IO.File]::WriteAllText($output, 'existing-synthetic-marker') }
                     if ($case -eq 'export') { throw 'Synthetic SQL/credential diagnostic MUST NOT LEAK' }
                     if ($case -eq 'cleanup') {
-                        # Lock a sibling so export reading still works, but
-                        # recursive cleanup must fail and withhold success.
                         $state.Lock = [IO.File]::Open((Join-Path $scratch 'locked-synthetic-file'),
                             [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
                     }
@@ -297,12 +274,9 @@ fs.writeFileSync(a[10], Buffer.from([0, 45, 255, 10]));
             }
             $results += [pscustomobject]@{ Case = $case; Passed = $true; PlaintextCleaned = $clean; FailureStage = $script:backupFailureStage }
         }
-        # Empty args, whitespace, shell metacharacters, literal quotes and
-        # trailing backslashes must reach Node unchanged without a shell.
         $native = Invoke-QuietNode -Arguments @('-e', 'process.exit(process.argv[1] === "" && process.argv[2] === "a & b" && process.argv[3] === "quote\"tail\\" ? 0 : 92)', '', 'a & b', 'quote"tail\') -WorkingDirectory $repoRoot
         if ($native.ExitCode -ne 0) { throw 'Synthetic native argument check failed.' }
         $results += [pscustomobject]@{ Case = 'native_arguments'; Passed = $true; PlaintextCleaned = $true }
-        # Check the actual wipe helper, not just its call sites.
         $wipe = [byte[]](1, 2, 255)
         Clear-Bytes $wipe
         if (@($wipe | Where-Object { $_ -ne 0 }).Count -ne 0) { throw 'Byte wipe failed.' }
@@ -381,7 +355,6 @@ try {
         }
     }
 } catch {
-    # Fixed messages above are safe; unexpected runtime/native exception content is never shown.
     $stage = if ($script:backupFailureStage) { $script:backupFailureStage } else { $script:backupStage }
     if ($stage -notin @('preflight', 'target_validation', 'account_override', 'backup_directory',
         'output_preflight', 'private_scratch', 'export', 'export_config', 'export_native', 'read_export',

@@ -85,8 +85,6 @@ const governmentIdFacts = [
 ].map(label => `The synthetic project was delivered and my ${label}.`);
 
 async function intakeState() {
-  // Include allocation/quota state as well as content: a rejected first save
-  // must not allocate a reference, create children or touch an existing draft.
   const tables = ["engagement_log", "log_revision", "log_tag", "proof_file", "moderation_case", "audit_event", "auth_rate_limit"];
   const rows = await env.DB.batch(tables.map(table => env.DB.prepare(`SELECT * FROM ${table}`)));
   return rows.map(row => row.results.toSorted((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))));
@@ -97,8 +95,6 @@ describe("private intake audit repairs", () => {
     it.each(governmentIdFacts)("rejects without any D1 change: %s", async facts => {
       const f = await intakeFixture();
       if (mode === "initial save") {
-        // Make the accepted engagement genuinely empty: a duplicate-log guard
-        // must not be mistaken for the privacy boundary on first persistence.
         await env.DB.batch([
           env.DB.prepare("DELETE FROM log_tag WHERE revision_id IN (SELECT id FROM log_revision WHERE log_id=?)").bind(f.logId),
           env.DB.prepare("DELETE FROM log_revision WHERE log_id=?").bind(f.logId),
@@ -108,8 +104,6 @@ describe("private intake audit repairs", () => {
       const before = await intakeState();
       const input = { ...f.input, ...(mode === "draft edit" ? { logId: f.logId } : {}), facts };
       const result = await saveLogDraft(f.db, f.freelancerId, input);
-      // Soft assertions retain both the invalid result and any unintended
-      // persistence as red-before-green evidence against vulnerable source.
       expect.soft(result).toMatchObject({ ok: false, code: "invalid_input" });
       expect.soft(await intakeState()).toEqual(before);
       expect.soft(logDraftInput.safeParse(input).success).toBe(false);
@@ -135,7 +129,6 @@ describe("private intake audit repairs", () => {
     const before = await env.DB.prepare("SELECT * FROM log_revision WHERE log_id=?").bind(f.logId).first();
     expect(await saveLogDraft(f.db, f.freelancerId, { ...f.input, logId: f.logId, facts })).toMatchObject({ ok: false, code: "invalid_input" });
     expect(await env.DB.prepare("SELECT * FROM log_revision WHERE log_id=?").bind(f.logId).first()).toEqual(before);
-    // The same gate protects first-save creation, not just updates.
     expect(await saveLogDraft(f.db, f.freelancerId, { ...f.input, facts })).toMatchObject({ ok: false, code: "invalid_input" });
   });
 

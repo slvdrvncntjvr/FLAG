@@ -11,7 +11,6 @@ export const OTP_SEND_PATHS = new Set([
   "/email-otp/send-verification-otp", "/email-otp/request-password-reset", "/forget-password/email-otp", "/email-otp/request-email-change",
 ]);
 export const OTP_LIMIT = { window: 15 * 60, max: 5 };
-// Code emails per trusted IP across all addresses. Tunable; shared NAT (campus, mobile CGNAT) needs headroom.
 export const OTP_IP_SEND_LIMIT = { window: 15 * 60, max: 20 };
 
 export function createAuthRateLimiter(db: Db, secret: string, now: () => number = Date.now) {

@@ -12,7 +12,6 @@ const query = (sql: string, ...args: (string | number | null)[]) => env.DB.prepa
 
 async function shell() {
   const subject = crypto.randomUUID(), admin = await addActor("admin");
-  // A synthetic final deactivated shell: no remaining account/profile/consent purposes.
   await query("INSERT INTO user(id,name,email,role,deactivated_at) VALUES(?,'Closed account',?,'client',?)", subject, `${subject}@closed.invalid`, iso(-10000)).run();
   return { subject, admin };
 }
@@ -25,8 +24,6 @@ async function request(subject: string, admin: string, targets: Assessment["targ
 }
 async function finalTask(state: "executing" | "deferred") {
   const f = await shell(), due = iso(-1000);
-  // Create the authorizer before another same-subject request: detachment must
-  // be ordered by authority rather than row insertion or lexical request ID.
   const id = await request(f.subject, f.admin, [{ targetType: "user", targetId: f.subject, operation: "purge", basis: "assessed_erasure", dueAt: due }]);
   const sameSubject = await request(f.subject, f.admin);
   if (state === "deferred") expect(await recordPrivacyOutcome(db, f.admin, id, "deferred", "Finite remaining shell erasure", iso(86400000))).toEqual({ ok: true });
@@ -58,7 +55,6 @@ describe("PRD-F12 final shell erasure", () => {
     it(`rolls back every ${state} detachment and receipt when DELETE fails, then retries exact authority`, async () => {
       const f = await finalTask(state);
       const requests = (await query("SELECT * FROM privacy_request WHERE subject_user_id=? ORDER BY id", f.subject).all()).results;
-      // Abort after detachment and the normal consumption trigger would run.
       await env.DB.prepare("CREATE TRIGGER synthetic_shell_failure AFTER DELETE ON user BEGIN SELECT RAISE(ABORT,'injected final shell failure'); END").run();
       try { expect(await runMaintenance(env, Date.now(), 1)).toMatchObject({ completed: 0, blocked: 1 }); }
       finally { await env.DB.prepare("DROP TRIGGER synthetic_shell_failure").run(); }

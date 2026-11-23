@@ -13,8 +13,6 @@ async function guarded(db: Db, t: MaintenanceTask, sql: string, values: (string 
 }
 async function changed(db: Db, t: MaintenanceTask, sql: string, values: (string | number | null)[] = []) {
   const result = await guarded(db, t, sql, values);
-  // D1 includes receipt-trigger writes in meta.changes. The exact primary-key
-  // predicate affects one target; only zero means that guarded target lost.
   if (result.meta.changes < 1) throw new Error("authorization_or_target_changed");
   return result;
 }
@@ -27,8 +25,6 @@ async function purgeArtifact(db: Db, bucket: R2Bucket, t: MaintenanceTask, budge
     budget.r2Deletes++;
     await bucket.delete(row.object_key);
     if (await bucket.head(row.object_key)) throw new Error("object_still_present");
-    // Clearing bytes changes the target's clock to its separate receipt purpose.
-    // Commit that switch with this exact artifact task's completion.
     const r = await db.$client.batch([
       db.$client.prepare(`UPDATE export_delivery SET object_key=NULL,token_hash=NULL,purged_at=${clock} WHERE id=? AND ${exact}`).bind(t.target_id, ...args(t)),
       completeTaskStatement(db, t),
@@ -42,7 +38,6 @@ async function purgeProof(db: Db, bucket: R2Bucket, t: MaintenanceTask, budget: 
   const p = await db.$client.prepare("SELECT * FROM proof_file WHERE id=?").bind(t.target_id).first<ProofRecord>();
   if (!p) return;
   if (p.write_inflight) throw new Error("proof_writer_unsettled");
-  // A retained shared revision owns the bytes independently of the origin.
   const retained = await db.$client.prepare(`SELECT 1 FROM revision_proof rp JOIN log_revision r ON r.id=rp.revision_id
     WHERE rp.proof_id=? AND NOT EXISTS(SELECT 1 FROM pilot_unheld_target x WHERE x.target_type='log_revision' AND x.target_id=r.id AND x.purge_due_at<=${clock})
     AND NOT EXISTS(SELECT 1 FROM pilot_maintenance_eligible e WHERE e.target_type='log_revision' AND e.target_id=r.id AND e.operation='purge' AND e.status='claimed')`).bind(p.id).first();
@@ -66,14 +61,12 @@ async function purgeProof(db: Db, bucket: R2Bucket, t: MaintenanceTask, budget: 
     ]);
     if (await db.$client.prepare("SELECT 1 FROM proof_file WHERE id=?").bind(p.id).first()) throw new Error("proof_metadata_remains");
   } finally {
-    // Only this settled attempt releases its own fence. Crashed invocations remain exclusive.
     await db.$client.prepare(`UPDATE proof_file SET purge_inflight=0 WHERE id=? AND status='pending_purge' AND purge_inflight=1 AND purge_attempts=?
       AND EXISTS(SELECT 1 FROM maintenance_task m WHERE m.id=? AND m.status='claimed' AND m.target_type='proof_file' AND m.target_id=proof_file.id AND m.operation='purge' AND m.attempts=? AND m.claimed_at=?)`)
       .bind(p.id, claim.purge_attempts, ...args(t)).run();
   }
 }
 async function prepareParent(db: Db, t: MaintenanceTask) {
-  // Keep historical clocks and receipt bodies fixed while breaking nullable live FKs.
   await guarded(db, t, "UPDATE engagement_log SET status=CASE WHEN published_at IS NOT NULL THEN 'expired' ELSE status END,current_revision_id=NULL WHERE id=?", [t.target_id]);
   await guarded(db, t, `UPDATE correction_request SET status='closed',closed_at=${clock} WHERE log_id=? AND status IN ('draft','submitted','ask_changes')`, [t.target_id]);
   await guarded(db, t, `UPDATE moderation_case SET status='closed',closed_at=${clock},closure_kind='erased',claimed_by=NULL,claimed_until=NULL WHERE log_id=? AND closed_at IS NULL`, [t.target_id]);
@@ -91,7 +84,6 @@ async function runTask(db: Db, bucket: R2Bucket, t: MaintenanceTask, budget: Bud
     else throw new Error("unsupported_operation");
   } else if (t.operation === "redact_identity") {
     if (t.target_type === "user") {
-      // Account deactivation precedes scrubbing, so every existing auth guard fails closed.
       const revoked = await db.$client.batch([
         db.$client.prepare(`UPDATE user SET deactivated_at=coalesce(deactivated_at,${clock}),updated_at=${clock} WHERE id=? AND ${exact}`).bind(t.target_id, ...args(t)),
         db.$client.prepare(`DELETE FROM session WHERE user_id=? AND ${exact}`).bind(t.target_id, ...args(t)),
@@ -129,18 +121,13 @@ async function runTask(db: Db, bucket: R2Bucket, t: MaintenanceTask, budget: Bud
     }
     if (t.target_type === "correction_request") await guarded(db, t, "UPDATE moderation_case SET correction_request_id=NULL WHERE correction_request_id=? AND closed_at IS NOT NULL", [t.target_id]);
     if (t.target_type === "moderation_case") {
-      // Case-linked audit and round receipts have their own exact tasks; wait
-      // rather than cascading or truncating independent held history.
       const children = await db.$client.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM review_round WHERE case_id=?) OR EXISTS(SELECT 1 FROM audit_event WHERE moderation_case_id=?)
         OR EXISTS(SELECT 1 FROM moderation_case c JOIN verification_case v ON c.kind='verification' AND v.id=c.subject_id WHERE c.id=?)`).bind(t.target_id, t.target_id, t.target_id).first();
       if (children) throw new Error("retained_case_history");
     }
     if (t.target_type === "user") {
-      // Do not invoke USER cascades; shell deletion waits for explicit child erasure.
       const children = await db.$client.prepare(`SELECT 1 WHERE EXISTS(SELECT 1 FROM session WHERE user_id=?) OR EXISTS(SELECT 1 FROM account WHERE user_id=?) OR EXISTS(SELECT 1 FROM policy_acceptance WHERE user_id=?) OR EXISTS(SELECT 1 FROM freelancer_profile WHERE user_id=?) OR EXISTS(SELECT 1 FROM client_profile WHERE user_id=?)`).bind(...Array(5).fill(t.target_id)).first();
       if (children) throw new Error("retained_dependencies");
-      // SQL's BEFORE DELETE trigger detaches nullable request FKs within the
-      // same statement, retaining the authorizing request's subject until last.
     }
     if (!targetTypes.includes(t.target_type as typeof targetTypes[number])) throw new Error("unsupported_target");
     const key = t.target_type === "freelancer_profile" ? "user_id" : t.target_type === "engagement_consent" ? "engagement_id" : "id";
@@ -153,9 +140,6 @@ export async function runMaintenance(env: Pick<CloudflareEnv, "DB" | "PROOFS">, 
   if (!Number.isFinite(scheduledTime)) throw new RangeError("Invalid schedule time");
   const db = createDb(env.DB), budget: Budget = { r2Deletes: 0, limit: Number.isFinite(requestedDeleteLimit) ? Math.max(1, Math.min(25, Math.trunc(requestedDeleteLimit))) : 25 };
   const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(25, Math.trunc(requestedLimit))) : 25;
-  // Settled isolated compensation is already authorized; waiting 30 days would
-  // strand an otherwise editable draft. Count attempted deletes in the same
-  // hourly budget, including failed calls. Never retry an unresolved owner.
   const compensationBucket = new Proxy(env.PROOFS, { get(bucket, key) {
     if (key === "delete") return async (objectKey: string) => {
       if (budget.r2Deletes >= budget.limit) throw new Error("batch_limit");
@@ -169,8 +153,6 @@ export async function runMaintenance(env: Pick<CloudflareEnv, "DB" | "PROOFS">, 
     await purgeClaimedProof(db, compensationBucket, p.id);
   }
   await issueDueTasks(db, limit);
-  // A prior invocation explicitly recorded settled failure. Recheck the exact
-  // grant and no unresolved proof fence; elapsed time alone never permits this.
   await db.$client.prepare(`UPDATE maintenance_task SET status='planned',claimed_at=NULL WHERE id IN (
     SELECT e.id FROM pilot_maintenance_eligible e WHERE e.status='blocked' AND e.authorization_expires_at>${clock}
     AND NOT EXISTS(SELECT 1 FROM proof_file p WHERE (p.purge_inflight=1 OR p.write_inflight=1) AND (e.target_type='proof_file' AND p.id=e.target_id OR e.target_type='engagement_log' AND p.log_id=e.target_id))
@@ -186,15 +168,11 @@ export async function runMaintenance(env: Pick<CloudflareEnv, "DB" | "PROOFS">, 
   for (const row of candidates.results) {
     try { const task = await claimMaintenanceTask(db, row.id); if (task) tasks.push(task); }
     catch {
-      // A new hold/writer/authority race must not strand earlier successful
-      // claims. A lost response after commit remains a visible unknown owner;
-      // never adopt or complete it without the original returned claim tuple.
     }
   }
   let completed = 0, blocked = 0;
-  // Parent pointer detachment needs its own exact claim before revision erasure.
   for (const task of tasks.filter(t => t.target_type === "engagement_log" && t.operation === "purge")) {
-    try { await prepareParent(db, task); } catch { /* Execution below records the blocked outcome. */ }
+    try { await prepareParent(db, task); } catch {  }
   }
   const priority = (t: MaintenanceTask) => t.operation === "redact_identity" && t.target_type === "engagement_log" ? -1 : t.target_type === "proof_file" ? 0 : t.target_type === "log_revision" ? 1 : t.target_type === "engagement_log" ? 2 : t.target_type === "verification_case" ? 3 : t.target_type === "moderation_case" ? 5 : t.target_type === "user" ? 9 : 4;
   tasks.sort((a, b) => priority(a) - priority(b));
@@ -204,7 +182,6 @@ export async function runMaintenance(env: Pick<CloudflareEnv, "DB" | "PROOFS">, 
       const done = await db.$client.prepare("SELECT status FROM maintenance_task WHERE id=?").bind(t.id).first<{ status: string }>();
       if (done?.status === "completed") completed++; else throw new Error("operation_not_completed");
     } catch {
-      // Only settled failures become retryable. Never steal a claimed crashed owner.
       await db.$client.prepare("UPDATE maintenance_task SET status='blocked' WHERE id=? AND status='claimed' AND attempts=? AND claimed_at=?").bind(...args(t)).run();
       blocked++;
     }

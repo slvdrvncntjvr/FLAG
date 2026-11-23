@@ -35,7 +35,6 @@ describe("PRD-F7 mail provider selection and safety", () => {
   });
 
   it.each(["brevo", "resend"] as const)("cancels a stalled %s request through its ten-second AbortSignal", async provider => {
-    // Keep native timeout/abort behavior, shortening only the clock delay for this test.
     const nativeTimeout = AbortSignal.timeout.bind(AbortSignal);
     const timeout = vi.spyOn(AbortSignal, "timeout").mockImplementation(() => nativeTimeout(0));
     let signal: AbortSignal | null | undefined;

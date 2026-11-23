@@ -32,7 +32,6 @@ export async function saveLogDraft(db: Db, actorId: string | null, input: unknow
   try {
     const statements: D1PreparedStatement[] = [];
     if (!f.logId) {
-      // Persistent high-water mark, never a standalone allocation. Rejected drafts roll this back.
       statements.push(db.$client.prepare(`INSERT INTO auth_rate_limit(key,count,expires_at)
         SELECT 'log-reference-sequence',MAX(1042,COALESCE(MAX(CAST(substr(ref,4) AS INTEGER))+1,1042)),9007199254740991
         FROM engagement_log WHERE ref GLOB 'FL-[0-9]*' AND substr(ref,4) NOT GLOB '*[^0-9]*'

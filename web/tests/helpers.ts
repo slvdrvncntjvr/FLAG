@@ -16,7 +16,6 @@ export function setup() {
     { sendOtp: async (email, otp) => void codes.set(email, otp) },
   );
 
-  // Each setup() is a distinct /64, because rate limits collapse IPv6 to /64, so limits do not leak between tests.
   const client = ++clientNumber;
   const ip = `2001:db8:${client.toString(16)}::1`;
 
@@ -41,7 +40,6 @@ export function setup() {
   return { db, auth, codes, post, signIn, ip, proofs: env.PROOFS };
 }
 
-// Independent fixtures keep constraint tests below the action/validation layer.
 export async function seedEngagement() {
   const db = createDb(env.DB);
   const id = crypto.randomUUID();
@@ -67,8 +65,6 @@ export async function seedEngagement() {
   return { db, engagementId, freelancerId, clientId, clientUserId };
 }
 
-// Raw draft fixture remains useful for lower-level constraint tests. Intake
-// acceptance instead starts with seedEngagement and calls the real draft action.
 export async function seedLog() {
   const seeded = await seedEngagement(), id = crypto.randomUUID();
   const logId = `log-${id}`;

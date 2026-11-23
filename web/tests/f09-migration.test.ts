@@ -48,7 +48,6 @@ it("0008 preserves all legacy data/schema, refuses fabricated receipts, rolls ba
   }
   expect(after.rows.engagement_consent).toEqual([]);
   expect((await db.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
-  // Neither a legacy accepted row nor an expired invite can acquire invented evidence.
   for (const id of ["legacy-accepted", "legacy-invited"]) await expect(db.prepare("INSERT INTO engagement_consent(engagement_id,policy_acceptance_id) VALUES(?,'legacy-consent')").bind(id).run()).rejects.toThrow(/Invalid engagement consent/);
   await applyD1Migrations(db, migrations);
   expect(await state()).toEqual(after);

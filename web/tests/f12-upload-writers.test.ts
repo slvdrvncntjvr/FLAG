@@ -36,7 +36,6 @@ async function targetFixture(kind: "initial" | "update" | "counterproof") {
     if (!opened.ok) throw new Error("Synthetic correction failed");
     return { ...f, actor: f.clientUserId, upload: (bucket: R2Bucket) => uploadProposalProof(f.db, bucket, f.clientUserId, { requestId: opened.data.requestId }, uploadRequest()) };
   }
-  // Only the clock setup changes an existing genuinely approved publication.
   const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE name='pilot_log_update'").first<{ sql: string }>();
   if (!guard) throw new Error("Publication guard missing");
   const past = iso(-3 * 86400000);

@@ -2,8 +2,6 @@ import { createHash } from 'node:crypto';
 import net from 'node:net';
 export { stopOwnedChild } from './process-lifecycle.mjs';
 
-// Each scenario has its own /64, while all actors within it share the real
-// production OTP caps. These headers are used only against the isolated server.
 export function scenarioIp(project, testId, retry) {
   const digest = createHash('sha256').update(JSON.stringify([project, testId, retry])).digest('hex');
   return `fd00:${digest.slice(0, 4)}:${digest.slice(4, 8)}:${digest.slice(8, 12)}::1`;

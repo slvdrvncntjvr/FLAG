@@ -22,7 +22,6 @@ export async function submitLog(db: Db, proofs: R2Bucket, actorId: string | null
   if (list.results.length > 5 || list.results.some(p => p.status !== "uploading" || p.uploaded_by !== actorId || p.revision_id !== null)) return failure("conflict");
   try {
     const caseId = crypto.randomUUID();
-    // No object data leaves this function. A reserved-but-inflight or missing upload cannot submit.
     for (const proof of list.results) if (!objectMatches(await proofs.head(proof.object_key), proof)) return failure("conflict");
     const statements: D1PreparedStatement[] = [
       db.$client.prepare(`UPDATE engagement_log SET draft_updated_at=draft_updated_at WHERE id=? AND ${gate.text}`).bind(logId, ...gate.args),
@@ -40,8 +39,6 @@ export async function submitLog(db: Db, proofs: R2Bucket, actorId: string | null
       db.$client.prepare(`UPDATE log_revision SET submitted_at=${intakeNow},state='submitted',moderation_case_id=? WHERE id=? AND log_id=? AND decision IS NULL`).bind(caseId, revision.id, logId),
       assertChanged(db),
       db.$client.prepare("INSERT INTO audit_event(id,actor_id,action,subject_type,subject_id,moderation_case_id) VALUES(?,?,'log_submitted','engagement_log',?,?)").bind(crypto.randomUUID(), actorId, logId, caseId),
-      // Final SQL trigger checks content/proof set, consented engagement, Manila clock and quotas.
-      // Repeating the live gate and forcing a nonzero result protects every earlier side effect.
       db.$client.prepare(`UPDATE engagement_log SET status='pending',first_submitted_at=${intakeNow},submitted_at=${intakeNow}
         WHERE id=? AND ${gate.text}`).bind(logId, ...gate.args),
       assertChanged(db),

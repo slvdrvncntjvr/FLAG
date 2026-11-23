@@ -27,8 +27,6 @@ const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
 Object.assign(env, {
   NEXT_TELEMETRY_DISABLED: '1', WRANGLER_SEND_METRICS: 'false', E2E_OTP_FILE: otpFile,
   E2E_READY_TOKEN: readyToken,
-  // Keep Miniflare discovery and diagnostics inside this owned test run, rather
-  // than writing to the developer's global Wrangler registry/configuration.
   WRANGLER_REGISTRY_PATH: join(temp, 'wrangler-registry'),
   WRANGLER_LOG_PATH: join(temp, 'wrangler-logs'),
 });
@@ -52,7 +50,6 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
 });
 try {
   console.log(`Isolated E2E data: ${temp}`);
-  // Refuse an existing listener; never reuse a developer server.
   await assertPortFree();
   for (const name of ['src', 'public', 'drizzle', 'package.json', 'tsconfig.json', 'next.config.ts', 'postcss.config.mjs', 'worker-configuration.d.ts']) {
     await cp(join(root, name), join(app, name), { recursive: true });
@@ -89,7 +86,6 @@ try {
       }
     }
   });
-  // Drain output without printing or retaining raw app diagnostics/OTP data.
   server.stderr.resume();
   const deadline = Date.now() + 240_000;
   while (true) {
@@ -98,7 +94,6 @@ try {
     if (Date.now() > deadline) throw new Error('Local server startup timed out');
     await new Promise(res => setTimeout(res, 500));
   }
-  // Compile the auth handler before timing UI interactions on a cold dev build.
   const warmup = await fetch('http://localhost:3000/api/auth/get-session', { signal: AbortSignal.timeout(120_000) });
   if (!warmup.ok) throw new Error('Local auth warmup failed');
   for (const path of ['/home', '/onboarding', '/legal/privacy', '/legal/terms', '/robots.txt']) {
@@ -117,15 +112,12 @@ try {
   try {
     outcome = await finishOwnedRun({ directory, stop: async () => {
       await stop();
-      // No new writes can arrive after all owned streams close.
       await codeWrites;
       if (writeError) throw new Error('Temporary OTP capture failed');
     }, verifyPorts: async () => { await assertPortFree(); portsVerified = true; },
     successful, dependencyLink: join(app, 'node_modules') });
   } catch {
     process.exitCode = 1;
-    // A filesystem failure after verified teardown may leave a partially
-    // removed successful run. Do not label that state as fully retained.
     outcome.teardown = portsVerified ? 'verified' : 'unverified';
     outcome.cleanup = portsVerified && successful ? 'unverified' : 'retained';
     try { await assertPortFree(); outcome.portFree = true; } catch { outcome.portFree = false; }

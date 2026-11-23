@@ -33,8 +33,6 @@ async function signIn(page: Page, email: string, role: "freelancer" | "client") 
   await expect(page).toHaveURL(/\/home$/);
 }
 
-// Only the existing harness's fresh, synthetic, local D1 may receive a test role.
-// No production/dev DB identifier, credential or arbitrary SQL is accepted.
 async function setLocalTestRole(email: string, role: "moderator" | "admin") {
   if (!/^verification-[a-z0-9-]+@example\.invalid$/.test(email)) throw new Error("Non-synthetic test account refused");
   await executeLocalFixture(`UPDATE user SET role='${role}' WHERE email='${email}'`);
@@ -43,8 +41,6 @@ async function setLocalTestRole(email: string, role: "moderator" | "admin") {
 async function seedOlderQueueRequest(mobile: boolean) {
   const ownerId = randomUUID(), requestId = randomUUID(), reviewId = randomUUID();
   const name = mobile ? "Sam Santos Reyes" : "Sam Santos Cruz";
-  // Fixed statements in a freshly migrated, synthetic database only. Inserting
-  // historical fixtures preserves the application's immutable submission time.
   await executeLocalFixture(`
     INSERT INTO user(id,name,email,email_verified,role) VALUES('${ownerId}','${name}','verification-queue-${ownerId}@example.invalid',1,'freelancer');
     INSERT INTO freelancer_profile(user_id,display_name,status) VALUES('${ownerId}','${name}','pending');
@@ -55,8 +51,6 @@ async function seedOlderQueueRequest(mobile: boolean) {
   return { name, path: `/moderation/verification/${reviewId}` };
 }
 
-// Queue display names are not identities: desktop/mobile and other scenarios
-// may legitimately leave different requests with the same owner-entered name.
 async function localVerificationPath(email: string) {
   if (!/^verification-[a-z0-9-]+@example\.invalid$/.test(email)) throw new Error("Non-synthetic test account refused");
   const output = await executeLocalFixture(`SELECT c.id FROM moderation_case c
@@ -195,7 +189,6 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
   await page.getByLabel("City (optional)").fill("Test city");
   await page.getByLabel("Portfolio URL 1", { exact: true }).fill("https://example.invalid/work");
   await page.getByLabel("Link label 1 (optional)").fill("Work samples");
-  // A forged principal is rejected by the action instead of reaching the backend.
   await page.locator("form").evaluate(form => {
     const input = document.createElement("input"); input.name = "actorId"; input.value = "forged-principal"; input.type = "hidden"; form.append(input);
   });
@@ -261,8 +254,6 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
     await reviewer.getByRole("button", { name: "Record live inspection", exact: true }).click();
     await expect(reviewer.getByText(/^Pass; name matches/)).toBeVisible();
     console.info("Verification workflow: passing inspection rendered; checking approval controls.");
-    // Match the accessible control name; label textContent also includes the
-    // nested select's options, so an exact getByLabel("Decision") misses it.
     const decision = reviewer.getByRole("combobox", { name: "Decision", exact: true });
     await test.step("A passing inspection enables the approval option", async () => {
       await expect(reviewer.locator('option[value="approve"]')).toHaveJSProperty("disabled", false);
@@ -286,8 +277,6 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
     await noOverflow(page);
   } catch (error) {
     primaryError = error;
-    // The default fixture page belongs to the requester; retain the reviewer
-    // separately so an approval stall has the relevant state and controls.
     await testInfo.attach("reviewer-state", {
       body: await reviewer.locator("main").innerText({ timeout: 2000 }).catch(() => "Reviewer page unavailable"),
       contentType: "text/plain",

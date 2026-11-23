@@ -31,8 +31,6 @@ export function SignInForm({ returnTo }: { returnTo?: string }) {
   async function verify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (pending) return;
-    // Strip spaces and any non-digits: pasted/autofilled codes often carry whitespace,
-    // and the server compares the exact string, so "123456 " would fail.
     const otp = String(new FormData(e.currentTarget).get("otp") ?? "").replace(/\D/g, "");
     if (otp.length !== 6) return setError("Enter the 6-digit code.");
     setPending(true);

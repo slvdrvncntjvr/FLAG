@@ -9,9 +9,6 @@ export async function submitVerification(db: Db, actorId: string | null, input: 
   const form = parsed.data;
   const verificationCaseId = crypto.randomUUID(), moderationCaseId = crypto.randomUUID(), eventId = crypto.randomUUID();
   const actor = actorPredicate("freelancer");
-  // Keep the unique-event winner gate and editable portfolio ordering. Only
-  // this atomic batch defers FK validation until its exact case exists at
-  // commit; an unresolved FK or any failed write rolls the whole batch back.
   try {
     const results = await db.$client.batch([
       statement(db, "PRAGMA defer_foreign_keys = ON"),

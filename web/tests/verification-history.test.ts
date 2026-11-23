@@ -33,8 +33,6 @@ it("reopening a rejected case after resubmission retains the original name, city
   const second = await submitVerification(db, owner, corrected);
   if (!second.ok) throw new Error(second.code);
   const oldCase = await loadVerificationReview(db, mod, first.moderationCaseId);
-  // These assertions run against the old query too: the regression is the
-  // replacement of the original portfolio by the corrected current portfolio.
   expect(oldCase?.portfolioLinks.map(({ url, label }) => ({ url, label }))).toEqual(original.portfolioLinks);
   expect(oldCase).toMatchObject({ submittedProfile: original, currentProfile: null, request: { decision: "reject", result: "fail", nameMatch: false } });
   expect(await db.query.verificationCase.findFirst({ where: eq(verificationCase.id, first.verificationCaseId) })).toEqual(before);

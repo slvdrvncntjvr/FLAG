@@ -2,8 +2,6 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 
-// Deliberately support only single-line dotenv assignments. Validate the whole
-// file before editing so a credential's continuation can never become a URL.
 export function parseLocalConfig(config) {
   const entries = new Map();
   for (const line of config.matchAll(/([^\r\n]*)(?:\r\n|\n|\r|$)/g)) {

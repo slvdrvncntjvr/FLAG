@@ -9,9 +9,6 @@ const diagnosticPath = (url: string) => new URL(url).pathname.replace(/\/invite\
 
 test.beforeAll(async ({ request }) => {
   test.setTimeout(240_000);
-  // This harness runs Next's dev compiler. Compile the pilot entries before
-  // opening actors so first-use HMR cannot reload a page during an action's
-  // redirect. These anonymous GETs create no fixture data or authorization.
   const id = "00000000-0000-0000-0000-000000000000";
   for (const path of [
     "/engagements", "/invite/continue", `/invite/${"0".repeat(64)}`,
@@ -70,8 +67,6 @@ async function followLink(page: Page, link: Locator) {
   } finally { page.off("request", requested); page.off("response", responded); page.off("requestfailed", failed); }
 }
 
-// Only bootstrap staff/verification in the disposable harness. Every engagement,
-// draft, proof, review, publication and correction below uses the actual UI.
 async function bootstrap(email: string, role: "verified" | "moderator") {
   if (!/^pilot-review-[a-z0-9-]+@example\.invalid$/.test(email)) throw new Error("Synthetic actor required");
   const otpFile = process.env.E2E_OTP_FILE;
@@ -178,8 +173,6 @@ test("pilot publication, record search and independent private correction withdr
     for (const checkbox of await client.getByRole("checkbox").all()) await checkbox.check();
     const acceptButton = client.getByRole("button", { name: "Accept engagement", exact: true });
     await acceptButton.click();
-    // Wait for the action's own redirect before further navigation. A hidden
-    // form can be a transition and does not establish the action has settled.
     await expect(client).toHaveURL(/\/engagements\?response=accepted$/);
     await expect(client.getByText(/^Consent recorded/)).toBeVisible();
     console.info("[Pilot review] Engagement accepted with consent");
@@ -254,7 +247,6 @@ test("pilot publication, record search and independent private correction withdr
     expect(ordinaryHtml).not.toContain(counterproofPath);
     privateResponse(await outsider.request.get(counterproofPath), 404);
     expect((await outsider.request.get(`${logUrl}/correction`)).status()).toBe(404);
-    // The original decider must not even discover the correction in their queue.
     await reviewer.goto("/moderation/corrections");
     await expect(reviewer.getByRole("link", { name: `${logRef} · correction`, exact: true })).toHaveCount(0);
     const independentEmail = `pilot-review-independent-${stamp}@example.invalid`;

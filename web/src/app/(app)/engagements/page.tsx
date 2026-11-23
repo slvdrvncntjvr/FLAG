@@ -20,8 +20,6 @@ export default async function Engagements({ searchParams }: { searchParams: Prom
   const { response } = await searchParams;
   return <>
     <h1 className="font-serif text-2xl">Engagements</h1>
-    {/* Informational post-action feedback only; the query never grants access,
-        associates profiles or supplies consent evidence for the rows below. */}
     {viewer.role === "client" && (response === "accepted" || response === "declined") && <p role="status" className="mt-4 border-y border-rule py-4">
       Review your engagements below.
     </p>}

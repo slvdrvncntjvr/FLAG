@@ -211,9 +211,6 @@ describe("PRD-F9 real D1 invitation/consent workflow", () => {
     const before = await snapshot();
     const prepare = db.$client.prepare.bind(db.$client);
     let profileClockApplied = false;
-    // Controlled SQL clock: first statement sees the instant before expiry;
-    // every later statement/trigger sees actual time after expiry. Queries,
-    // writes, triggers and rollback still execute in the real isolated D1.
     const clock = vi.spyOn(db.$client, "prepare").mockImplementation(query => {
       if (query.startsWith("INSERT INTO client_profile")) {
         profileClockApplied = true;

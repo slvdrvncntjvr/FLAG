@@ -24,7 +24,6 @@ it("links all six event writers to the exact case and actual close clock, with i
   expect(await releaseVerification(db, f.mod, { caseId, expectedClaimUntil: first.claimUntil })).toEqual({ ok: true });
   const second = await claimVerification(db, f.mod, { caseId });
   if (!second.ok) throw new Error("synthetic_claim");
-  // Expire only the synthetic lease; restore the production guard before reclaim.
   const guard = await q("SELECT sql FROM sqlite_schema WHERE name='pilot_case_update'").first<{ sql: string }>();
   await q("DROP TRIGGER pilot_case_update").run();
   try { await q("UPDATE moderation_case SET claimed_until='2000-01-01T00:00:00.000Z' WHERE id=?", caseId).run(); }
@@ -34,7 +33,7 @@ it("links all six event writers to the exact case and actual close clock, with i
   const lease = { caseId, expectedClaimUntil: reclaimed.claimUntil };
   expect(await inspectVerification(db, f.mod, { ...lease, idKind: "passport", result: "pass", nameMatch: true })).toEqual({ ok: true });
   const before = (await q("SELECT e.*,x.purge_due_at FROM audit_event e JOIN pilot_maintenance_target x ON x.target_type='audit_event' AND x.target_id=e.id WHERE e.moderation_case_id=?", caseId).all()).results;
-  expect(before).toHaveLength(6); // request, two claims, release, reclaim, inspection
+  expect(before).toHaveLength(6);
   expect(before.every(e => e.retain_until === null && e.purge_due_at === null)).toBe(true);
   expect(await decideVerification(db, f.mod, { ...lease, decision: "approve", reason: "Personally inspected live matching name" })).toEqual({ ok: true });
   const closed = await q("SELECT closed_at FROM moderation_case WHERE id=?", caseId).first<{ closed_at: string }>();
@@ -70,7 +69,6 @@ it("rolls back every submission write if its deferred case FK cannot resolve at 
     audit: (await q("SELECT * FROM audit_event ORDER BY id").all()).results,
   });
   const before = await snapshot();
-  // A skipped final INSERT lets the batch reach commit with an unresolved FK.
   await q("CREATE TRIGGER synthetic_skip_case BEFORE INSERT ON moderation_case WHEN NEW.kind='verification' BEGIN SELECT RAISE(IGNORE); END").run();
   try {
     expect(await submitVerification(db, subject, { name: "Replacement Name", city: "Manila", portfolioLinks: [{ url: "https://example.com/replacement" }] })).toMatchObject({ ok: false, code: "unavailable" });

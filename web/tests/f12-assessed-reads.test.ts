@@ -108,7 +108,6 @@ describe("PRD-F12/F13 assessed source deadlines before maintenance (real local D
       for (const actor of [f.freelancerId, f.clientUserId]) expect(await loadClientRecord(f.db, actor, f.clientId)).toMatchObject({
         average: null, contributorCount: 0, publishedLogCount: 0, logs: [], tags: [],
       });
-      // Search exposes identity/accepted engagement count, never log facts or ratings.
       expect((await searchClientNames(f.db, f.freelancerId, "Test Client")).some(row => row.id === f.clientId)).toBe(true);
       expect(await publication(f.logId)).toEqual(before);
       expect(await env.PROOFS.head(`logs/${f.logId}/${f.proofId}`)).not.toBeNull();

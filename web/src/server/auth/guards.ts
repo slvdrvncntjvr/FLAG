@@ -8,13 +8,10 @@ import { AccessError, assertVerifiedFreelancer } from "./guards-core";
 
 export { AccessError };
 
-// Returns null for signed-out visitors and suspended accounts.
 export async function getViewer(requestDb?: () => Promise<Db>): Promise<Viewer | null> {
   const db = requestDb ? await requestDb() : undefined;
   const auth = db ? await getAuth(db) : await getAuth();
   const session = await auth.api.getSession({ headers: await headers() }).catch((error: unknown) => {
-    // A closed account has no application viewer even when session cleanup is
-    // still pending. Preserve unexpected infrastructure failures for retry.
     if (isAPIError(error) && error.statusCode === 403 && error.body?.code === "ACCOUNT_UNAVAILABLE") return null;
     throw error;
   });
@@ -23,7 +20,6 @@ export async function getViewer(requestDb?: () => Promise<Db>): Promise<Viewer |
   return viewer && !viewer.banned ? viewer : null;
 }
 
-// For server actions: throws instead of redirecting.
 export async function requireViewer(): Promise<Viewer> {
   const viewer = await getViewer();
   if (!viewer) throw new AccessError("unauthenticated");
@@ -36,14 +32,12 @@ export async function requireOnboardedViewer(): Promise<Viewer> {
   return viewer;
 }
 
-// First statement of createEngagement, submitLog, and submitFilerUpdate (BUILD §5, INV-8).
 export async function requireVerifiedFreelancer(): Promise<Viewer> {
   const viewer = await getViewer();
   assertVerifiedFreelancer(viewer);
   return viewer;
 }
 
-// For layouts and pages (INV-7, AB-13).
 export async function viewerOrRedirect(): Promise<Viewer> {
   const viewer = await getViewer();
   if (!viewer) redirect("/sign-in");

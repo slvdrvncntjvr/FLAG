@@ -12,7 +12,6 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	// Capability URLs may enrich custom logs too. Emit safe app events without storage.
 	"observability": {
 		"enabled": true,
 		"logs": { "enabled": true, "invocation_logs": false, "persist": false },
@@ -22,8 +21,6 @@
 		"command": "node scripts/check-wrangler-build.mjs --env="
 	},
 
-	// ---- Production (default): deployed from `main` ----
-	// URL: https://flag.factsfirst.workers.dev
 	"d1_databases": [
 		{
 			"binding": "DB",
@@ -32,7 +29,6 @@
 			"migrations_dir": "drizzle"
 		}
 	],
-	// Private proof storage; no public bucket domain or presigned reads.
 	"r2_buckets": [
 		{ "binding": "PROOFS", "bucket_name": "flag-proofs", "remote": false }
 	],
@@ -42,9 +38,6 @@
 		"MAIL_FROM": "FLAG <slvdrvncntjvr@gmail.com>"
 	},
 
-	// ---- Preview environment: deployed from `dev` ----
-	// URL: https://flag-dev.factsfirst.workers.dev
-	// Secrets are per-environment: set with `wrangler secret put <NAME> --env dev`.
 	"env": {
 		"dev": {
 			"triggers": { "crons": ["0 * * * *"] },
@@ -54,7 +47,6 @@
 			"name": "flag-dev",
 			"workers_dev": true,
 			"preview_urls": false,
-			// Repeat the URL-safety policy explicitly for this environment.
 			"observability": {
 				"enabled": true,
 				"logs": { "enabled": true, "invocation_logs": false, "persist": false },

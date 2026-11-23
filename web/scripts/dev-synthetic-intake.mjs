@@ -1,5 +1,3 @@
-// Dev-only intake inspection and fail-closed restoration. No enable operation.
-// Cloudflare settings PATCH supports inherit bindings; retain every other binding.
 import {execFileSync} from 'node:child_process';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -52,11 +50,9 @@ export function derivedSource(before,after){
  if(!scriptIdentityPreserved||!handlersPreserved||!runtimePreserved||!versionBindingMetadataPreserved||!writableAnnotationsPreserved)throw Error('Derived version equivalence not established');
  return {...source,derivedVersion:candidate.id!==previous.id,scriptIdentityPreserved,handlersPreserved,runtimePreserved,versionBindingMetadataPreserved,writableAnnotationsPreserved};
 }
-// Settings PATCH acknowledgment can precede consistent deployment/settings reads.
-// Retry observations only, inside the existing writer lease; never repeat PATCH.
 export async function observeIntakeState({readSnapshot,accept,canWait=()=>true,wait=()=>new Promise(resolveWait=>setTimeout(resolveWait,1000))}){
  for(let attempt=1;attempt<=3;attempt++){
-  try{const snapshot=await readSnapshot();if(accept(snapshot))return {snapshot,attempts:attempt};}catch{/* Retain failure unless a later complete observation converges. */}
+  try{const snapshot=await readSnapshot();if(accept(snapshot))return {snapshot,attempts:attempt};}catch{}
   if(attempt===3||!canWait())break;
   await wait();
  }

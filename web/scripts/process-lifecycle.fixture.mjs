@@ -1,5 +1,3 @@
-// Synthetic owned processes only. Every fixture has a bounded lifetime even if
-// its test fails; IPC contains PIDs/ports, never application output or secrets.
 import { spawn } from 'node:child_process';
 import net from 'node:net';
 
@@ -10,8 +8,6 @@ if (mode === 'race') {
   setTimeout(() => process.exit(0), 200);
 } else if (mode === 'tree' || mode === 'orphan-pipe') {
   const descendant = spawn(process.execPath, [import.meta.filename, 'server'], {
-    // Windows normally cleans up non-detached descendants when their Node
-    // parent exits. Explicit detachment exercises a genuinely surviving child.
     detached: mode === 'orphan-pipe' && process.platform === 'win32',
     windowsHide: true, stdio: ['ignore', 1, 2, 'ipc'],
   });

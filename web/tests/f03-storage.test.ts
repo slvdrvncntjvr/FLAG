@@ -44,6 +44,5 @@ describe("PRD-F3 local D1/R2 foundation", () => {
     await env.PROOFS.delete(objectKey);
     expect(await env.PROOFS.head(objectKey)).toBeNull();
     expect((await db.query.proofFile.findFirst({ where: eq(proofFile.id, id) }))?.status).toBe("pending_purge");
-    // Storage retry primitives preserve tracking; assessed erasure is covered by lifecycle tests.
   });
 });

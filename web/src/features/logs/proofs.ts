@@ -12,7 +12,6 @@ function errorResponse(code: LogFailureCode, status: number) {
 }
 class BodyError extends Error { constructor(readonly status: number) { super("invalid upload"); } }
 
-// Read at most one bounded multipart request. Never call formData on an unbounded network body.
 export async function boundedMultipart(request: Request): Promise<FormData> {
   const maximum = MAX_PROOF_BYTES + 16 * 1024;
   const contentType = request.headers.get("content-type") ?? "";
@@ -37,7 +36,6 @@ export async function boundedMultipart(request: Request): Promise<FormData> {
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
     return await new Response(bytes, { headers: { "content-type": contentType } }).formData();
   } catch (error) {
-    // Cancel the incoming body rather than drain an oversized upload.
     await reader.cancel().catch(() => undefined);
     throw error instanceof BodyError ? error : new BodyError(400);
   } finally { if (timer) clearTimeout(timer); reader.releaseLock(); }
@@ -62,7 +60,6 @@ async function ownedDraft(db: Db, actorId: string | null, logId: string): Promis
   const gate = editableDraftGate(actorId);
   const editable = await db.$client.prepare(`SELECT 1 FROM engagement_log WHERE id=? AND ${gate.text}`).bind(logId, ...gate.args).first();
   if (editable) return "editable";
-  // Do not distinguish other people's objects or expose their state.
   const own = await db.$client.prepare("SELECT 1 FROM engagement_log WHERE id=? AND freelancer_id=?").bind(logId, actorId).first();
   return own ? "conflict" : "missing";
 }
@@ -82,11 +79,9 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
   if (access === "conflict" && actorId) {
     const actor = filerGate(actorId);
     const own = await db.$client.prepare(`SELECT 1 FROM engagement_log WHERE id=? AND freelancer_id=? AND ${actor.text}`).bind(logId, actorId, ...actor.args).first();
-    // A failed object-delete claim must be retryable by the same uploader, not require another draft's traffic.
     if (own) { await runPrivateIntakeCleanup(db, proofs, { limit: 5 }).catch(() => undefined); access = await ownedDraft(db, actorId, logId); }
   }
   if (access !== "editable") return errorResponse(access === "missing" ? "not_found" : "conflict", access === "missing" ? 404 : 409);
-  // Await finite retry work; lack of traffic still needs an operational internal runner.
   await runPrivateIntakeCleanup(db, proofs, { limit: 1 }).catch(() => undefined);
   let file: File, kind: string;
   try {
@@ -101,8 +96,6 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
   if (!mime) return errorResponse("invalid_input", 400);
   const checksum = hex(await crypto.subtle.digest("SHA-256", bytes));
   const id = crypto.randomUUID(), key = `logs/${logId}/${id}`, gate = editableDraftGate(actorId!);
-  // The quota day is chosen by D1 inside the write, even across a Manila-midnight await.
-  // Retain attempts after reservation/object deletion and at least through that entire day.
   try {
     await db.$client.batch([
       db.$client.prepare(`INSERT INTO auth_rate_limit(key,count,expires_at)
@@ -113,7 +106,6 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
         SELECT ?,id,'filer',?,?,?,?,?,?,1 FROM engagement_log WHERE id=? AND ${gate.text}`)
         .bind(id, actorId!, key, kind, mime, bytes.byteLength, checksum, logId, ...gate.args),
       assertChanged(db),
-      // Reserving an active put is draft activity too. Cleanup must not retire its parent mid-put.
       db.$client.prepare(`UPDATE engagement_log SET draft_updated_at=${intakeNow} WHERE id=? AND ${gate.text}`).bind(logId, ...gate.args),
       assertChanged(db),
     ]);
@@ -122,8 +114,6 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
     return errorResponse(quota && quota.count >= 20 ? "quota" : "conflict", quota && quota.count >= 20 ? 429 : 409);
   }
   try {
-    // The bounded buffer is also supported by the Node/OpenNext Miniflare bridge.
-    // A Node Blob.stream() has no workerd fixed-length marker and is rejected there.
     try {
       await proofs.put(key, bytes, { httpMetadata: { contentType: mime }, sha256: checksum });
     } finally {
@@ -131,7 +121,6 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
     }
     const row = await trackedProof(db, id);
     if (!row || !objectMatches(await proofs.head(key), row)) throw new Error("upload unavailable");
-    // A concurrent submit may have attached the complete reservation. That is success, never compensation.
     if (row.status === "attached") return Response.json({ ok: true, data: { proofId: id } }, { status: 201, headers: responseHeaders });
     const done = await db.$client.prepare(`UPDATE engagement_log SET draft_updated_at=${intakeNow}
       WHERE id=? AND ${gate.text} AND EXISTS(SELECT 1 FROM proof_file WHERE id=? AND log_id=engagement_log.id AND status='uploading')`)
@@ -139,7 +128,6 @@ export async function uploadProof(db: Db, proofs: R2Bucket, actorId: string | nu
     if (done.meta.changes !== 1) throw new Error("upload changed");
     return Response.json({ ok: true, data: { proofId: id } }, { status: 201, headers: responseHeaders });
   } catch {
-    // DB errors retain the original reservation; never blindly delete an unknown or changed key.
     await abandonUpload(db, proofs, id, actorId!).catch(() => undefined);
     return errorResponse("unavailable", 503);
   }
@@ -152,7 +140,6 @@ export async function downloadProof(db: Db, proofs: R2Bucket, actorId: string | 
   try {
     const object = await proofs.get(row.object_key);
     if (!objectMatches(object, row) || !object) return errorResponse("not_found", 404);
-    // Recheck after R2 await: cleanup and concurrent state changes must not expose discarded evidence.
     const current = await loadReadableProof(db, actorId, proofId);
     if (!current) return errorResponse("not_found", 404);
     const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" }[row.mime];
@@ -168,8 +155,6 @@ export async function removeDraftProof(db: Db, proofs: R2Bucket, actorId: string
   if (!row || row.uploaded_by !== actorId || await ownedDraft(db, actorId, row.log_id) !== "editable") return failure("not_found");
   try {
     const gate = editableDraftGate(actorId);
-    // Explicit removal is one authorized user action. Touch BEFORE pending_purge
-    // freezes parent edits; either zero-row write must roll back the whole batch.
     await db.$client.batch([
       db.$client.prepare(`UPDATE engagement_log SET draft_updated_at=${intakeNow} WHERE id=? AND ${gate.text}`)
         .bind(row.log_id, ...gate.args),
@@ -180,9 +165,6 @@ export async function removeDraftProof(db: Db, proofs: R2Bucket, actorId: string
         .bind(proofId, row.log_id, actorId, row.status, ...gate.args),
       assertChanged(db),
     ]);
-    // The committed claim linearizes authorization. Later actor revocation cannot
-    // cancel an authorized R2 delete; internal retries remain actor-independent
-    // and never touch activity. Exclusive purge ownership still protects bytes.
     await purgeClaimedProof(db, proofs, proofId);
     const current = await trackedProof(db, proofId);
     return current?.status === "purged" ? { ok: true, data: {} } : failure("unavailable");

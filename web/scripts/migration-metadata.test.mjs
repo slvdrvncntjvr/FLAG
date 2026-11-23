@@ -18,9 +18,6 @@ const snapshot = number => json(path.join(meta, `${number.toString().padStart(4,
 const sqlFiles = folder => readdirSync(folder).filter(name => name.endsWith(".sql")).sort();
 const hash = file => createHash("sha256").update(readFileSync(file)).digest("hex");
 
-// Fixed SHA256s of tracked SQL with only CRLF pairs converted to LF. Preserve
-// every other byte (including bare CR, BOM and whitespace); do not decode UTF-8.
-// Git checkout line endings may vary, but historical SQL content must not.
 const publishedContentHash = bytes => createHash("sha256")
   .update(bytes.filter((byte, index) => byte !== 13 || bytes[index + 1] !== 10)).digest("hex");
 const published = {
@@ -53,7 +50,6 @@ test("published-content check accepts LF and CRLF fixtures and rejects other byt
   try {
     for (const ending of ["\n", "\r\n"]) {
       for (const file of Object.keys(published)) {
-        // Latin-1 is a reversible byte mapping, used only to construct fixtures.
         const lf = readFileSync(path.join(migrations, file)).toString("latin1").replaceAll("\r\n", "\n");
         writeFileSync(path.join(sandbox, file), Buffer.from(lf.replaceAll("\n", ending), "latin1"));
       }
@@ -162,7 +158,6 @@ test("real generator emits nothing unchanged and only the intended next numbered
   };
   try {
     cpSync(migrations, out, { recursive: true });
-    // No-mutation evidence must hash raw bytes, without checkout normalization.
     const inventory = () => Object.fromEntries([
       ...sqlFiles(out).map(file => [file, hash(path.join(out, file))]),
       ...readdirSync(path.join(out, "meta")).map(file => [`meta/${file}`, hash(path.join(out, "meta", file))]),
@@ -175,8 +170,6 @@ test("real generator emits nothing unchanged and only the intended next numbered
     const source = readFileSync(schemaPath, "utf8");
     const marker = '    name: text("name").notNull(),';
     assert.equal(source.split(marker).length, 2);
-    // Absolute installed imports let this disposable schema resolve the exact
-    // project dependencies without copying/installing node_modules or secrets.
     writeFileSync(probe, source.replace(marker, `${marker}\n    metadataProbe: text("metadata_probe"),`)
       .replace('from "drizzle-orm"', `from ${JSON.stringify(require.resolve("drizzle-orm"))}`)
       .replace('from "drizzle-orm/sqlite-core"', `from ${JSON.stringify(require.resolve("drizzle-orm/sqlite-core"))}`));

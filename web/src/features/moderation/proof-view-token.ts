@@ -1,5 +1,3 @@
-// A short-lived receipt for bytes delivered under this actor's exact lease.
-// This records delivery and a personal-view attestation, not an automated evidence verdict.
 export type ProofView = { actorId: string; caseId: string; revisionId: string; proofId: string; sha256: string; objectKey: string; size: number; lease: string };
 type Receipt = ProofView & { domain: "flag-proof-view-v1"; issuedAt: string; expiresAt: string };
 function bytes(value: string) { return new TextEncoder().encode(value); }

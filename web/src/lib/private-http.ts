@@ -1,4 +1,3 @@
-// Pure early denials: no bindings, identity lookups, storage or framework setup.
 export function unavailableProof() {
   return Response.json({ error: "This log or proof is unavailable." }, {
     status: 404,
@@ -21,7 +20,5 @@ export function privateResourcePreflight(request: Request) {
   const path = new URL(request.url).pathname;
   if (/^\/api\/proofs\/[^/]+$/.test(path) && !request.headers.get("Cookie")?.trim()) return unavailableProof();
   if (/^\/api\/privacy\/exports\/[^/]+$/.test(path)) return unsafeExportDenial(request);
-  // Cookie/header presence grants nothing. The existing handler authenticates
-  // and rechecks each relationship, assessment, source deadline and one-use token.
   return null;
 }

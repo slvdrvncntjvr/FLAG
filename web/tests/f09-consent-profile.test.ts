@@ -33,7 +33,6 @@ async function fixture() {
     inviteTokenHash: i.hash, inviteExpiresAt: new Date(Date.now() + 86400000).toISOString() })));
   return { client, invites };
 }
-// Model a legitimate concurrent assessed erasure, with production guards active.
 async function eraseUnassociatedProfile(subject: string, profileId: string) {
   const admin = crypto.randomUUID(), iso = (delta: number) => new Date(Date.now() + delta).toISOString();
   await db.insert(user).values({ id: admin, name: "Synthetic privacy operator", email: `${admin}@example.invalid`, role: "admin" });
@@ -160,8 +159,6 @@ describe("profile-bound consent transaction", () => {
     mocks.cookieHash = a.hash;
     let before: Awaited<ReturnType<typeof snapshot>>;
     mocks.db.mockResolvedValueOnce(db).mockImplementationOnce(async () => {
-      // matchesRenderedInvite has completed its live SELECT. Change the
-      // displayed profile before acceptInvitation executes its atomic batch.
       await eraseUnassociatedProfile(client, id);
       if (change === "replaced") await db.insert(clientProfile).values({ id: crypto.randomUUID(), userId: client, displayName: "Profile A", kind: "business" });
       before = await snapshot();
@@ -188,8 +185,6 @@ describe("profile-bound consent transaction", () => {
     mocks.cookieHash = b.hash;
     await expect(acceptEngagement(null, null, form(b.id, { ...firstProfile, displayName: "Profile B", kind: "business" })))
       .rejects.toThrow("redirect:/engagements?response=accepted");
-    // Reopen A in the second tab, restoring the shared cookie to A before the
-    // first tab submits its unchanged, server-bound expected-absence form.
     mocks.cookieHash = a.hash;
     mocks.cookieSet.mockClear();
     const before = await snapshot();

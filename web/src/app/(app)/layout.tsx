@@ -3,7 +3,6 @@ import { PageShell } from "@/components/page-shell";
 import { viewerOrRedirect } from "@/server/auth/guards";
 import { SignOutButton } from "@/features/onboarding/sign-out-button";
 
-// INV-7: every page in this group needs a signed-in, onboarded viewer.
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const viewer = await viewerOrRedirect();
   return (

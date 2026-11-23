@@ -14,8 +14,6 @@ import { loadPrivateLog } from "@/server/db/queries/logs";
 
 async function updateFixture() {
   const f = await publishedFixture();
-  // The clock fixture alone backdates an already genuinely approved publication.
-  // Restore the exact guard before exercising any proposal/review action.
   const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_log_update'").first<{ sql: string }>();
   if (!guard) throw new Error("Publication guard unavailable");
   const past = new Date(Date.now() - 3 * 86400000).toISOString();

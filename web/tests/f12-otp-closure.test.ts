@@ -38,10 +38,8 @@ describe("PRD-F12 exact OTP erasure through assessed closure", () => {
     }
     const stale = f.codes.get(email)!, otherCodes = others.map(address => f.codes.get(address)!);
     expect((await f.post("/email-otp/send-verification-otp", { email, type: "email-verification" })).status).toBe(200);
-    // Generic server creation supports scalar change-email even though the
-    // separate old/new-address HTTP flow is disabled in our configuration.
     await f.auth.api.createVerificationOTP({ body: { email, type: "change-email" } });
-    await seedCode(f, `forget-password-otp-${email}`); // Historical reset codes: new reset issuance is denied.
+    await seedCode(f, `forget-password-otp-${email}`);
     await f.db.insert(account).values({ id: crypto.randomUUID(), userId: subject, providerId: "google", accountId: subject, accessToken: "synthetic-provider-token" });
     const before = await f.db.select().from(authVerification);
     for (const type of types) expect(before.some(v => v.identifier === `${type}-otp-${email}`)).toBe(true);

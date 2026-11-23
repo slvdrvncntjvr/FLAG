@@ -7,8 +7,6 @@ import { downloadReviewProof } from "@/features/moderation/proof-view";
 import { candidateProofs, candidateRevision, loadReviewCase } from "@/server/db/queries/reviews";
 
 export const reviewSecret = "synthetic-proof-view-secret-for-tests";
-// Advance only a fixture's stored clock, restoring the exact production guard
-// before callers exercise any application read/write or storage delivery.
 export async function fixtureClock(trigger: "pilot_log_update" | "revision_update", mutation: D1PreparedStatement) {
   const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name=?").bind(trigger).first<{ sql: string }>();
   if (!guard) throw new Error("Fixture clock guard unavailable");

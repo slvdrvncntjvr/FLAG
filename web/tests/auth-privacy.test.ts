@@ -4,7 +4,6 @@ import { createAuth } from "@/server/auth/config";
 import { account, freelancerProfile, session, user, verificationCase } from "@/server/db/schema";
 import { BASE, setup } from "./helpers";
 
-// Synthetic payloads only. These reach supported Better Auth fields, not the F1 form.
 const unsafeNames = [
   "1234-5678-9012-3456", "1234567890123456", "１２３４－５６７８－９０１２－３４５６",
   "1234\u200b5678\u200b9012\u200b3456", Array.from("1234567890123456").join("\u20dd"),
@@ -139,8 +138,6 @@ describe("PRD-F7/F8 INV-3 standard authentication writes", () => {
     }, f.db, { sendOtp: async () => {} });
     const ctx = await auth.$context;
     expect(ctx.socialProviders.map(provider => provider.id)).toContain("google");
-    // These are the installed OAuth implementation's internal-adapter seams;
-    // no network/provider token or invented hook invocation is used.
     for (const fields of [{ name: unsafeNames[0] }, { image: unsafeImages[0] }]) {
       const email = `${crypto.randomUUID()}@example.invalid`;
       await expect(ctx.internalAdapter.createOAuthUser(

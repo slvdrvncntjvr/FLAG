@@ -1,5 +1,3 @@
-// Workers Builds can override the Worker name without selecting its bindings.
-// Enforce both the selected environment and the branch before adapter operations.
 import { getDeploymentTarget } from "./check-resource-bindings.mjs";
 
 export function getCliEnvironment(args = process.argv.slice(2), vars = process.env) {

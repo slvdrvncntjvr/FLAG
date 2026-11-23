@@ -11,8 +11,6 @@ export const dateInput = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =>
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, "Use a real calendar date.");
 
-// Complete validated drafts: uploads only begin after this content is persisted.
-// No client-selected status, outcome, parties, object key or reference is accepted.
 export const logDraftInput = z.strictObject({
   engagementId: idInput,
   logId: idInput.optional(),
@@ -51,7 +49,6 @@ export function outcomeForRating(rating: number): "negative" | "mixed" | "positi
   return rating <= 2 ? "negative" : rating === 3 ? "mixed" : "positive";
 }
 export function manilaDate(now = new Date()): string {
-  // UTC+08:00 has no daylight-saving transition; calendar arithmetic stays in UTC.
   return new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 export function withinFilingWindow(anchor: string, now = new Date()): boolean {

@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Civic record tokens (BUILD §7). Outcome colors arrive with the record page. */
 :root {
   --paper: oklch(0.985 0.004 85);
   --ink: oklch(0.22 0.01 260);

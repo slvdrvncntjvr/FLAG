@@ -30,13 +30,10 @@ export async function acceptInvitation(db: Db, actorId: string | null, hash: str
   if (expectation.data === null ? !f.displayName || !f.kind || !f.city
     : ["displayName", "kind", "city", "registrationNo"].some(key => key in f)) return failed();
   const gate = liveInvite(hash, actorId), acceptanceId = crypto.randomUUID();
-  // For expected absence, only this batch's freshly generated profile ID may
-  // consent. A pre-existing/racing profile can never be silently substituted.
   const profileId = expectation.data ?? crypto.randomUUID();
   const eligible = `EXISTS(SELECT 1 FROM engagement WHERE ${gate.text})`;
   try {
     const results = await db.$client.batch([
-      // All predicates are rechecked inside the batch. A losing client creates no profile.
       db.$client.prepare(`INSERT INTO client_profile(id,user_id,display_name,kind,city,registration_no)
         SELECT ?,?,?,?,?,? WHERE ${eligible} AND ? IS NULL AND ? IS NOT NULL AND ? IS NOT NULL AND ? IS NOT NULL
         AND NOT EXISTS(SELECT 1 FROM client_profile WHERE user_id=?)`)
@@ -45,10 +42,6 @@ export async function acceptInvitation(db: Db, actorId: string | null, hash: str
       db.$client.prepare(`INSERT INTO policy_acceptance(id,user_id,policy,version)
         SELECT ?,?,'client_consent',? WHERE ${eligible} AND EXISTS(SELECT 1 FROM client_profile WHERE user_id=? AND id=?)`)
         .bind(acceptanceId, actorId, POLICY_VERSIONS.client_consent, ...gate.args, actorId, profileId),
-      // Always attempt the receipt for a known hash. If time advances beyond
-      // expiry between statements, a skipped policy insert must ABORT rather
-      // than commit the earlier profile insert. Validation rejects missing,
-      // stale, replayed or expired consent and rolls the entire batch back.
       db.$client.prepare(`INSERT INTO engagement_consent(engagement_id,policy_acceptance_id)
         SELECT id,(SELECT id FROM policy_acceptance WHERE id=? AND user_id=? AND policy='client_consent' AND version=?)
         FROM engagement WHERE invite_token_hash=?`)

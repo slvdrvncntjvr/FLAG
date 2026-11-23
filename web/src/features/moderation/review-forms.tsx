@@ -24,7 +24,6 @@ export function ClaimReviewForm({ caseId }: { caseId: string }) {
 export function ReviewerForms({ caseId, expectedClaimUntil, canApprove }: Lease & { canApprove: boolean }) {
   const [expired, setExpired] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Server predicates remain authoritative; the timer makes the stale form clear.
   useEffect(() => {
     const remaining = Date.parse(expectedClaimUntil) - Date.now();
     const timer = setTimeout(() => setExpired(true), Math.max(0, remaining));

@@ -45,7 +45,6 @@ async function state(f: Awaited<ReturnType<typeof pending>>) {
   };
 }
 
-// Synthetic values exercise supported fields, rather than relying on unknown-key rejection.
 const sensitiveValues = [
   ["hyphenated number", "1234-5678-9012-3456"],
   ["slash number", "1234/5678/9012/3456"],
@@ -166,7 +165,6 @@ describe("PRD-F1 verification backend", () => {
     await db.update(user).set({ role: "moderator" }).where(eq(user.id, f.owner));
     expect((await claimVerification(db, f.owner, { caseId: f.caseId })).ok).toBe(false);
     const wrongKind = await pendingFixture(), missingId = crypto.randomUUID();
-    // Typed subjects are now protected at insertion as well as in every handler.
     await expect(db.insert(moderationCase).values({ id: missingId, kind: "verification", subjectId: "missing" })).rejects.toThrow();
     for (const caseId of [wrongKind.caseId, missingId]) {
       expect((await claimVerification(db, f.mod, { caseId })).ok).toBe(false);
@@ -266,8 +264,6 @@ describe("PRD-F1 verification backend", () => {
     const guard = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='pilot_case_update'").first<{ sql: string }>();
     if (!guard) throw new Error("Case authority guard unavailable");
     await expect(db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId))).rejects.toThrow();
-    // Simulate elapsed time only in fixture setup, restoring the exact production
-    // guard before exercising release, reclaim, inspection or decision actions.
     await env.DB.prepare("DROP TRIGGER pilot_case_update").run();
     try { await db.update(moderationCase).set({ claimedUntil: "2000-01-01T00:00:00.000Z" }).where(eq(moderationCase.id, f.caseId)); }
     finally { await env.DB.prepare(guard.sql).run(); }

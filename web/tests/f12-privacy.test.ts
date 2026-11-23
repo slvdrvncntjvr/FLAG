@@ -138,7 +138,6 @@ describe("PRD-F12 actual privacy processing and private exports", () => {
     const shellDeadline = iso(600000);
     a.categories.find(c => c.category === "identity")!.until = shellDeadline;
     const id = await request(admin, subject, "closure", a);
-    // An outstanding exact redaction denies the original identity projection.
     await expect(prepareExport(db, env.PROOFS, admin, id)).rejects.toThrow("source_expired");
     expect((await executePrivacyRequest(db, env, admin, id)).ok).toBe(true);
     const closed = await env.DB.prepare("SELECT deactivated_at FROM user WHERE id=?").bind(subject).first<{ deactivated_at: string }>();
@@ -152,7 +151,6 @@ describe("PRD-F12 actual privacy processing and private exports", () => {
     expect(await env.PROOFS.head(`exports/${d.deliveryId}`)).toBeNull();
     expect(await env.DB.prepare("SELECT 1 FROM session WHERE user_id=?").bind(subject).first()).toBeNull();
     const next = await prepareExport(db, env.PROOFS, admin, id);
-    // A newly assessed earlier purge still revokes the copied scrubbed shell.
     await request(admin, subject, "deletion", assessment(subject, [{ targetType: "user", targetId: subject, operation: "purge", basis: "assessed_erasure", dueAt: iso(-1000) }]));
     expect((await deliverExport(db, env.PROOFS, next.deliveryId, next.token, null)).status).toBe(404);
     expect(await env.PROOFS.head(`exports/${next.deliveryId}`)).toBeNull();
@@ -224,7 +222,6 @@ describe("PRD-F12 actual privacy processing and private exports", () => {
     const erasure = await env.DB.prepare("SELECT id FROM backup_disposition WHERE privacy_request_id=? AND action='erase'").bind(requestId).first<{ id: string }>();
     expect(await verifyBackupDisposition(db, subject, erasure!.id, "synthetic-erasure")).toEqual({ ok: false, error: "forbidden" });
     expect(await verifyBackupDisposition(db, admin, erasure!.id, "synthetic-erasure")).toEqual({ ok: true });
-    // An unverified copy receipt remains outstanding even if another action succeeded.
     expect(await recordPrivacyOutcome(db, admin, requestId, "completed", "Some copy actions verified")).toEqual({ ok: false, error: "conflict" });
     expect(await recordPrivacyOutcome(db, admin, requestId, "deferred", "Copy expiry awaits verification", iso(86400000))).toEqual({ ok: true });
   });
@@ -261,7 +258,6 @@ describe("PRD-F12 actual privacy processing and private exports", () => {
     const subject = await actor(), admin = await actor("admin"), id = await request(admin, subject);
     const d = await prepareExport(db, env.PROOFS, admin, id);
     await request(admin, subject, "deletion", assessment(subject, [{ targetType: "user", targetId: subject, operation: "purge", dueAt: iso(delta), basis: "assessed_erasure" }]));
-    // No maintenance ran: source existence alone cannot justify disclosure.
     expect(await env.DB.prepare("SELECT 1 FROM user WHERE id=?").bind(subject).first()).not.toBeNull();
     expect((await deliverExport(db, env.PROOFS, d.deliveryId, d.token, subject)).status).toBe(404);
     expect(await env.PROOFS.head(`exports/${d.deliveryId}`)).toBeNull();

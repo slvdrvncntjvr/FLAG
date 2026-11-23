@@ -11,8 +11,6 @@ const privateHeaders = {
 const denied = () => Response.json({ error: "This log or proof is unavailable." }, { status: 404 });
 const unavailable = () => Response.json({ error: "Could not upload this proof. Try again." }, { status: 503 });
 
-// This route needs no Next render context. Keep all mutable authority within the
-// request and use the same auth hooks and upload domain function as the app.
 export async function proofUploadHttp(request: Request, env: CloudflareEnv): Promise<Response | null> {
   const url = new URL(request.url);
   const match = request.method === "POST" && /^\/api\/logs\/([A-Za-z0-9_-]{1,100})\/proofs$/.exec(url.pathname);

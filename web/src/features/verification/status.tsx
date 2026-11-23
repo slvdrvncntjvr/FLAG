@@ -19,7 +19,6 @@ export function RecordValue({ label, children }: { label: string; children: Reac
   return <div className="min-w-0 border-t border-rule py-3"><dt className="text-muted">{label}</dt><dd className="mt-1 break-words [overflow-wrap:anywhere]">{children}</dd></div>;
 }
 
-// Only web URLs become links, even when reading legacy or malformed data.
 export function PortfolioLinks({ links }: { links: { id?: string; url: string; label?: string | null }[] }) {
   return <ul className="space-y-3">{links.map((link, index) => {
     let safe = false;

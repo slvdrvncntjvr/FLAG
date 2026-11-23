@@ -25,7 +25,6 @@ async function signIn(page: Page, email: string, role: "Freelancer" | "Client") 
   await expect(page).toHaveURL(/\/home$/);
 }
 
-// Narrow fixture mutations run only in this harness's disposable local DB.
 async function fixture(email: string, kind: "verified" | "admin" | "client") {
   if (!/^log-intake-[a-z0-9-]+@example\.invalid$/.test(email)) throw new Error("Synthetic account required");
   const otp = process.env.E2E_OTP_FILE;
@@ -105,8 +104,6 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     const accepted = client.waitForResponse(response => response.request().method() === "POST" && !!response.request().headers()["next-action"]);
     await client.getByRole("button", { name: "Accept engagement", exact: true }).click();
     await accepted;
-    // Intake setup verifies the durable receipt on the destination. Invite
-    // redirect behavior has its own engagements.spec.ts regression gate.
     await client.goto("/engagements");
     await expect(client.getByText(/^Consent recorded/)).toBeVisible();
     console.info("[F2] creating complete draft");
@@ -122,7 +119,6 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     await page.getByLabel("Late Payment", { exact: true }).check();
     await page.getByLabel("Written facts", { exact: true }).fill("Synthetic work was completed and the agreed payment arrived one day later than planned.");
     await page.getByLabel("Amount in centavos (optional)", { exact: true }).fill("10000");
-    // Hidden values select no authority and cannot retarget the signed action.
     await page.locator('input[name="engagementId"]').evaluate(input => { (input as HTMLInputElement).value = "unrelated-engagement"; });
     await page.getByRole("button", { name: "Save complete draft", exact: true }).click();
     await expect(page.locator("main [role=alert]")).toContainText("Check the supplied fields");
@@ -182,7 +178,6 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     await page.getByRole("button", { name: "Remove proof", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Saved proof (0/5)", exact: true })).toBeVisible();
     expect((await page.request.get(proofPath)).status()).toBe(404);
-    // A mislabeled image must still pass through canvas, never the PDF path.
     await page.getByLabel("Proof file", { exact: true }).setInputFiles({ name: "replacement.pdf", mimeType: "application/pdf", buffer: png });
     await page.getByRole("button", { name: "Upload private proof", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Saved proof (1/5)", exact: true })).toBeVisible();

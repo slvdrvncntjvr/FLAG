@@ -19,7 +19,6 @@ async function assertSnapshotColumns(database: D1Database, expectedColumns: Reco
   expect(Object.fromEntries(columns.map(column => [column.name, {
     name: column.name, type: column.type.toLowerCase(), notNull: !!column.notnull, primaryKey: !!column.pk, default: column.dflt_value,
   }]))).toEqual(Object.fromEntries(Object.values(expectedColumns).map(column => [column.name, {
-    // SQLite PRAGMA removes the expression's outer parentheses.
     name: column.name, type: column.type, notNull: column.notNull, primaryKey: column.primaryKey, default: "default" in column ? String(column.default).replace(/^\((.*)\)$/, "$1") : null,
   }])));
   expect((await database.prepare("PRAGMA foreign_key_check").all()).results).toEqual([]);
@@ -43,7 +42,6 @@ it("0007 adds nullable snapshot evidence without rebuilding, backfilling or chan
     db.prepare("INSERT INTO session(id,user_id,token,expires_at) VALUES ('session','open','synthetic-session','2027-01-01T00:00:00.000Z')"),
     db.prepare("INSERT INTO policy_acceptance(id,user_id,policy,version) VALUES ('receipt','open','privacy','original-version')"),
   ]);
-  // A failure after ALTER must roll back the column and migration ledger too.
   await db.prepare("CREATE TRIGGER verification_submitted_profile_frozen BEFORE UPDATE ON verification_case BEGIN SELECT 1; END").run();
   const collision = await state();
   await expect(applyD1Migrations(db, migrations)).rejects.toThrow(/already exists/);
@@ -65,7 +63,6 @@ it("0007 adds nullable snapshot evidence without rebuilding, backfilling or chan
   }
   expect(after.schema.some(item => String(item.name).startsWith("__new"))).toBe(false);
   await assertSnapshotColumns(db, snapshot.tables.verification_case.columns);
-  // Legacy NULLs cannot be backfilled from today's profile, even undecided.
   await expect(db.prepare("UPDATE verification_case SET submitted_profile='{}' WHERE id='open'").run()).rejects.toThrow(/immutable/);
   await expect(db.prepare("UPDATE verification_case SET reason='Rewritten' WHERE id='rejected'").run()).rejects.toThrow(/immutable/);
   await expect(db.prepare("UPDATE audit_event SET action='rewritten' WHERE id='event'").run()).rejects.toThrow(/append-only/);

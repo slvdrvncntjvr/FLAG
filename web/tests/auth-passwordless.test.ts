@@ -56,7 +56,6 @@ async function seedResetOtp(f: ReturnType<typeof fixture>, expired = false) {
 async function expectDenied(f: ReturnType<typeof fixture>, action: () => Promise<Response>) {
   const before = await f.snapshot();
   const response = await action();
-  // State assertions come first so the unfixed regression exposes actual writes.
   expect(await f.snapshot()).toEqual(before);
   expect(f.sendOtp).not.toHaveBeenCalled();
   expect(response.status).toBe(403);

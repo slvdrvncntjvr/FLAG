@@ -183,7 +183,6 @@ describe("PRD-F7 durable authentication limits", () => {
 
   it("fails instead of claiming email delivery when no provider is configured outside localhost", async () => {
     const { db } = setup();
-    // Prefix checks must not mistake localhost.attacker.example for local development.
     const base = "http://localhost.attacker.example";
     const auth = createAuth({ BETTER_AUTH_SECRET: SECRET, BETTER_AUTH_URL: base, MAIL_FROM: "test@example.com" }, db);
     const response = await auth.handler(new Request(`${base}/api/auth/email-otp/send-verification-otp`, {

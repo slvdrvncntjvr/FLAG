@@ -33,8 +33,6 @@ export function isOnboarded(viewer: Viewer) {
   return viewer.role !== null && viewer.missingPolicies.length === 0;
 }
 
-// D1 batches are transactional. A failed policy insert rolls back the role change.
-// Conditional inserts also make concurrent duplicate submissions idempotent.
 export async function commitOnboarding(db: Db, userId: string, role: Role, policies: Policy[]) {
   const choose = db.update(user).set({ role, updatedAt: new Date().toISOString() })
     .where(and(eq(user.id, userId), isNull(user.role), eq(user.banned, false), isNull(user.deactivatedAt)));

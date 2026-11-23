@@ -28,7 +28,6 @@ export async function openCorrection(db: Db, actorId: string | null, input: unkn
   const parsed = correctionDraftInput.safeParse(input);
   if (!parsed.success) return failure("invalid_input");
   const f = parsed.data, gate = correctionGate(actorId), id = crypto.randomUUID();
-  // One bounded private factual note; schema deliberately has no editable public field.
   const note = f.newEvidenceNote ?? f.note;
   try {
     await db.$client.batch([
