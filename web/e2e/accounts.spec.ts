@@ -24,6 +24,26 @@ test('anonymous routes redirect and deny indexing (INV-7)', async ({ page, reque
   expect(await (await request.get('/robots.txt')).text()).toContain('Disallow: /');
 });
 
+test('sign-in controls wait for the page to become interactive', async ({ page }) => {
+  let releaseScripts!: () => void;
+  const scriptsReady = new Promise<void>(resolve => { releaseScripts = resolve; });
+  await page.route(/\/_next\/static\/.*\.js(?:\?.*)?$/, async route => {
+    await scriptsReady;
+    await route.fallback();
+  });
+  const email = page.getByLabel('Email', { exact: true });
+  const send = page.getByRole('button', { name: 'Send code', exact: true });
+  try {
+    await page.goto('/sign-in', { waitUntil: 'commit' });
+    await expect(email).toBeDisabled();
+    await expect(send).toBeDisabled();
+  } finally {
+    releaseScripts();
+  }
+  await expect(email).toBeEnabled();
+  await expect(send).toBeEnabled();
+});
+
 test('real OTP sending caps remain active within each isolated scenario', async ({ page, request }, info) => {
   const ip = await isolateOtpIp(page);
   const stamp = Date.now();
