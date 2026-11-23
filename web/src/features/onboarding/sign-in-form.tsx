@@ -1,20 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { authClient } from "./auth-client";
 import { inviteAuthPath } from "@/lib/invite-return";
 
+const subscribe = () => () => {};
+
 export function SignInForm({ returnTo }: { returnTo?: string }) {
   const router = useRouter();
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const sendDisabled = !hydrated || pending;
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
-    if (pending) return;
+    if (sendDisabled) return;
     setPending(true);
     setError(null);
     try {
@@ -55,10 +59,10 @@ export function SignInForm({ returnTo }: { returnTo?: string }) {
   return step === "email" ? (
     <form key="email" onSubmit={sendCode} className="mt-6">
       <label htmlFor="email" className="text-sm font-medium">Email</label>
-      <input id="email" type="email" required autoComplete="email" value={email}
+      <input id="email" type="email" required autoComplete="email" value={email} disabled={sendDisabled}
         placeholder="name@example.com" onChange={(e) => setEmail(e.target.value)} className="register-field mt-1 block w-full" />
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button type="submit" disabled={pending} className="register-primary mt-6 w-full">{pending ? "Sending" : "Send code"}</button>
+      <button type="submit" disabled={sendDisabled} className="register-primary mt-6 w-full">{pending ? "Sending" : "Send code"}</button>
     </form>
   ) : (
     <form key="code" onSubmit={verify} className="mt-6">
