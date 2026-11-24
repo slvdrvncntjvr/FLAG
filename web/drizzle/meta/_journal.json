@@ -22,6 +22,76 @@
       "when": 1791888409318,
       "tag": "0002_pink_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791963548188,
+      "tag": "0003_melted_the_twelve",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792077802564,
+      "tag": "0004_clever_arclight",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792517181721,
+      "tag": "0005_happy_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792940542734,
+      "tag": "0006_verification_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792998530406,
+      "tag": "0007_verification_submitted_profile",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1793502420300,
+      "tag": "0008_engagement_consent",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1793502421957,
+      "tag": "0009_private_log_intake",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1793588504273,
+      "tag": "0010_pilot_lifecycle_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1793588763215,
+      "tag": "0011_pilot_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1793688212660,
+      "tag": "0012_retention_repairs",
+      "breakpoints": true
     }
   ]
 }

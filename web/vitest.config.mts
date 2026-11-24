@@ -3,14 +3,18 @@ import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-plugin";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
+  resolve: { alias: {
+    "@": path.resolve(import.meta.dirname, "src"),
+    "server-only": path.resolve(import.meta.dirname, "node_modules/next/dist/compiled/server-only/empty.js"),
+  } },
   plugins: [
     cloudflareTest(async () => ({
       miniflare: {
         compatibilityDate: "2026-10-01",
         compatibilityFlags: ["nodejs_compat"],
-        d1Databases: ["DB"],
-        bindings: { TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "drizzle")) },
+        d1Databases: ["DB", "MIGRATION_DB"],
+        r2Buckets: ["PROOFS"],
+        bindings: { PRIVATE_INTAKE_ENABLED: "true", TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "drizzle")) },
       },
     })),
   ],

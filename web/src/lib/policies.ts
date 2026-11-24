@@ -1,18 +1,14 @@
 import type { Policy, Role } from "@/server/db/schema";
 
-// The address a user writes to for privacy requests, reports, and support.
-// Replace with a dedicated mailbox or DPO address when one exists.
 export const CONTACT_EMAIL = "slvdrvncntjvr@gmail.com";
 
-// Bump a version to make every user accept that policy again (PRD-F8, QAD S-12).
 export const POLICY_VERSIONS = {
-  privacy: "2026-10-12",
-  terms: "2026-10-12",
+  privacy: "2026-11-02",
+  terms: "2026-11-02",
   freelancer_ack: "2026-10-12",
   client_consent: "2026-10-12",
 } as const satisfies Record<Policy, string>;
 
-// client_consent is recorded per engagement at invite acceptance (PRD-F9), not at onboarding.
 export function requiredPolicies(role: Role | null): Policy[] {
   return role === "freelancer" ? ["privacy", "terms", "freelancer_ack"] : ["privacy", "terms"];
 }
@@ -25,7 +21,6 @@ export function missingPolicies(role: Role | null, accepted: Acceptance[]): Poli
   );
 }
 
-// The three statements every freelancer confirms (PRD-F8).
 export const FREELANCER_STATEMENTS = [
   "Every log I file needs proof. A log without proof is not accepted.",
   "FLAG is not legal advice and does not resolve disputes or collect payment.",

@@ -1,0 +1,2 @@
+BETTER_AUTH_URL=http://localhost:3000
+MAIL_FROM=FLAG <local@example.invalid>

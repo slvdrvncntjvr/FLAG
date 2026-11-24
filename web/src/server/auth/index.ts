@@ -1,8 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createDb } from "@/server/db";
+import { cache } from "react";
+import { getDb, type Db } from "@/server/db";
 import { createAuth } from "./config";
 
-export async function getAuth() {
+export const getAuth = cache(async function getAuth(db?: Db) {
   const { env } = await getCloudflareContext({ async: true });
-  return createAuth(env as CloudflareEnv & Record<string, string | undefined>, createDb(env.DB));
-}
+  return createAuth(env as CloudflareEnv & Record<string, string | undefined>, db ?? await getDb());
+});
