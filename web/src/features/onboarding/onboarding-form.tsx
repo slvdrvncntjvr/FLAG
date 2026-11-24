@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { RegisterIcon } from "@/components/register-icon";
 import { FREELANCER_STATEMENTS } from "@/lib/policies";
 import type { Role } from "@/server/db/schema";
 import { acceptPolicies } from "./actions";
@@ -24,16 +25,16 @@ export function OnboardingForm({ role, returnTo }: { role: Role | null; returnTo
           <legend className="sr-only">Account type</legend>
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {(["freelancer", "client"] as const).map((r) => (
-              <label key={r} className="grid cursor-pointer grid-cols-[1rem_1fr_1rem] content-start rounded-[1.125rem] border border-rule bg-surface p-3 text-center has-checked:border-accent has-checked:bg-tint has-checked:ring-1 has-checked:ring-accent">
+              <label key={r} className="grid cursor-pointer grid-cols-[minmax(0,1fr)_1rem] content-start gap-y-2 rounded-lg border border-rule bg-surface p-3 has-checked:border-accent has-checked:bg-tint has-checked:ring-1 has-checked:ring-accent hover:border-accent sm:p-4">
                 <input
                   type="radio" name="role" value={r} required defaultChecked={initialRole === r} onChange={() => setChosen(r)}
-                  className="peer col-start-3 row-start-1 mt-0.5 size-4 justify-self-end"
+                  className="col-start-2 row-start-1 size-4 self-center justify-self-end"
                 />
-                <span aria-hidden="true" className="col-start-2 row-start-1 grid size-9 place-items-center justify-self-center rounded-full bg-sand font-serif font-bold peer-checked:bg-accent peer-checked:text-paper">
-                  {r === "freelancer" ? "F" : "C"}
+                <span className="register-icon-tile col-start-1 row-start-1">
+                  <RegisterIcon name={r === "freelancer" ? "engagements" : "record"} />
                 </span>
-                <span className="col-span-3 mt-2 text-sm font-semibold">{r === "freelancer" ? "Freelancer" : "Client"}</span>
-                <span className="col-span-3 mt-1 text-xs leading-snug text-muted">
+                <span className="col-span-full text-sm font-semibold">{r === "freelancer" ? "Freelancer" : "Client"}</span>
+                <span className="col-span-full text-xs leading-relaxed text-muted">
                   {r === "freelancer"
                     ? "Read client records and, once verified, log your own engagements."
                     : "Accept engagements from freelancers you work with and see the record of your work."}
@@ -82,7 +83,7 @@ export function OnboardingForm({ role, returnTo }: { role: Role | null; returnTo
       <button
         type="submit"
         disabled={pending}
-        className="register-primary sticky bottom-4 w-full"
+        className="register-primary w-full"
       >
         {pending ? "Saving" : "Accept and continue"}
       </button>

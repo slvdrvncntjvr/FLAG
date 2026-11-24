@@ -4,6 +4,20 @@ import { spawnSync } from "node:child_process";
 import { basename, dirname, join, resolve } from "node:path";
 import { isolateOtpIp } from "./network";
 
+test("the export secret form is unavailable before JavaScript runs", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await page.goto("/privacy/export");
+    await expect(page.getByLabel("Delivery reference")).toBeDisabled();
+    await expect(page.getByLabel("One-use secret")).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Download private export" })).toBeDisabled();
+    await expect(page.locator("form")).toHaveAttribute("method", "post");
+  } finally {
+    await context.close();
+  }
+});
+
 const utc = (delta = 0) => new Date(Date.now() + delta).toISOString().slice(0, 16);
 async function signIn(page: Page, email: string) {
   await page.route("**/*", route => {

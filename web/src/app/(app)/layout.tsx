@@ -21,8 +21,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <PageShell
       navigation={navigation}
       aside={
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <Link href="/home" className="min-w-0 break-all text-muted underline-offset-4 hover:underline">
+        <div className="register-account-summary">
+          <Link href="/home" className="register-account-email">
             {viewer.email}
           </Link>
           <SignOutButton />

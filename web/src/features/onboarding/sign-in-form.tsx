@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { authClient } from "./auth-client";
 import { inviteAuthPath } from "@/lib/invite-return";
 
@@ -15,6 +15,14 @@ export function SignInForm({ returnTo }: { returnTo?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const sendDisabled = !hydrated || pending;
+  const stepInput = useRef<HTMLInputElement>(null);
+  const focusNextStep = useRef(false);
+
+  useEffect(() => {
+    if (!focusNextStep.current) return;
+    stepInput.current?.focus();
+    focusNextStep.current = false;
+  }, [step]);
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -24,6 +32,7 @@ export function SignInForm({ returnTo }: { returnTo?: string }) {
     try {
       const { error } = await authClient.emailOtp.sendVerificationOtp({ email: email.trim(), type: "sign-in" });
       if (error) return setError(error.status === 429 ? "Too many attempts. Try again after fifteen minutes." : "Could not send the code. Try again later.");
+      focusNextStep.current = true;
       setStep("code");
     } catch {
       setError("Could not send the code. Try again later.");
@@ -59,26 +68,26 @@ export function SignInForm({ returnTo }: { returnTo?: string }) {
   return step === "email" ? (
     <form key="email" onSubmit={sendCode} className="mt-6">
       <label htmlFor="email" className="text-sm font-medium">Email</label>
-      <input id="email" type="email" required autoComplete="email" value={email} disabled={sendDisabled}
+      <input ref={stepInput} id="email" type="email" required autoComplete="email" value={email} disabled={sendDisabled}
         placeholder="name@example.com" onChange={(e) => setEmail(e.target.value)} className="register-field mt-1 block w-full" />
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
       <button type="submit" disabled={sendDisabled} className="register-primary mt-6 w-full">{pending ? "Sending" : "Send code"}</button>
     </form>
   ) : (
     <form key="code" onSubmit={verify} className="mt-6">
-      <label htmlFor="otp" className="block text-sm font-medium">Code</label>
-      <input id="otp" name="otp" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required
-        autoComplete="one-time-code" aria-describedby="otp-status"
-        className="register-field mt-1 block w-full border-2! border-ink! font-mono tracking-[0.4em]" />
-      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button type="button" disabled={pending} onClick={() => { setError(null); setStep("email"); }}
-        className="register-secondary mx-auto mt-5 flex! w-fit max-w-full text-sm shadow-[0_3px_0_var(--ink)]">
-        Use a different email or send a new code (replaces the current one)
-      </button>
-      <p id="otp-status" role="status" className="mt-6 rounded-sm bg-ink px-4 py-3.5 text-sm text-paper">
-        A 6-digit code was sent to <span className="font-mono">{email}</span>. It expires in 10 minutes.
+      <p id="otp-status" role="status" className="register-callout mb-4 text-sm">
+        A 6-digit code was sent to <strong>{email}</strong>. It expires in 10 minutes.
       </p>
+      <label htmlFor="otp" className="block text-sm font-medium">Code</label>
+      <input ref={stepInput} id="otp" name="otp" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required
+        autoComplete="one-time-code" aria-describedby="otp-status"
+        className="register-field mt-1 block w-full font-mono tracking-[0.4em]" />
+      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
       <button type="submit" disabled={pending} className="register-primary mt-5 w-full">{pending ? "Checking" : "Sign in"}</button>
+      <button type="button" disabled={pending} onClick={() => { setError(null); focusNextStep.current = true; setStep("email"); }}
+        className="mt-2 min-h-11 text-left text-sm font-medium text-accent underline underline-offset-4 disabled:opacity-60">
+        Use a different email or send a new code
+      </button>
     </form>
   );
 }

@@ -1,63 +1,54 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PageShell } from "@/components/page-shell";
-import { RegisterIllustration } from "@/components/register-illustration";
-
-const steps = [
-  {
-    title: "Start with an invitation",
-    icon: "/register/engagements.svg",
-    description: "Verified freelancers can invite clients to an engagement. Clients choose whether to accept.",
-  },
-  {
-    title: "Submit proof for review",
-    icon: "/register/queue.svg",
-    description: "Each log needs proof and a client who accepted the engagement. A moderator must approve it before publication.",
-  },
-  {
-    title: "Read private records",
-    icon: "/register/record.svg",
-    description: "Authorized, signed-in users can see approved positive, mixed, and negative experiences. Named clients can request a private correction.",
-  },
-];
+import { RegisterIcon } from "@/components/register-icon";
+import { RecordPreview } from "./record-preview";
+import styles from "./landing.module.css";
 
 export default function Landing() {
   return (
-    <PageShell aside={<Link href="/sign-in" className="register-secondary">Sign in</Link>}>
-      <section aria-labelledby="landing-heading" className="grid gap-5 text-center md:grid-cols-2 md:items-center md:gap-7 md:text-left">
-        <div className="md:order-last"><RegisterIllustration /></div>
-        <div>
-          <h1 id="landing-heading" className="mx-auto max-w-[24ch] font-serif text-[2rem] leading-[1.16] md:mx-0 md:text-[2.125rem]">
-            A record of how clients handle freelance work.
-          </h1>
-          <p className="mx-auto mt-4 max-w-[46ch] text-[0.9375rem] leading-relaxed text-muted md:mx-0">
-            Verified freelancers share proof-backed experiences from engagements their clients accepted.
-          </p>
-          <Link href="/sign-in" className="register-primary mt-5 w-full md:w-auto">Sign in or create an account</Link>
+    <PageShell
+      mainClassName={styles.landing}
+      aside={<Link href="/sign-in" className="register-secondary">Sign in <RegisterIcon name="arrow" /></Link>}
+    >
+      <section className={styles.hero} aria-labelledby="landing-title">
+        <Image className={styles.linen} src="/register/signal-linen.webp" alt="" fill sizes="100vw" unoptimized preload />
+        <div className={styles.heroInner}>
+          <div className={styles.overline}><span /> Private register · Philippines</div>
+          <h1 id="landing-title" className={styles.title}>Freelance work,<br className={styles.titleBreak} /> <em>on the record.</em></h1>
+          <div className={styles.heroBottom}>
+            <p>Keep a record of how clients handle freelance work. Published accounts start with an accepted engagement, supporting proof and human review.</p>
+            <Link href="/sign-in" className={styles.enter}>Sign in or create an account <RegisterIcon name="arrow" /></Link>
+          </div>
         </div>
       </section>
 
-      <section aria-labelledby="register-guide" className="mt-9">
-        <h2 id="register-guide" className="font-serif text-xl">How the register works</h2>
-        <ol className="mt-3 grid gap-3 md:grid-cols-3">
-          {steps.map(({ title, icon, description }) => (
-            <li key={title} className="register-panel flex items-start gap-3 md:flex-col">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-tint">
-                <Image src={icon} width={22} height={22} alt="" unoptimized />
-              </span>
-              <div>
-                <h3 className="font-serif text-base">{title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+      <section className={styles.guide} aria-labelledby="guide-title">
+        <div className={styles.guideIntro}>
+          <p className="register-kicker">How FLAG works</p>
+          <h2 id="guide-title">One engagement.<br /> Different audiences.</h2>
+          <p>A moderator’s approval changes who can read an account of the work. The supporting files stay private.</p>
+        </div>
+        <RecordPreview />
       </section>
 
-      <section aria-labelledby="pilot-heading" className="register-ledger mt-7 space-y-1 py-4 text-sm">
-        <h2 id="pilot-heading" className="font-semibold">Pilot availability</h2>
-        <p className="text-muted">New logs and proof uploads are available only while pilot intake is open.</p>
-        <p className="text-muted">FLAG does not resolve disputes or collect payments.</p>
+      <section className={styles.conditions} aria-labelledby="conditions-title">
+        <h2 id="conditions-title">Before you can file</h2>
+        <dl>
+          <div>
+            <dt><RegisterIcon name="shield" /> An identity check</dt>
+            <dd>Freelancers need an identity check before sending invitations. It establishes identity only.</dd>
+          </div>
+          <div>
+            <dt><RegisterIcon name="invite" /> An accepted invitation</dt>
+            <dd>The client chooses whether to consent to logging this engagement. Declining creates no warning or negative signal.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className={styles.pilot} aria-labelledby="pilot-heading">
+        <h2 id="pilot-heading" className="register-kicker"><RegisterIcon name="info" /> Pilot availability</h2>
+        <p>New logs and proof uploads are available only while pilot intake is open. FLAG does not resolve disputes or collect payments.</p>
       </section>
     </PageShell>
   );

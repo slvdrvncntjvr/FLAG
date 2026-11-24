@@ -252,7 +252,7 @@ test("pilot publication, record search and independent private correction withdr
     await signIn(independent, independentEmail, "Client");
     await bootstrap(independentEmail, "moderator");
     await independent.goto("/home");
-    await followLink(independent, independent.getByRole("link", { name: /correction/i }));
+    await followLink(independent, independent.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Corrections", exact: true }));
     await expect(independent.getByRole("heading", { name: "Private correction queue", exact: true })).toBeVisible();
     await followLink(independent, independent.getByRole("link", { name: `${logRef} · correction`, exact: true }));
     const correctionUrl = independent.url();

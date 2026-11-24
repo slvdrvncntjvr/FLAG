@@ -182,7 +182,7 @@ test("real owner request, recoverable error, claim, inspection and reasoned appr
   const ownerEmail = `verification-owner-${stamp}@example.invalid`;
   await signIn(page, ownerEmail, "freelancer");
   await page.getByRole("link", { name: "View verification or request an identity check" }).click();
-  await expect(page.getByRole("heading", { name: "Verification", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Identity verification", exact: true })).toBeVisible();
   await expect(page.getByText("Not started", { exact: true })).toBeVisible();
   expect(await page.locator('input[type="file"]').count()).toBe(0);
   await page.getByLabel("Account/profile name", { exact: true }).fill(ownerName);

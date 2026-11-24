@@ -6,6 +6,8 @@ import { getDb } from "@/server/db";
 import { loadPrivateLog } from "@/server/db/queries/logs";
 import { DraftWorkspace, ProofList } from "@/features/logs/forms";
 import { isPrivateIntakeEnabled } from "@/features/logs/rollout";
+import { RegisterPageHeading } from "@/components/register-page-heading";
+import { RegisterIcon } from "@/components/register-icon";
 
 export const metadata: Metadata = { title: "Private engagement log" };
 export const dynamic = "force-dynamic";
@@ -17,14 +19,12 @@ export default async function PrivateLogPage({ params }: { params: Promise<{ id:
   if (!log) notFound();
   const canEdit = log.canEdit && await isPrivateIntakeEnabled();
   return <div className="register-narrow">
-    <Link href="/engagements" className="text-sm text-accent underline underline-offset-4">Back to engagements</Link>
-    <h1 className="mt-4 font-serif text-2xl">Private engagement log</h1>
-    <div className="register-ledger mt-3 space-y-2 py-4">
-      <p className="register-kicker font-mono">{log.ref}</p>
-      <p className="font-serif text-xl font-semibold">{log.title}</p>
-      <p className="text-sm">Status: <strong className="text-accent">{log.status === "pending" ? "Pending" : log.status === "draft" ? "Draft" : log.status}</strong></p>
-      <p className="text-sm text-muted">Available only to the filer, named client and moderators.</p>
-    </div>
+    <Link href="/engagements" className="mb-4 inline-flex text-sm text-accent underline underline-offset-4">Back to engagements</Link>
+    <RegisterPageHeading title="Private engagement log" label={log.ref}
+      action={<p className="register-status">Status: {log.status === "pending" ? "Pending" : log.status === "draft" ? "Draft" : log.status.replaceAll("_", " ")}</p>}>
+      <p className="font-semibold">{log.title}</p>
+    </RegisterPageHeading>
+    <p className="register-callout flex items-start gap-2 text-sm"><RegisterIcon name="lock" /> Available only to the filer, named client and moderators.</p>
     {log.status === "pending" && <div role="status" className="register-callout mt-5 space-y-2 text-sm"><p className="font-semibold">Submitted. Awaiting human log review.</p><p>This log is private and has not been published.</p>{log.firstSubmittedAt && <p className="font-mono text-xs">First submitted: {log.firstSubmittedAt}</p>}</div>}
     {log.status === "ask_changes" && <p role="status" className="register-callout mt-5 text-sm">A moderator requested changes. Save a revised draft before adding proof or resubmitting. Your original filing date and anchor stay fixed.</p>}
     {["published", "hidden", "withdrawn"].includes(log.status) && <nav aria-label="Private log requests" className="mt-5 flex flex-wrap gap-3"><Link className="register-secondary text-sm" href={`/logs/${log.id}/correction`}>Private correction history</Link>{viewer.role === "freelancer" && <Link className="register-secondary text-sm" href={`/logs/${log.id}/update`}>Propose a dated update</Link>}</nav>}

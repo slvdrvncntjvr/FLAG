@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState, useState } from "react";
+import { RegisterIcon } from "@/components/register-icon";
 import { requestVerification } from "./actions";
 import { ActionFeedback, recoverAction } from "./action-feedback";
 import type { ReviewResult } from "./schema";
@@ -20,9 +20,9 @@ export function VerificationRequestForm({ name, city, links }: { name: string; c
     setPortfolio(current => current.map((link, i) => i === index ? { ...link, [field]: value } : link));
   }
   return (
-    <form action={action} className="mt-5 space-y-4 text-sm" aria-busy={pending}>
+    <form action={action} className="register-verification-form space-y-4 text-sm" aria-busy={pending}>
       <fieldset disabled={pending || state?.ok === true} className="min-w-0 space-y-4">
-        <legend className="font-serif text-lg font-semibold">Request identity verification</legend>
+        <legend className="text-lg font-semibold tracking-tight">Request identity verification</legend>
         <p className="mt-1 text-muted">Enter your account/profile name and at least one portfolio link. These stay fixed while your request is under review.</p>
         <label className="block font-medium" htmlFor="verification-name">Account/profile name
           <input id="verification-name" name="name" required maxLength={160} autoComplete="name" value={ownerName} onChange={e => setOwnerName(e.target.value)} className={inputStyle} />
@@ -38,7 +38,7 @@ export function VerificationRequestForm({ name, city, links }: { name: string; c
               <label className="block font-medium" htmlFor={`portfolio-url-${index}`}>Portfolio URL {index + 1}
                 <span className="relative mt-1 block">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <Image src="/register/portfolio-link.svg" width={20} height={20} alt="" unoptimized />
+                    <RegisterIcon name="proof" className="text-accent" />
                   </span>
                   <input id={`portfolio-url-${index}`} name="portfolioUrl" type="url" required maxLength={2048} value={link.url} onChange={e => updateLink(index, "url", e.target.value)} className="register-field block w-full pl-10!" />
                 </span>
@@ -51,21 +51,19 @@ export function VerificationRequestForm({ name, city, links }: { name: string; c
           ))}
           {portfolio.length < 10 && (
             <button type="button" onClick={() => setPortfolio(current => [...current, { url: "", label: "" }])} className="inline-flex min-h-11 items-center gap-2 font-semibold text-accent underline-offset-2 hover:underline disabled:opacity-60">
-              <span className="grid size-[1.875rem] shrink-0 place-items-center rounded-full border border-ink bg-coupon">
-                <Image src="/register/portfolio-add.svg" width={21} height={21} alt="" unoptimized />
-              </span>
+              <RegisterIcon name="plus" />
               Add portfolio link
             </button>
           )}
         </fieldset>
-        <div className="register-callout flex items-center gap-3 border-accent! bg-[#ddefe8]! text-accent">
-          <Image src="/register/identity-shield.svg" width={26} height={26} alt="" className="shrink-0" unoptimized />
+        <div className="register-callout flex items-start gap-3">
+          <RegisterIcon name="shield" className="text-accent" />
           <div>
             <p className="font-semibold">Live ID inspection</p>
-            <p className="mt-1 text-xs leading-relaxed">A moderator will inspect a supported government ID live. Do not send an ID image, number, recording or QR data through this form.</p>
+            <p className="mt-1 text-sm leading-relaxed">A moderator will inspect a supported government ID live. Do not send an ID image, number, recording or QR data through this form.</p>
           </div>
         </div>
-        <button type="submit" className="register-primary sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] w-full text-base">
+        <button type="submit" className="register-primary w-full text-base">
           {pending ? "Submitting request…" : "Submit verification request"}
         </button>
       </fieldset>

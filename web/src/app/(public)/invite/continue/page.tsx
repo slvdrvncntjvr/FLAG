@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PageShell, profileLink } from "@/components/page-shell";
+import { RegisterPageHeading } from "@/components/register-page-heading";
 import { getViewer } from "@/server/auth/guards";
 import { isOnboarded } from "@/server/db/queries/viewer";
 import { getDb } from "@/server/db";
@@ -43,12 +44,12 @@ export default async function ContinueInvite() {
       ]}
       aside={
         <div className="flex flex-wrap items-center gap-x-3 text-xs">
-          <span className="rounded-full bg-coupon px-3 py-1 font-semibold text-accent">Client</span>
+          <span className="register-status">Client</span>
           <SignOutButton />
         </div>
       }
     >
-      <h1 className="mb-4 text-center font-serif text-xl leading-tight">Respond to invitation</h1>
+      <RegisterPageHeading title="Respond to invitation" />
       <InviteSummary inviter={invite.inviter} title={invite.title} />
       <RespondInviteForm
         engagementId={invite.id}

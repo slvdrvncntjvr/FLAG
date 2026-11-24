@@ -1,4 +1,5 @@
 import { PageShell } from "@/components/page-shell";
+import { RegisterPageHeading } from "@/components/register-page-heading";
 import { getDb } from "@/server/db";
 import { loadInviteLanding } from "@/server/db/queries/engagements";
 import { ContinueInviteForm } from "@/features/engagements/forms";
@@ -17,20 +18,17 @@ export default async function Invite({ params }: { params: Promise<{ token: stri
   }
   return (
     <PageShell mainClassName="register-narrow">
-      <h1 className="mt-2 text-center font-serif text-[1.875rem] leading-tight">You have an invitation</h1>
-      <p className="mx-auto mt-3 mb-5 max-w-[34ch] text-center text-sm leading-relaxed text-muted">
-        {invite.inviter} invited you to an engagement.
-      </p>
+      <RegisterPageHeading title="You have an invitation" />
       <InviteSummary inviter={invite.inviter} title={invite.title} />
-      <section aria-labelledby="invite-consent" className="mx-auto mt-5 max-w-[45ch] text-center">
-        <h2 id="invite-consent" className="font-serif text-base font-semibold">If you accept</h2>
+      <section aria-labelledby="invite-consent" className="mt-5">
+        <h2 id="invite-consent" className="text-base font-semibold">If you accept</h2>
         <p className="mt-2 text-sm leading-relaxed">{CONSENT_TEXT}</p>
         <p className="mt-3 text-sm leading-relaxed text-muted">
           Continuing does not accept this engagement. Sign in or register as a client, then choose whether to accept or decline. Refusal creates no warning or negative signal.
         </p>
       </section>
       <ContinueInviteForm token={token} />
-      <p className="mt-6 rounded-sm bg-ink px-4 py-3.5 text-sm text-paper">
+      <p className="register-ledger mt-6 py-3 text-sm text-muted">
         Invitation links expire {INVITE_TTL_DAYS} days after creation.
       </p>
     </PageShell>
