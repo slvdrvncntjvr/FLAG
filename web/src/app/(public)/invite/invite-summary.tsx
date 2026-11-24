@@ -1,17 +1,21 @@
 import { PageShell } from "@/components/page-shell";
+import { RegisterIcon } from "@/components/register-icon";
 
 export function InviteSummary({ inviter, title }: { inviter: string; title: string }) {
   return (
-    <dl className="register-panel text-center px-9!">
-      <div className="pb-4">
-        <dt className="text-[0.6875rem] font-medium tracking-wide text-muted">Inviting freelancer</dt>
-        <dd className="mt-1 font-serif text-xl leading-tight font-semibold">{inviter}</dd>
-      </div>
-      <div className="border-t border-rule pt-3">
-        <dt className="text-[0.6875rem] font-medium tracking-wide text-muted">Engagement</dt>
-        <dd className="mt-1 font-semibold">{title}</dd>
-      </div>
-    </dl>
+    <div className="register-invite-summary">
+      <RegisterIcon name="invite" className="text-accent" />
+      <dl>
+        <div>
+          <dt className="register-kicker">Engagement</dt>
+          <dd className="mt-1 text-lg leading-tight font-semibold">{title}</dd>
+        </div>
+        <div>
+          <dt className="register-kicker">Inviting freelancer</dt>
+          <dd className="mt-1 text-sm font-semibold">{inviter}</dd>
+        </div>
+      </dl>
+    </div>
   );
 }
 

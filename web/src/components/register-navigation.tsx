@@ -1,13 +1,13 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { RegisterIcon, type RegisterIconName } from "./register-icon";
 
 export type RegisterNavItem = {
   href: string;
   label: string;
-  icon: "search" | "engagements" | "profile" | "record" | "queue" | "data";
+  icon: RegisterIconName;
   paths?: string[];
 };
 
@@ -20,7 +20,7 @@ export function RegisterNavigation({ items }: { items: RegisterNavItem[] }) {
           const current = paths.some(path => pathname === path || pathname.startsWith(`${path}/`));
           return (
             <Link key={href} href={href} aria-current={current ? (pathname === href ? "page" : "location") : undefined}>
-              <span aria-hidden="true" className="register-icon" style={{ "--register-icon": `url("/register/${icon}.svg")` } as CSSProperties} />
+              <RegisterIcon name={icon} />
               {label}
             </Link>
           );

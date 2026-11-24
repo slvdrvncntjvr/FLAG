@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PageShell } from "@/components/page-shell";
+import { RegisterPageHeading } from "@/components/register-page-heading";
 import { getViewer } from "@/server/auth/guards";
 import { isOnboarded } from "@/server/db/queries/viewer";
 import { OnboardingForm } from "@/features/onboarding/onboarding-form";
 import { inviteAuthPath, inviteReturnPath } from "@/lib/invite-return";
-import styles from "./illustration.module.css";
 
 export const metadata: Metadata = { title: "Before you continue" };
 
@@ -18,17 +18,13 @@ export default async function Onboarding({ searchParams }: {
   if (isOnboarded(viewer)) redirect(returnTo);
   return (
     <PageShell mainClassName="register-narrow">
-      <h1 className="text-center font-serif text-[1.375rem] leading-tight">
-        {viewer.role === null ? "Open your account" : "Before you continue"}
-      </h1>
-      {viewer.role === null ? (
-        <>
-          <p className="mt-2 text-center text-sm">Choose a role. This cannot be changed later.</p>
-          <div className={`${styles.illustration} mt-4`} aria-hidden="true" />
-        </>
-      ) : (
-        <p className="mt-2 text-center text-sm text-muted">The privacy notice or terms changed. Review and accept them again.</p>
-      )}
+      <RegisterPageHeading title={viewer.role === null ? "Open your account" : "Before you continue"}>
+        {viewer.role === null ? (
+          <p>Choose a role. This cannot be changed later.</p>
+        ) : (
+          <p>The privacy notice or terms changed. Review and accept them again.</p>
+        )}
+      </RegisterPageHeading>
       <OnboardingForm role={viewer.role} returnTo={returnTo} />
     </PageShell>
   );

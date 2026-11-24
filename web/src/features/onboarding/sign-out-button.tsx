@@ -29,7 +29,7 @@ export function SignOutButton() {
       <button
         type="button"
         disabled={pending}
-        className="min-h-8 font-semibold text-accent underline underline-offset-2 disabled:opacity-60"
+        className="min-h-11 font-semibold text-accent underline underline-offset-2 disabled:opacity-60"
         onClick={signOut}
       >
         {pending ? "Signing out" : "Sign out"}

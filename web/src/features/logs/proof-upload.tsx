@@ -35,6 +35,7 @@ export async function prepareProof(file: File): Promise<File> {
 
 export function ProofUpload({ logId, count, onBusy, endpoint }: { logId: string; count: number; onBusy?: (busy: boolean) => void; endpoint?: string }) {
   const router = useRouter();
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
   const inMessenger = useSyncExternalStore(subscribe, messengerSnapshot, () => false);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ error: boolean; text: string } | null>(null);
@@ -74,13 +75,14 @@ export function ProofUpload({ logId, count, onBusy, endpoint }: { logId: string;
     <p className="text-sm text-muted">Proof is available only to you, the named client and moderators. Do not upload government IDs, ID numbers or unrelated personal information. Check PDFs for private metadata before uploading.</p>
     <details open={inMessenger || undefined} className="register-ledger py-2 text-sm"><summary className="cursor-pointer py-2 font-medium text-accent">Using Messenger? Open in Chrome</summary><p className="pb-2 text-muted">Before choosing a file, use Messenger’s menu to open this page in your external browser. Choose Chrome on Android or Safari on iPhone. Sign in there if asked, then return to this draft.</p></details>
     <p className="text-sm text-muted">Images are re-encoded on your device to remove location and camera metadata. This does not remove personal information visible in the image.</p>
-    <form onSubmit={upload} className="space-y-4" aria-busy={busy}>
-      <fieldset disabled={busy || count >= MAX_PROOFS} className="min-w-0 space-y-4">
+    <form method="post" onSubmit={upload} className="space-y-4" aria-busy={busy}>
+      <fieldset disabled={!hydrated || busy || count >= MAX_PROOFS} className="min-w-0 space-y-4">
         <legend className="sr-only">Upload a private proof</legend>
         <label className="block text-sm font-medium">Proof type<select name="kind" className={field}><option value="screenshot">Screenshot</option><option value="invoice">Invoice</option><option value="agreement">Agreement</option><option value="chat">Chat</option><option value="other">Other</option></select></label>
         <label className="block text-sm font-medium">Proof file<input name="file" type="file" required accept="image/png,image/jpeg,image/webp,application/pdf" className={`${field} file:mr-3 file:rounded-lg file:bg-tint file:px-2 file:py-1 file:text-sm file:font-medium file:text-ink`} /></label>
-        <button className="register-secondary w-full" disabled={busy || count >= MAX_PROOFS}>{busy ? "Uploading…" : "Upload private proof"}</button>
+        <button type="submit" className="register-secondary w-full">{busy ? "Uploading…" : "Upload private proof"}</button>
       </fieldset>
+      <noscript><p className="text-sm text-muted">Enable JavaScript to prepare and upload private proof.</p></noscript>
       {count >= MAX_PROOFS && <p role="status" className="text-sm text-muted">Five proofs are already attached.</p>}
       {feedback && <p role={feedback.error ? "alert" : "status"} className={feedback.error ? "text-sm text-danger" : "text-sm text-accent"}>{feedback.text}</p>}
     </form>

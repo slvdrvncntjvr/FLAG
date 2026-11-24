@@ -103,9 +103,14 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     for (const box of await client.getByRole("checkbox").all()) await box.check();
     const accepted = client.waitForResponse(response => response.request().method() === "POST" && !!response.request().headers()["next-action"]);
     await client.getByRole("button", { name: "Accept engagement", exact: true }).click();
-    await accepted;
-    await client.goto("/engagements");
-    await expect(client.getByText(/^Consent recorded/)).toBeVisible();
+    expect((await accepted).headers()["x-action-redirect"]).toContain("/engagements?response=accepted");
+    const consentPage = await clientContext.newPage();
+    try {
+      await consentPage.goto("/engagements");
+      await expect(consentPage.getByText(/^Consent recorded/)).toBeVisible();
+    } finally {
+      await consentPage.close();
+    }
     console.info("[F2] creating complete draft");
     await page.reload();
     await page.getByRole("link", { name: "Create private log", exact: true }).click();
@@ -136,6 +141,18 @@ test("private intake draft, metadata-free proof, retry, denial and pending", asy
     await page.getByRole("button", { name: "Save complete draft", exact: true }).click();
     await expect(page).toHaveURL(/\/logs\/[a-zA-Z0-9_-]+$/);
     const logUrl = page.url();
+    await test.step("Disable private proof controls until JavaScript runs", async () => {
+      const noScripts = await browser.newContext({ javaScriptEnabled: false, storageState: await page.context().storageState() });
+      try {
+        const preview = await noScripts.newPage();
+        await preview.goto(logUrl);
+        await expect(preview.getByLabel("Proof file", { exact: true })).toBeDisabled();
+        await expect(preview.getByRole("button", { name: "Upload private proof", exact: true })).toBeDisabled();
+        await expect(preview.locator("form").filter({ has: preview.getByLabel("Proof file", { exact: true }) })).toHaveAttribute("method", "post");
+      } finally {
+        await noScripts.close();
+      }
+    });
     console.info("[F2] editing draft and preparing proof");
     await expect(page.getByRole("button", { name: "Submit private log", exact: true })).toBeDisabled();
     await expect(page.getByText(/Positive — derived/)).toBeVisible();

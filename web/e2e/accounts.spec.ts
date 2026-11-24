@@ -24,6 +24,24 @@ test('anonymous routes redirect and deny indexing (INV-7)', async ({ page, reque
   expect(await (await request.get('/robots.txt')).text()).toContain('Disallow: /');
 });
 
+test('the public example explains each audience and supports keyboard navigation', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const draft = page.getByRole('tab', { name: 'Draft', exact: true });
+  const published = page.getByRole('tab', { name: 'Published', exact: true });
+  await expect(draft).toHaveAttribute('aria-selected', 'true');
+  await draft.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'In review', exact: true })).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(published).toBeFocused();
+  await expect(published).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tabpanel')).toContainText('eligible signed-in freelancers');
+  await expect(page.getByRole('tabpanel')).toContainText('Supporting proof stays private');
+  await page.keyboard.press('Home');
+  await expect(draft).toBeFocused();
+});
+
 test('sign-in controls wait for the page to become interactive', async ({ page }) => {
   let releaseScripts!: () => void;
   const scriptsReady = new Promise<void>(resolve => { releaseScripts = resolve; });
@@ -69,7 +87,7 @@ for (const role of ['freelancer', 'client'] as const) {
     await expect(page.locator('p[role=alert]')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send code', exact: true })).toBeEnabled();
     await page.getByRole('button', { name: 'Send code', exact: true }).click();
-    await expect(page.getByLabel('Code', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Code', { exact: true })).toBeFocused();
     let otp = '';
     await expect.poll(async () => {
       const codes: Record<string, string> = JSON.parse(await readFile(process.env.E2E_OTP_FILE!, 'utf8'));

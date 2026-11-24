@@ -1,10 +1,11 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { logReviewAction } from "./log-actions";
 import { type LogResult } from "@/features/logs/schema";
 import { RevisionFields, type FieldValues } from "@/features/updates/fields";
 const field = "register-field mt-2 block w-full";
 const button = "register-primary";
+const subscribe = () => () => {};
 type Proof = { id: string; sha256: string; mime: string; size_bytes: number; kind: string };
 function Feedback({ state }: { state: LogResult | null }) { return state && <p role={state.ok ? "status" : "alert"}>{state.ok ? "Saved. Reload to see the current case." : state.error}</p>; }
 export function CaseLeaseForm({ caseId, lease }: { caseId: string; lease?: string }) {
@@ -13,6 +14,7 @@ export function CaseLeaseForm({ caseId, lease }: { caseId: string; lease?: strin
     <button disabled={pending} className={lease ? "register-secondary" : button}>{pending ? "Saving…" : lease ? "Release claim" : "Claim for 30 minutes"}</button><Feedback state={state} /></form>;
 }
 export function LogDecisionForm({ caseId, lease, revisionId, currentRevisionId, requestId, proofs, fields }: { caseId: string; lease: string; revisionId: string; currentRevisionId: string | null; requestId?: string; proofs: Proof[]; fields: FieldValues }) {
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
   const [decision, setDecision] = useState("");
   const [receipts, setReceipts] = useState<Record<string, string>>({});
   const [opening, setOpening] = useState<string | null>(null);
@@ -50,7 +52,8 @@ export function LogDecisionForm({ caseId, lease, revisionId, currentRevisionId, 
     <input type="hidden" name="operation" value={requestId ? "correction" : "log"} /><input type="hidden" name="caseId" value={caseId} /><input type="hidden" name="expectedClaimUntil" value={lease} /><input type="hidden" name="revisionId" value={revisionId} /><input type="hidden" name="expectedCurrentRevisionId" value={currentRevisionId ?? ""} />{requestId && <input type="hidden" name="requestId" value={requestId} />}
     <h2 className="font-serif text-xl">Review every proof</h2><p className="text-sm text-muted">Check the agreed client and engagement, the claimed event and filing anchor, and whether the rating is supported. Edited or unverifiable material, opinions alone, and one-sided material without client interaction are insufficient.</p>
     {openError && <p role="alert">{openError}</p>}
-    <fieldset disabled={pending || expired} className="min-w-0 space-y-5"><legend className="sr-only">Evidence verdicts and decision</legend>
+    <noscript><p className="text-sm text-muted">Enable JavaScript to open proof and record a review decision.</p></noscript>
+    <fieldset disabled={!hydrated || pending || expired} className="min-w-0 space-y-5"><legend className="sr-only">Evidence verdicts and decision</legend>
       {proofs.map((p, index) => <fieldset key={p.id} className="register-panel min-w-0 space-y-3"><legend className="register-kicker px-1">Proof {index + 1}: {p.kind} ({p.mime}, {p.size_bytes.toLocaleString("en-US")} bytes)</legend>
         <button type="button" disabled={!!opening} onClick={() => open(p)} className="register-secondary">{opening === p.id ? "Opening…" : "Open exact proof"}</button>{receipts[p.id] && <p role="status" className="text-sm text-accent">Proof retrieved for this claim. Review it before recording your verdict.</p>}
         <label className="block">Your evidence verdict<select name={`verdict-${p.id}`} required disabled={!receipts[p.id]} defaultValue="" className={field}><option value="" disabled>Choose verdict</option><option value="accept">Accepted: supports the claim</option><option value="unclear">Unclear: needs changes</option><option value="reject">Rejected: does not support the claim</option></select></label>
